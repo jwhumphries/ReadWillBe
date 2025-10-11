@@ -1,0 +1,75 @@
+package views
+
+import (
+	"readwillbe/types"
+	"readwillbe/version"
+	"fmt"
+)
+
+func versionedPath(path string) string {
+	return fmt.Sprintf("%s?version=%s", path, version.Tag)
+}
+
+templ Layout(cfg types.Config, user *types.User, title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<title>{title}</title>
+		<link href={versionedPath("/static/css/style.min.css")} rel="stylesheet"/>
+		<script src="https://unpkg.com/htmx.org@2.0.6"></script>
+	</head>
+	<body class="bg-gray-100 text-gray-900 flex flex-col min-h-screen">
+		if user != nil && user.IsSet() {
+			<header class="bg-white shadow">
+				<nav class="container mx-auto px-4 py-4">
+					<div class="flex items-center justify-between">
+						<a href="/" class="text-2xl font-bold">ReadWillBe</a>
+						<ul class="flex items-center space-x-6">
+							<li><a href="/dashboard" class="hover:text-gray-600">Dashboard</a></li>
+							<li><a href="/history" class="hover:text-gray-600">History</a></li>
+							<li><a href="/plans" class="hover:text-gray-600">Plans</a></li>
+							<li><a href="/account" class="hover:text-gray-600">Account</a></li>
+							<li>
+								<button hx-post="/auth/sign-out" hx-target="body"
+									class="px-4 py-2 text-white rounded-md bg-gray-600 hover:bg-gray-700">
+									Sign Out
+								</button>
+							</li>
+						</ul>
+					</div>
+				</nav>
+			</header>
+		}
+		<main class="container mx-auto px-4 py-8 flex-grow">
+			{children...}
+		</main>
+		<footer class="bg-white border-t py-4">
+			<div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+				<p>Version: {version.Tag}</p>
+			</div>
+		</footer>
+		<script type="text/javascript">
+			document.addEventListener("DOMContentLoaded", (event) => {
+				document.body.addEventListener('htmx:beforeSwap', function(evt) {
+					if (evt.detail.xhr.status === 422 || evt.detail.xhr.status === 500) {
+						evt.detail.shouldSwap = true;
+						evt.detail.isError = false;
+					}
+				});
+
+				document.body.addEventListener('click', function(evt) {
+					if (evt.target.classList.contains('toggle-rename')) {
+						const target = evt.target.getAttribute('data-target');
+						const el = document.getElementById(target);
+						if (el) {
+							el.classList.toggle('hidden');
+						}
+					}
+				});
+			});
+		</script>
+	</body>
+	</html>
+}

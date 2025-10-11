@@ -1,0 +1,60 @@
+package views
+
+import (
+	"readwillbe/types"
+	"fmt"
+)
+
+templ Dashboard(cfg types.Config, user *types.User, todayReadings []types.Reading, overdueReadings []types.Reading) {
+	@Layout(cfg, user, "Dashboard - ReadWillBe") {
+		<div class="space-y-8">
+			<div>
+				<h1 class="text-3xl font-bold mb-6">Today's Reading</h1>
+				if len(todayReadings) == 0 {
+					<div class="bg-white rounded-lg shadow p-6 text-center text-gray-500">
+						No readings scheduled for today
+					</div>
+				} else {
+					<div class="space-y-4">
+						for _, reading := range todayReadings {
+							@ReadingCard(reading, false)
+						}
+					</div>
+				}
+			</div>
+			if len(overdueReadings) > 0 {
+				<div>
+					<h2 class="text-2xl font-bold mb-4 text-red-600">Overdue Readings</h2>
+					<div class="space-y-4">
+						for _, reading := range overdueReadings {
+							@ReadingCard(reading, true)
+						}
+					</div>
+				</div>
+			}
+		</div>
+	}
+}
+
+templ ReadingCard(reading types.Reading, isOverdue bool) {
+	<div class={templ.Classes("bg-white rounded-lg shadow p-6", templ.KV("border-l-4 border-red-500", isOverdue))}>
+		<div class="flex justify-between items-start">
+			<div class="flex-1">
+				<h3 class="font-bold text-lg mb-2">{reading.Plan.Title}</h3>
+				<p class="text-gray-700 mb-2">{reading.Content}</p>
+				<p class="text-sm text-gray-500">
+					{reading.Date.Format("January 2, 2006")}
+					if isOverdue {
+						<span class="text-red-600 font-bold ml-2">Overdue</span>
+					}
+				</p>
+			</div>
+			<form hx-post={fmt.Sprintf("/reading/%d/complete", reading.ID)} hx-target="body">
+				<button type="submit"
+					class="px-4 py-2 text-white rounded-md bg-green-600 hover:bg-green-700">
+					Mark Complete
+				</button>
+			</form>
+		</div>
+	</div>
+}
