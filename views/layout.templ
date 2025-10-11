@@ -20,36 +20,66 @@ templ Layout(cfg types.Config, user *types.User, title string) {
 		<link href={versionedPath("/static/css/style.min.css")} rel="stylesheet"/>
 		<script src="https://unpkg.com/htmx.org@2.0.6"></script>
 	</head>
-	<body class="bg-gray-100 text-gray-900 flex flex-col min-h-screen">
+	<body class="flex flex-col min-h-screen">
 		if user != nil && user.IsSet() {
-			<header class="bg-white shadow">
-				<nav class="container mx-auto px-4 py-4">
-					<div class="flex items-center justify-between">
-						<a href="/" class="text-2xl font-bold">ReadWillBe</a>
-						<ul class="flex items-center space-x-6">
-							<li><a href="/dashboard" class="hover:text-gray-600">Dashboard</a></li>
-							<li><a href="/history" class="hover:text-gray-600">History</a></li>
-							<li><a href="/plans" class="hover:text-gray-600">Plans</a></li>
-							<li><a href="/account" class="hover:text-gray-600">Account</a></li>
-							<li>
-								<button hx-post="/auth/sign-out" hx-target="body"
-									class="px-4 py-2 text-white rounded-md bg-gray-600 hover:bg-gray-700">
-									Sign Out
-								</button>
-							</li>
-						</ul>
+			<div class="flex flex-1 min-h-screen">
+				<aside class="w-64 flex flex-col sidebar">
+					<div class="p-6 text-center border-b sidebar-title">
+						<h1 class="text-2xl font-bold">ReadWillBe</h1>
 					</div>
-				</nav>
-			</header>
-		}
-		<main class="container mx-auto px-4 py-8 flex-grow">
-			{children...}
-		</main>
-		<footer class="bg-white border-t py-4">
-			<div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-				<p>Version: {version.Tag}</p>
+					<nav class="flex-1 py-4">
+						<a href="/dashboard" class="nav-item">
+							<svg style="width: 0.875rem; height: 0.875rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+							</svg>
+							<span>Dashboard</span>
+						</a>
+						<a href="/history" class="nav-item">
+							<svg style="width: 0.875rem; height: 0.875rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+							</svg>
+							<span>History</span>
+						</a>
+						<a href="/plans" class="nav-item">
+							<svg style="width: 0.875rem; height: 0.875rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+							</svg>
+							<span>Plans</span>
+						</a>
+					</nav>
+					<div class="border-t sidebar-title">
+						<a href="/account" class="nav-item">
+							<svg style="width: 0.875rem; height: 0.875rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+							</svg>
+							<span>Settings</span>
+						</a>
+						<button hx-post="/auth/sign-out" hx-target="body" class="nav-item w-full text-left">
+							<svg style="width: 0.875rem; height: 0.875rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+							</svg>
+							<span>Sign Out</span>
+						</button>
+					</div>
+				</aside>
+				<div class="flex-1 flex flex-col">
+					<header class="py-6 text-center border-b" style="border-color: var(--color-lavender);">
+						<h1 class="text-5xl font-bold">ReadWillBe</h1>
+					</header>
+					<main class="flex-1 p-8">
+						{children...}
+					</main>
+					<footer class="py-4 text-center text-sm border-t" style="border-color: var(--color-lavender);">
+						<p class="text-gray-500">Version: {version.Tag}</p>
+					</footer>
+				</div>
 			</div>
-		</footer>
+		} else {
+			<main class="flex-1 flex flex-col">
+				{children...}
+			</main>
+		}
 		<script type="text/javascript">
 			document.addEventListener("DOMContentLoaded", (event) => {
 				document.body.addEventListener('htmx:beforeSwap', function(evt) {

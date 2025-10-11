@@ -59,6 +59,14 @@ func parseCSV(r io.Reader) ([]types.Reading, error) {
 }
 
 func parseDate(dateStr string) (time.Time, types.DateType, error) {
+	if strings.HasPrefix(dateStr, "Week ") {
+		return parseWeekFormat(dateStr)
+	}
+
+	if len(dateStr) >= 8 && dateStr[4] == '-' && dateStr[5] == 'W' {
+		return parseISOWeek(dateStr)
+	}
+
 	layouts := []struct {
 		layout   string
 		dateType types.DateType
@@ -68,7 +76,6 @@ func parseDate(dateStr string) (time.Time, types.DateType, error) {
 		{"January 2006", types.DateTypeMonth},
 		{"Jan 2006", types.DateTypeMonth},
 		{"2006-01", types.DateTypeMonth},
-		{"2006-W01", types.DateTypeWeek},
 	}
 
 	for _, l := range layouts {
@@ -78,5 +85,42 @@ func parseDate(dateStr string) (time.Time, types.DateType, error) {
 		}
 	}
 
-	return time.Time{}, "", fmt.Errorf("invalid date format: %s", dateStr)
+	return time.Time{}, "", fmt.Errorf("invalid date format: %s (supported: YYYY-MM-DD, MM/DD/YYYY, Month YYYY, YYYY-MM, YYYY-Wnn, Week n)", dateStr)
+}
+
+func parseISOWeek(dateStr string) (time.Time, types.DateType, error) {
+	var year, week int
+	_, err := fmt.Sscanf(dateStr, "%d-W%d", &year, &week)
+	if err != nil {
+		return time.Time{}, "", fmt.Errorf("invalid ISO week format: %s (expected YYYY-Wnn)", dateStr)
+	}
+
+	if week < 1 || week > 53 {
+		return time.Time{}, "", fmt.Errorf("week number must be between 1 and 53, got %d", week)
+	}
+
+	jan4 := time.Date(year, time.January, 4, 0, 0, 0, 0, time.UTC)
+	weekday := int(jan4.Weekday())
+	if weekday == 0 {
+		weekday = 7
+	}
+	mondayOfWeek1 := jan4.AddDate(0, 0, 1-weekday)
+	weekStart := mondayOfWeek1.AddDate(0, 0, 7*(week-1))
+
+	return weekStart, types.DateTypeWeek, nil
+}
+
+func parseWeekFormat(dateStr string) (time.Time, types.DateType, error) {
+	var week int
+	_, err := fmt.Sscanf(dateStr, "Week %d", &week)
+	if err != nil {
+		return time.Time{}, "", fmt.Errorf("invalid week format: %s (expected 'Week n')", dateStr)
+	}
+
+	if week < 1 || week > 53 {
+		return time.Time{}, "", fmt.Errorf("week number must be between 1 and 53, got %d", week)
+	}
+
+	currentYear := time.Now().Year()
+	return parseISOWeek(fmt.Sprintf("%d-W%02d", currentYear, week))
 }

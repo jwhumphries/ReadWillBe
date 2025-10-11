@@ -101,14 +101,43 @@ func TestParseDate(t *testing.T) {
 			wantErr:      false,
 		},
 		{
-			name:         "week format",
+			name:         "ISO week format W01",
 			dateStr:      "2025-W01",
+			wantDateType: types.DateTypeWeek,
+			wantErr:      false,
+		},
+		{
+			name:         "ISO week format W15",
+			dateStr:      "2025-W15",
+			wantDateType: types.DateTypeWeek,
+			wantErr:      false,
+		},
+		{
+			name:         "ISO week format W52",
+			dateStr:      "2025-W52",
+			wantDateType: types.DateTypeWeek,
+			wantErr:      false,
+		},
+		{
+			name:         "Week format simple",
+			dateStr:      "Week 1",
+			wantDateType: types.DateTypeWeek,
+			wantErr:      false,
+		},
+		{
+			name:         "Week format double digit",
+			dateStr:      "Week 15",
 			wantDateType: types.DateTypeWeek,
 			wantErr:      false,
 		},
 		{
 			name:    "invalid format",
 			dateStr: "not-a-date",
+			wantErr: true,
+		},
+		{
+			name:    "week out of range",
+			dateStr: "2025-W54",
 			wantErr: true,
 		},
 	}

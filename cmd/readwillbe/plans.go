@@ -90,7 +90,7 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to create plan")))
 		}
 
-		return c.Redirect(http.StatusFound, "/plans")
+		return htmxRedirect(c, "/plans")
 	}
 }
 
@@ -121,7 +121,7 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Failed to update plan")
 		}
 
-		return c.Redirect(http.StatusFound, "/plans")
+		return htmxRedirect(c, "/plans")
 	}
 }
 
@@ -146,6 +146,6 @@ func deletePlan(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Failed to delete plan")
 		}
 
-		return c.NoContent(http.StatusOK)
+		return htmxRedirect(c, "/plans")
 	}
 }

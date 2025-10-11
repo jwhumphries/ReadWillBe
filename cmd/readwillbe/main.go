@@ -38,6 +38,11 @@ func render(ctx echo.Context, status int, t templ.Component) error {
 	return nil
 }
 
+func htmxRedirect(c echo.Context, url string) error {
+	c.Response().Header().Set("HX-Redirect", url)
+	return c.NoContent(http.StatusOK)
+}
+
 func main() {
 	err := run()
 	if err != nil {

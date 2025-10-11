@@ -8,7 +8,7 @@ templ Account(cfg types.Config, user *types.User) {
 	@Layout(cfg, user, "Account - ReadWillBe") {
 		<div class="max-w-2xl mx-auto">
 			<h1 class="text-3xl font-bold mb-6">Account Settings</h1>
-			<div class="bg-white rounded-lg shadow p-6 space-y-6">
+			<div class="card space-y-6">
 				<div>
 					<h2 class="text-xl font-bold mb-4">Profile</h2>
 					<div class="space-y-2">
@@ -22,21 +22,20 @@ templ Account(cfg types.Config, user *types.User) {
 						<div class="flex items-center space-x-2">
 							<input type="checkbox" id="notifications_enabled" name="notifications_enabled"
 								checked?={user.NotificationsEnabled}
-								class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"/>
-							<label for="notifications_enabled" class="text-sm font-medium text-gray-700">
+								class="w-4 h-4 rounded" style="color: var(--color-sage); border-color: var(--color-lavender);"/>
+							<label for="notifications_enabled" class="text-sm font-medium">
 								Enable daily reading notifications
 							</label>
 						</div>
 						<div>
-							<label for="notification_time" class="block mb-2 text-sm font-bold text-gray-700">
+							<label for="notification_time" class="label">
 								Notification Time
 							</label>
 							<input type="time" id="notification_time" name="notification_time"
 								value={user.NotificationTime}
-								class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+								class="input"/>
 						</div>
-						<button type="submit"
-							class="px-6 py-2 text-white rounded-md bg-blue-600 hover:bg-blue-700">
+						<button type="submit" class="btn-primary">
 							Save Settings
 						</button>
 					</form>

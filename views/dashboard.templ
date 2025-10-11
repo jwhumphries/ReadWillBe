@@ -9,10 +9,11 @@ templ Dashboard(cfg types.Config, user *types.User, todayReadings []types.Readin
 	@Layout(cfg, user, "Dashboard - ReadWillBe") {
 		<div class="space-y-8">
 			<div>
-				<h1 class="text-3xl font-bold mb-6">Today's Reading</h1>
+				<h2 class="text-3xl font-bold mb-6" style="color: var(--color-sage);">Today's Reading</h2>
 				if len(todayReadings) == 0 {
-					<div class="bg-white rounded-lg shadow p-6 text-center text-gray-500">
-						No readings scheduled for today
+					<div class="card text-center">
+						<p class="text-gray-500 text-lg">No readings scheduled for today</p>
+						<p class="text-gray-400 text-sm mt-2">Enjoy your free time or check your <a href="/plans" class="link">reading plans</a></p>
 					</div>
 				} else {
 					<div class="space-y-4">
@@ -24,7 +25,7 @@ templ Dashboard(cfg types.Config, user *types.User, todayReadings []types.Readin
 			</div>
 			if len(overdueReadings) > 0 {
 				<div>
-					<h2 class="text-2xl font-bold mb-4 text-red-600">Overdue Readings</h2>
+					<h2 class="text-3xl font-bold mb-4" style="color: var(--color-burgundy);">Overdue Readings</h2>
 					<div class="space-y-4">
 						for _, reading := range overdueReadings {
 							@ReadingCard(reading, true)
@@ -37,22 +38,26 @@ templ Dashboard(cfg types.Config, user *types.User, todayReadings []types.Readin
 }
 
 templ ReadingCard(reading types.Reading, isOverdue bool) {
-	<div class={templ.Classes("bg-white rounded-lg shadow p-6", templ.KV("border-l-4 border-red-500", isOverdue))}>
-		<div class="flex justify-between items-start">
+	<div class={templ.Classes("card", templ.KV("border-l-4", isOverdue))} style={templ.KV("border-left-color: var(--color-burgundy);", isOverdue)}>
+		<div class="flex justify-between items-start gap-4">
 			<div class="flex-1">
-				<h3 class="font-bold text-lg mb-2">{reading.Plan.Title}</h3>
-				<p class="text-gray-700 mb-2">{reading.Content}</p>
-				<p class="text-sm text-gray-500">
-					{reading.Date.Format("January 2, 2006")}
+				<div class="flex items-center gap-2 mb-2">
+					<h3 class="font-bold text-xl" style="color: var(--color-sage);">{reading.Plan.Title}</h3>
 					if isOverdue {
-						<span class="text-red-600 font-bold ml-2">Overdue</span>
+						<span class="badge-danger">Overdue</span>
 					}
+				</div>
+				<p class="mb-3 leading-relaxed" style="color: var(--color-sage);">{reading.Content}</p>
+				<p class="text-sm opacity-75 flex items-center gap-2" style="color: var(--color-sage);">
+					<svg style="width: 0.875rem; height: 0.875rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+					</svg>
+					{reading.Date.Format("January 2, 2006")}
 				</p>
 			</div>
 			<form hx-post={fmt.Sprintf("/reading/%d/complete", reading.ID)} hx-target="body">
-				<button type="submit"
-					class="px-4 py-2 text-white rounded-md bg-green-600 hover:bg-green-700">
-					Mark Complete
+				<button type="submit" class="btn-success">
+					✓ Complete
 				</button>
 			</form>
 		</div>

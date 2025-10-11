@@ -1,10 +1,168 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-cream: #F7DBA7;
+  --color-sage: #667761;
+  --color-mint: #DCE2BD;
+  --color-lavender: #ADB2D3;
+  --color-terracotta: #C57B57;
+  --color-burgundy: #8B4049;
+  --color-burgundy-dark: #6B3039;
+}
+
 @layer base {
   body {
     font-family: "JetBrains Mono", monospace;
-    background-color: #f3f4f6;
-    color: #111827;
+    background-color: white;
+    color: #1a1a1a;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 rounded font-medium transition-all duration-300 cursor-pointer inline-block text-center;
+    background-color: var(--color-sage);
+    color: var(--color-cream);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-terracotta);
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 rounded font-medium transition-all duration-300 cursor-pointer inline-block text-center;
+    background-color: var(--color-lavender);
+    color: var(--color-sage);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-mint);
+  }
+
+  .btn-success {
+    @apply px-4 py-2 rounded font-medium transition-all duration-300 cursor-pointer inline-block text-center;
+    background-color: var(--color-sage);
+    color: var(--color-cream);
+  }
+
+  .btn-success:hover {
+    background-color: var(--color-terracotta);
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 rounded font-medium transition-all duration-300 cursor-pointer inline-block text-center;
+    background-color: var(--color-burgundy);
+    color: var(--color-cream);
+  }
+
+  .btn-danger:hover {
+    background-color: var(--color-burgundy-dark);
+  }
+
+  .btn-outline {
+    @apply px-4 py-2 rounded font-medium transition-all duration-300 cursor-pointer inline-block text-center;
+    background-color: transparent;
+    color: var(--color-sage);
+    border: 2px solid var(--color-sage);
+  }
+
+  .btn-outline:hover {
+    background-color: var(--color-mint);
+  }
+
+  .btn-sm {
+    @apply px-3 py-1 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-lg;
+  }
+
+  .card {
+    @apply rounded p-6 transition-all duration-300;
+    background-color: white;
+    border: 2px solid var(--color-lavender);
+  }
+
+  .card:hover {
+    border-color: var(--color-terracotta);
+    box-shadow: 0 4px 12px rgba(173, 178, 211, 0.2);
+  }
+
+  .input {
+    @apply w-full px-4 py-2 rounded transition-colors;
+    background-color: white;
+    border: 2px solid var(--color-lavender);
+    color: #1a1a1a;
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: var(--color-terracotta);
+  }
+
+  .label {
+    @apply block mb-2 text-sm font-bold;
+    color: #1a1a1a;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 transition-all duration-300 cursor-pointer text-sm;
+    color: #1a1a1a;
+    border-left: 3px solid transparent;
+  }
+
+  .nav-item:hover {
+    background-color: var(--color-mint);
+    border-left-color: var(--color-terracotta);
+  }
+
+  .nav-item.active {
+    background-color: white;
+    border-left-color: var(--color-terracotta);
+    font-weight: 700;
+  }
+
+  .badge-success {
+    @apply inline-block px-3 py-1 text-xs font-semibold rounded-full;
+    background-color: var(--color-sage);
+    color: var(--color-cream);
+  }
+
+  .badge-warning {
+    @apply inline-block px-3 py-1 text-xs font-semibold rounded-full;
+    background-color: var(--color-terracotta);
+    color: var(--color-cream);
+  }
+
+  .badge-danger {
+    @apply inline-block px-3 py-1 text-xs font-semibold rounded-full;
+    background-color: var(--color-burgundy);
+    color: var(--color-cream);
+  }
+
+  .link {
+    @apply transition-colors cursor-pointer underline;
+    color: var(--color-terracotta);
+  }
+
+  .link:hover {
+    color: var(--color-burgundy);
+  }
+
+  .page-title {
+    @apply text-4xl font-bold text-center mb-8;
+    color: #1a1a1a;
+  }
+
+  .sidebar {
+    background-color: white;
+    border-right: 2px solid var(--color-lavender);
+  }
+
+  .sidebar-title {
+    color: var(--color-sage);
+    border-color: var(--color-lavender);
   }
 }
