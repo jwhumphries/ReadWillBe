@@ -1,15 +1,11 @@
-# syntax=docker/dockerfile:1
-FROM --platform=$BUILDPLATFORM d3fk/tailwindcss:v3 AS tailwind
-
+FROM node:latest AS tailwind
 WORKDIR /workdir
-
-COPY ./views/ /workdir/views/
+RUN [ "npm",  "install", "tailwindcss", "@tailwindcss/cli" ]
 COPY ./static/css/input.css /workdir/static/css/input.css
 COPY ./tailwind.config.js /workdir/.
+RUN [ "npx", "@tailwindcss/cli", "-i", "./static/css/input.css", "-o", "./static/css/style.min.css", "--minify"]
 
-RUN [ "/tailwindcss", "-i", "./static/css/input.css", "-o", "./static/css/style.min.css", "--minify"]
-
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 ENV GOCACHE=/go-build-cache
 ENV GOMODCACHE=/go-mod-cache
@@ -26,6 +22,7 @@ COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
    go mod download
 
+COPY static ./static
 COPY views ./views
 RUN templ generate
 
@@ -46,7 +43,7 @@ FROM alpine AS release
 
 RUN apk add --no-cache tzdata
 
-ENV TZ America/Chicago
+ENV TZ=America/New_York
 
 COPY --from=builder /readwillbe /readwillbe
 

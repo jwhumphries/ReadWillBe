@@ -4,6 +4,12 @@ import (
 	"readwillbe/types"
 )
 
+templ SignInPage(cfg types.Config, err error) {
+	@Layout(cfg, nil, "Sign In - ReadWillBe") {
+		@SignInForm(cfg, err)
+	}
+}
+
 templ SignInForm(config types.Config, err error) {
 	<div class="flex flex-col items-center justify-center min-h-screen">
 		<form hx-post="/auth/sign-in" hx-target="body"
@@ -41,6 +47,12 @@ templ SignInForm(config types.Config, err error) {
 			}
 		</form>
 	</div>
+}
+
+templ SignUpPage(cfg types.Config, err error) {
+	@Layout(cfg, nil, "Sign Up - ReadWillBe") {
+		@SignUpForm(err)
+	}
 }
 
 templ SignUpForm(err error) {

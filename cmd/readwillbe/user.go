@@ -30,9 +30,9 @@ func userExists(email string, db *gorm.DB) bool {
 	return err != gorm.ErrRecordNotFound
 }
 
-func signUp() echo.HandlerFunc {
+func signUp(cfg types.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return render(c, 200, views.SignUpForm(nil))
+		return render(c, 200, views.SignUpPage(cfg, nil))
 	}
 }
 
@@ -44,17 +44,17 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 
 		parsedEmail, err := mail.ParseAddress(email)
 		if err != nil {
-			return render(c, 422, views.SignUpForm(fmt.Errorf("Invalid email address")))
+			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("Invalid email address")))
 		}
 		email = parsedEmail.Address
 
 		if userExists(email, db) {
-			return render(c, 422, views.SignUpForm(fmt.Errorf("Email already registered")))
+			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("Email already registered")))
 		}
 
 		hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 		if err != nil {
-			return render(c, 422, views.SignUpForm(fmt.Errorf("Internal server error")))
+			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("Internal server error")))
 		}
 
 		user := types.User{
@@ -66,7 +66,7 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 
 		if err := db.Create(&user).Error; err != nil {
 			err := errors.Wrap(err, "Create user error")
-			return render(c, 422, views.SignUpForm(err))
+			return render(c, 422, views.SignUpPage(cfg, err))
 		}
 
 		sess, _ := session.Get(SessionKey, c)
@@ -80,7 +80,7 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 
 		err = sess.Save(c.Request(), c.Response())
 		if err != nil {
-			return render(c, 422, views.SignUpForm(errors.Wrap(err, "Internal server error")))
+			return render(c, 422, views.SignUpPage(cfg, errors.Wrap(err, "Internal server error")))
 		}
 
 		return c.Redirect(http.StatusFound, "/")
@@ -89,7 +89,7 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 
 func signIn(cfg types.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return render(c, 200, views.SignInForm(cfg, nil))
+		return render(c, 200, views.SignInPage(cfg, nil))
 	}
 }
 
@@ -100,13 +100,13 @@ func signInWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 
 		_, err := mail.ParseAddress(email)
 		if err != nil {
-			return render(c, 422, views.SignInForm(cfg, fmt.Errorf("Invalid email")))
+			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("Invalid email")))
 		}
 
 		var user types.User
 		db.First(&user, "email = ?", email)
 		if compareErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); compareErr != nil {
-			return render(c, 422, views.SignInForm(cfg, fmt.Errorf("Invalid email or password")))
+			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("Invalid email or password")))
 		}
 
 		sess, _ := session.Get(SessionKey, c)
@@ -120,7 +120,7 @@ func signInWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 
 		err = sess.Save(c.Request(), c.Response())
 		if err != nil {
-			return render(c, 422, views.SignInForm(cfg, errors.Wrap(err, "Internal server error")))
+			return render(c, 422, views.SignInPage(cfg, errors.Wrap(err, "Internal server error")))
 		}
 
 		return c.Redirect(http.StatusFound, "/")

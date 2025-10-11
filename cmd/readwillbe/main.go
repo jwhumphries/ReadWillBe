@@ -9,6 +9,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
+	"readwillbe/static"
 	"readwillbe/types"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -66,6 +67,8 @@ func run() error {
 
 	e := echo.New()
 
+	e.StaticFS("/static", static.FS)
+
 	origErrHandler := e.HTTPErrorHandler
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		logrus.Error(err)
@@ -119,7 +122,7 @@ func run() error {
 	e.GET("/auth/sign-in", signIn(cfg))
 	e.POST("/auth/sign-in", signInWithEmailAndPassword(db, cfg))
 	if cfg.AllowSignup {
-		e.GET("/auth/sign-up", signUp())
+		e.GET("/auth/sign-up", signUp(cfg))
 		e.POST("/auth/sign-up", signUpWithEmailAndPassword(db, cfg))
 	}
 	e.POST("/auth/sign-out", signOut())

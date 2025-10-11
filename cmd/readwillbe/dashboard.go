@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"readwillbe/types"
 	"readwillbe/views"
 	"github.com/labstack/echo/v4"
@@ -11,7 +13,7 @@ func dashboardHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user, ok := GetSessionUser(c)
 		if !ok {
-			return render(c, 200, views.SignInForm(cfg, nil))
+			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
 
 		var readings []types.Reading
