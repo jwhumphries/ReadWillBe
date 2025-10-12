@@ -1,6 +1,7 @@
 # ReadWillBe
 
-A GOTH stack (Go + Templ + HTMX + TailwindCSS) application for tracking progress through daily reading plans.
+A GOTH stack application for tracking progress through daily reading plans.
+Heavily inspired by [fanks](https://github.com/oliverisaac/fanks).
 
 ## Features
 
@@ -12,37 +13,21 @@ A GOTH stack (Go + Templ + HTMX + TailwindCSS) application for tracking progress
 - Configure notification settings
 - Support for day, week, and month-based reading schedules
 
-## Tech Stack
+### CSV Format Example
 
-- **Go** - Backend server and API
-- **Templ** - Type-safe HTML templating
-- **HTMX** - Dynamic frontend interactions
-- **TailwindCSS** - Styling with JetBrains Mono font
-- **SQLite** - Database via GORM
-- **Echo** - Web framework
-- **Docker** - Containerized deployment
-- **Air** - Hot reloading in development
+```csv
+date,reading
+2025-10-15,Read Genesis 1-3
+2025-10-16,Read Genesis 4-6
+2025-10-17,Read Genesis 7-9
+January 2025,Read Mary Had A Little Lamb
+2025-W42,Read Oliver Isaac's Blog
+```
 
-## Prerequisites
-
-- Go 1.24+
-- Docker (optional, for containerized development)
-- Air (for hot reloading): `go install github.com/air-verse/air@latest`
-- Templ: `go install github.com/a-h/templ/cmd/templ@latest`
-- TailwindCSS CLI
-
-## Quick Start
-
-1. Clone the repository
-2. Copy `.env.example` to `.env` and configure:
-   ```bash
-   cp .env.example .env
-   ```
-3. Install dependencies:
-   ```bash
-   make deps
-   make install-tools
-   ```
+Supported date formats:
+- **Day**: `2025-10-15` or `10/15/2025`
+- **Month**: `January 2025` or `Jan 2025` or `2025-01`
+- **Week**: `2025-W42`
 
 ## Development
 
@@ -67,53 +52,6 @@ make tailwind-dev
 
 # Run the application
 go run ./cmd/readwillbe/
-```
-
-## Building for Production
-
-```bash
-make build
-```
-
-The binary will be output to `./bin/readwillbe`.
-
-## Testing
-
-```bash
-make test
-```
-
-## CSV Format
-
-Upload reading plans as CSV files with the following format:
-
-```csv
-date,reading
-2025-01-15,Read Chapter 1
-2025-01-16,Read Chapter 2
-January 2025,Read Book 1
-2025-W01,Weekly Reading
-```
-
-Supported date formats:
-- **Day**: `2025-01-15` or `01/15/2025`
-- **Month**: `January 2025` or `Jan 2025` or `2025-01`
-- **Week**: `2025-W01`
-
-## Project Structure
-
-```
-.
-├── cmd/
-│   └── readwillbe/        # Application entrypoint and handlers
-├── types/                 # Data models and configuration
-├── views/                 # Templ templates
-├── static/
-│   └── css/              # TailwindCSS styles
-├── version/              # Version information
-├── Dockerfile            # Container definition
-├── Makefile              # Build commands
-└── .air.toml            # Hot reload configuration
 ```
 
 ## Environment Variables

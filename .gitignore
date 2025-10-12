@@ -3,9 +3,10 @@ bin/
 .env
 *.db
 *_templ.go
-docker-run
 build-errors.log
 static/css/style.css
 static/css/style.min.css
 node_modules/
 .DS_Store
+.claude/
+CLAUDE.md
