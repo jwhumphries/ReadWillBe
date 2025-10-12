@@ -62,6 +62,3 @@ go run ./cmd/readwillbe/
 - `PORT` - Server port (default: `8080`)
 - `TZ` - Timezone (default: `America/Chicago`)
 
-## License
-
-MIT
