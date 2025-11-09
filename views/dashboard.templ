@@ -5,16 +5,25 @@ import (
 	"fmt"
 )
 
+templ CalendarIcon() {
+	<svg class="h-5 w-5 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+	</svg>
+}
+
 templ Dashboard(cfg types.Config, user *types.User, todayReadings []types.Reading, overdueReadings []types.Reading) {
 	@Layout(cfg, user, "Dashboard - ReadWillBe") {
 		<div class="space-y-8">
 			<div>
 				<h2 class="text-3xl font-bold mb-6">Today's Reading</h2>
 				if len(todayReadings) == 0 {
-					<div class="card bg-base-200 shadow-xl text-center">
-						<div class="card-body">
-							<p class="text-lg opacity-70">No readings scheduled for today</p>
-							<p class="text-sm opacity-50 mt-2">Enjoy your free time or check your <a href="/plans" class="link link-hover">reading plans</a></p>
+					<div role="alert" class="alert">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-6 w-6 shrink-0 stroke-info">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+						</svg>
+						<div>
+							<div class="text-lg">No readings scheduled for today</div>
+							<div class="text-sm">Enjoy your free time or check your <a href="/plans" class="link link-primary">reading plans</a></div>
 						</div>
 					</div>
 				} else {
@@ -27,7 +36,12 @@ templ Dashboard(cfg types.Config, user *types.User, todayReadings []types.Readin
 			</div>
 			if len(overdueReadings) > 0 {
 				<div>
-					<h2 class="text-3xl font-bold mb-4 text-error">Overdue Readings</h2>
+					<div role="alert" class="alert alert-warning mb-4">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+						</svg>
+						<span>You have {fmt.Sprintf("%d", len(overdueReadings))} overdue reading(s)</span>
+					</div>
 					<div class="space-y-4">
 						for _, reading := range overdueReadings {
 							@ReadingCard(reading, true)
@@ -40,27 +54,31 @@ templ Dashboard(cfg types.Config, user *types.User, todayReadings []types.Readin
 }
 
 templ ReadingCard(reading types.Reading, isOverdue bool) {
-	<div class={templ.Classes("card bg-base-200 shadow-xl", templ.KV("border-l-4 border-error", isOverdue))}>
+	<div class={templ.Classes("card bg-base-200 shadow-xl", templ.KV("card-border border-error", isOverdue))}>
 		<div class="card-body">
-			<div class="flex justify-between items-start gap-4">
-				<div class="flex-1">
-					<div class="flex items-center gap-2 mb-2">
-						<h3 class="card-title">{reading.Plan.Title}</h3>
-						if isOverdue {
-							<div class="badge badge-error">Overdue</div>
-						}
-					</div>
-					<p class="mb-3 leading-relaxed">{reading.Content}</p>
-					<p class="text-sm opacity-75 flex items-center gap-2">
-						<svg style="width: 0.875rem; height: 0.875rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+			<div class="flex items-center gap-2 mb-2">
+				<h3 class="card-title flex-1">{reading.Plan.Title}</h3>
+				if isOverdue {
+					<div class="badge badge-error gap-2">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block h-4 w-4 stroke-current">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
 						</svg>
-						{reading.Date.Format("January 2, 2006")}
-					</p>
+						Overdue
+					</div>
+				}
+			</div>
+			<p class="leading-relaxed">{reading.Content}</p>
+			<div class="flex items-center justify-between mt-4">
+				<div class="flex items-center gap-2 text-sm opacity-75">
+					@CalendarIcon()
+					<span>{reading.Date.Format("January 2, 2006")}</span>
 				</div>
 				<form hx-post={fmt.Sprintf("/reading/%d/complete", reading.ID)} hx-target="body">
-					<button type="submit" class="btn btn-success">
-						✓ Complete
+					<button type="submit" class="btn btn-success btn-sm">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+						</svg>
+						Complete
 					</button>
 				</form>
 			</div>

@@ -11,40 +11,48 @@ templ SignInPage(cfg types.Config, err error) {
 }
 
 templ SignInForm(config types.Config, err error) {
-	<div class="flex flex-col items-center justify-center min-h-screen p-8 bg-base-100">
+	<div class="flex flex-col items-center justify-center min-h-screen p-8">
 		<h1 class="text-5xl font-bold text-center mb-12">ReadWillBe</h1>
-		<form hx-post="/auth/sign-in" hx-target="body"
-			class="w-full max-w-md p-8 space-y-6 card bg-base-200 shadow-xl">
-			<h2 class="text-2xl font-bold text-center">Sign In</h2>
-			<div class="form-control">
-				<label for="email" class="label">
-					<span class="label-text">Email</span>
-				</label>
-				<input id="email" type="email" name="email" autocomplete="email" required class="input input-bordered"/>
-			</div>
-			<div class="form-control">
-				<label for="password" class="label">
-					<span class="label-text">Password</span>
-				</label>
-				<input id="password" type="password" name="password" required class="input input-bordered"/>
-			</div>
-			<button type="submit" class="btn btn-primary w-full">
-				Sign In
-			</button>
-			if err != nil {
-				<div class="alert alert-error">
-					<p class="text-sm">{err.Error()}</p>
+		<div class="card w-full max-w-md bg-base-200 shadow-xl">
+			<form hx-post="/auth/sign-in" hx-target="body">
+				<div class="card-body space-y-4">
+					<h2 class="card-title text-center justify-center text-2xl">Sign In</h2>
+					<label class="form-control">
+						<div class="label">
+							<span class="label-text">Email</span>
+						</div>
+						<input type="email" name="email" autocomplete="email" required class="input input-bordered"/>
+					</label>
+					<label class="form-control">
+						<div class="label">
+							<span class="label-text">Password</span>
+						</div>
+						<input type="password" name="password" required class="input input-bordered"/>
+					</label>
+					if err != nil {
+						<div role="alert" class="alert alert-error">
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+							</svg>
+							<span>{err.Error()}</span>
+						</div>
+					}
+					<div class="card-actions">
+						<button type="submit" class="btn btn-primary w-full">
+							Sign In
+						</button>
+					</div>
+					if config.AllowSignup {
+						<div class="text-sm text-center">
+							Need an account?
+							<button type="button" hx-get="/auth/sign-up" hx-target="body" class="link link-primary">
+								Sign Up
+							</button>
+						</div>
+					}
 				</div>
-			}
-			if config.AllowSignup {
-				<p class="text-sm text-center">
-					Need an account?
-					<button type="button" hx-get="/auth/sign-up" hx-target="body" class="link link-hover">
-						Sign Up
-					</button>
-				</p>
-			}
-		</form>
+			</form>
+		</div>
 	</div>
 }
 
@@ -55,43 +63,51 @@ templ SignUpPage(cfg types.Config, err error) {
 }
 
 templ SignUpForm(err error) {
-	<div class="flex flex-col items-center justify-center min-h-screen p-8 bg-base-100">
+	<div class="flex flex-col items-center justify-center min-h-screen p-8">
 		<h1 class="text-5xl font-bold text-center mb-12">ReadWillBe</h1>
-		<form hx-post="/auth/sign-up" hx-target="body"
-			class="w-full max-w-md p-8 space-y-6 card bg-base-200 shadow-xl">
-			<h2 class="text-2xl font-bold text-center">Create Account</h2>
-			<div class="form-control">
-				<label for="name" class="label">
-					<span class="label-text">Name</span>
-				</label>
-				<input id="name" type="text" name="name" autocomplete="name" required class="input input-bordered"/>
-			</div>
-			<div class="form-control">
-				<label for="email" class="label">
-					<span class="label-text">Email</span>
-				</label>
-				<input id="email" type="email" name="email" autocomplete="email" required class="input input-bordered"/>
-			</div>
-			<div class="form-control">
-				<label for="password" class="label">
-					<span class="label-text">Password</span>
-				</label>
-				<input id="password" type="password" name="password" required class="input input-bordered"/>
-			</div>
-			<button type="submit" class="btn btn-primary w-full">
-				Create Account
-			</button>
-			if err != nil {
-				<div class="alert alert-error">
-					<p class="text-sm">{err.Error()}</p>
+		<div class="card w-full max-w-md bg-base-200 shadow-xl">
+			<form hx-post="/auth/sign-up" hx-target="body">
+				<div class="card-body space-y-4">
+					<h2 class="card-title text-center justify-center text-2xl">Create Account</h2>
+					<label class="form-control">
+						<div class="label">
+							<span class="label-text">Name</span>
+						</div>
+						<input type="text" name="name" autocomplete="name" required class="input input-bordered"/>
+					</label>
+					<label class="form-control">
+						<div class="label">
+							<span class="label-text">Email</span>
+						</div>
+						<input type="email" name="email" autocomplete="email" required class="input input-bordered"/>
+					</label>
+					<label class="form-control">
+						<div class="label">
+							<span class="label-text">Password</span>
+						</div>
+						<input type="password" name="password" required class="input input-bordered"/>
+					</label>
+					if err != nil {
+						<div role="alert" class="alert alert-error">
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+							</svg>
+							<span>{err.Error()}</span>
+						</div>
+					}
+					<div class="card-actions">
+						<button type="submit" class="btn btn-primary w-full">
+							Create Account
+						</button>
+					</div>
+					<div class="text-sm text-center">
+						Already have an account?
+						<button type="button" hx-get="/auth/sign-in" hx-target="body" class="link link-primary">
+							Sign In
+						</button>
+					</div>
 				</div>
-			}
-			<p class="text-sm text-center">
-				Already have an account?
-				<button type="button" hx-get="/auth/sign-in" hx-target="body" class="link link-hover">
-					Sign In
-				</button>
-			</p>
-		</form>
+			</form>
+		</div>
 	</div>
 }

@@ -6,42 +6,69 @@ import (
 
 templ Account(cfg types.Config, user *types.User) {
 	@Layout(cfg, user, "Account - ReadWillBe") {
-		<div class="max-w-2xl mx-auto">
-			<h1 class="text-3xl font-bold mb-6">Account Settings</h1>
+		<div class="max-w-2xl mx-auto space-y-6">
+			<h1 class="text-3xl font-bold">Account Settings</h1>
 			<div class="card bg-base-200 shadow-xl">
-				<div class="card-body space-y-6">
-					<div>
-						<h2 class="text-xl font-bold mb-4">Profile</h2>
-						<div class="space-y-2">
-							<p><span class="font-bold">Name:</span> {user.Name}</p>
-							<p><span class="font-bold">Email:</span> {user.Email}</p>
+				<div class="card-body">
+					<h2 class="card-title">Profile</h2>
+					<ul class="list">
+						<li class="list-row">
+							<div class="flex items-center gap-2">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 opacity-75" viewBox="0 0 20 20" fill="currentColor">
+									<path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+								</svg>
+								<span class="text-sm opacity-70">Name</span>
+							</div>
+							<span class="font-bold">{user.Name}</span>
+						</li>
+						<li class="list-row">
+							<div class="flex items-center gap-2">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 opacity-75" viewBox="0 0 20 20" fill="currentColor">
+									<path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+									<path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+								</svg>
+								<span class="text-sm opacity-70">Email</span>
+							</div>
+							<span class="font-bold">{user.Email}</span>
+						</li>
+					</ul>
+				</div>
+			</div>
+			<div class="card bg-base-200 shadow-xl">
+				<form hx-post="/account/settings" hx-target="body">
+					<div class="card-body space-y-4">
+						<h2 class="card-title">Notification Settings</h2>
+						<div class="form-control">
+							<label class="label cursor-pointer justify-start gap-4">
+								<input type="checkbox" name="notifications_enabled"
+									checked?={user.NotificationsEnabled}
+									class="toggle toggle-primary"/>
+								<div>
+									<span class="label-text font-bold">Enable daily reading notifications</span>
+									<p class="text-sm opacity-70">Receive reminders for your daily readings</p>
+								</div>
+							</label>
 						</div>
-					</div>
-					<div>
-						<h2 class="text-xl font-bold mb-4">Notification Settings</h2>
-						<form hx-post="/account/settings" hx-target="body" class="space-y-4">
-							<div class="form-control">
-								<label class="label cursor-pointer justify-start gap-2">
-									<input type="checkbox" id="notifications_enabled" name="notifications_enabled"
-										checked?={user.NotificationsEnabled}
-										class="checkbox"/>
-									<span class="label-text">Enable daily reading notifications</span>
-								</label>
+						<div class="divider"></div>
+						<label class="form-control">
+							<div class="label">
+								<span class="label-text">Notification Time</span>
+								<span class="label-text-alt">When should we remind you?</span>
 							</div>
-							<div class="form-control">
-								<label for="notification_time" class="label">
-									<span class="label-text">Notification Time</span>
-								</label>
-								<input type="time" id="notification_time" name="notification_time"
-									value={user.NotificationTime}
-									class="input input-bordered"/>
-							</div>
-							<button type="submit" class="btn btn-primary">
+							<input type="time" name="notification_time"
+								value={user.NotificationTime}
+								class="input input-bordered"/>
+						</label>
+						<div class="card-actions justify-end">
+							<button type="submit" class="btn btn-primary gap-2">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+									<path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z"></path>
+								</svg>
 								Save Settings
 							</button>
-						</form>
+						</div>
 					</div>
-				</div>
+				</form>
 			</div>
 		</div>
 	}
