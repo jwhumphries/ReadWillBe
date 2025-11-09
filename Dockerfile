@@ -1,9 +1,11 @@
-FROM node:latest AS tailwind
+FROM d3fk/tailwindcss:latest AS tailwind
+
+FROM oven/bun:latest AS styles
 WORKDIR /workdir
-RUN [ "npm",  "install", "tailwindcss", "@tailwindcss/cli" ]
-COPY ./static/css/input.css /workdir/static/css/input.css
-COPY ./tailwind.config.js /workdir/.
-RUN [ "npx", "@tailwindcss/cli", "-i", "./static/css/input.css", "-o", "./static/css/style.min.css", "--minify"]
+RUN [ "bun",  "add", "-D", "daisyui@latest" ]
+COPY --from=tailwind /tailwindcss /workdir/tailwindcss
+COPY ./static/css/style.css /workdir/static/css/style.css
+RUN [ "/workdir/tailwindcss", "-i", "./static/css/style.css", "-o", "./static/css/style.min.css", "--minify"]
 
 FROM golang:1.25-alpine AS builder
 
@@ -30,7 +32,7 @@ COPY cmd ./cmd
 COPY types ./types
 COPY version ./version
 
-COPY --from=tailwind /workdir/static/css/style.min.css ./static/css/style.min.css
+COPY --from=styles /workdir/static/css/style.min.css ./static/css/style.min.css
 
 ARG VERSION="dev"
 

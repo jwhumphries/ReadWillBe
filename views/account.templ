@@ -8,37 +8,39 @@ templ Account(cfg types.Config, user *types.User) {
 	@Layout(cfg, user, "Account - ReadWillBe") {
 		<div class="max-w-2xl mx-auto">
 			<h1 class="text-3xl font-bold mb-6">Account Settings</h1>
-			<div class="card space-y-6">
-				<div>
-					<h2 class="text-xl font-bold mb-4">Profile</h2>
-					<div class="space-y-2">
-						<p><span class="font-bold">Name:</span> {user.Name}</p>
-						<p><span class="font-bold">Email:</span> {user.Email}</p>
+			<div class="card bg-base-200 shadow-xl">
+				<div class="card-body space-y-6">
+					<div>
+						<h2 class="text-xl font-bold mb-4">Profile</h2>
+						<div class="space-y-2">
+							<p><span class="font-bold">Name:</span> {user.Name}</p>
+							<p><span class="font-bold">Email:</span> {user.Email}</p>
+						</div>
 					</div>
-				</div>
-				<div>
-					<h2 class="text-xl font-bold mb-4">Notification Settings</h2>
-					<form hx-post="/account/settings" hx-target="body" class="space-y-4">
-						<div class="flex items-center space-x-2">
-							<input type="checkbox" id="notifications_enabled" name="notifications_enabled"
-								checked?={user.NotificationsEnabled}
-								class="w-4 h-4 rounded" style="color: var(--color-sage); border-color: var(--color-lavender);"/>
-							<label for="notifications_enabled" class="text-sm font-medium">
-								Enable daily reading notifications
-							</label>
-						</div>
-						<div>
-							<label for="notification_time" class="label">
-								Notification Time
-							</label>
-							<input type="time" id="notification_time" name="notification_time"
-								value={user.NotificationTime}
-								class="input"/>
-						</div>
-						<button type="submit" class="btn-primary">
-							Save Settings
-						</button>
-					</form>
+					<div>
+						<h2 class="text-xl font-bold mb-4">Notification Settings</h2>
+						<form hx-post="/account/settings" hx-target="body" class="space-y-4">
+							<div class="form-control">
+								<label class="label cursor-pointer justify-start gap-2">
+									<input type="checkbox" id="notifications_enabled" name="notifications_enabled"
+										checked?={user.NotificationsEnabled}
+										class="checkbox"/>
+									<span class="label-text">Enable daily reading notifications</span>
+								</label>
+							</div>
+							<div class="form-control">
+								<label for="notification_time" class="label">
+									<span class="label-text">Notification Time</span>
+								</label>
+								<input type="time" id="notification_time" name="notification_time"
+									value={user.NotificationTime}
+									class="input input-bordered"/>
+							</div>
+							<button type="submit" class="btn btn-primary">
+								Save Settings
+							</button>
+						</form>
+					</div>
 				</div>
 			</div>
 		</div>

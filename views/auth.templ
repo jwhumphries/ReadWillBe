@@ -11,31 +11,35 @@ templ SignInPage(cfg types.Config, err error) {
 }
 
 templ SignInForm(config types.Config, err error) {
-	<div class="flex flex-col items-center justify-center min-h-screen p-8">
-		<h1 class="text-5xl font-bold text-center mb-12" style="color: var(--color-sage);">ReadWillBe</h1>
+	<div class="flex flex-col items-center justify-center min-h-screen p-8 bg-base-100">
+		<h1 class="text-5xl font-bold text-center mb-12">ReadWillBe</h1>
 		<form hx-post="/auth/sign-in" hx-target="body"
-			class="w-full max-w-md p-8 space-y-6 card">
-			<h2 class="text-2xl font-bold text-center" style="color: var(--color-sage);">Sign In</h2>
-			<div>
-				<label for="email" class="label">Email</label>
-				<input id="email" type="email" name="email" autocomplete="email" required class="input"/>
+			class="w-full max-w-md p-8 space-y-6 card bg-base-200 shadow-xl">
+			<h2 class="text-2xl font-bold text-center">Sign In</h2>
+			<div class="form-control">
+				<label for="email" class="label">
+					<span class="label-text">Email</span>
+				</label>
+				<input id="email" type="email" name="email" autocomplete="email" required class="input input-bordered"/>
 			</div>
-			<div>
-				<label for="password" class="label">Password</label>
-				<input id="password" type="password" name="password" required class="input"/>
+			<div class="form-control">
+				<label for="password" class="label">
+					<span class="label-text">Password</span>
+				</label>
+				<input id="password" type="password" name="password" required class="input input-bordered"/>
 			</div>
-			<button type="submit" class="btn-primary w-full">
+			<button type="submit" class="btn btn-primary w-full">
 				Sign In
 			</button>
 			if err != nil {
-				<div class="p-3 rounded" style="background-color: var(--color-burgundy); color: var(--color-cream);">
-					<p class="text-sm text-center">{err.Error()}</p>
+				<div class="alert alert-error">
+					<p class="text-sm">{err.Error()}</p>
 				</div>
 			}
 			if config.AllowSignup {
 				<p class="text-sm text-center">
 					Need an account?
-					<button type="button" hx-get="/auth/sign-up" hx-target="body" class="link">
+					<button type="button" hx-get="/auth/sign-up" hx-target="body" class="link link-hover">
 						Sign Up
 					</button>
 				</p>
@@ -51,34 +55,40 @@ templ SignUpPage(cfg types.Config, err error) {
 }
 
 templ SignUpForm(err error) {
-	<div class="flex flex-col items-center justify-center min-h-screen p-8">
-		<h1 class="text-5xl font-bold text-center mb-12" style="color: var(--color-sage);">ReadWillBe</h1>
+	<div class="flex flex-col items-center justify-center min-h-screen p-8 bg-base-100">
+		<h1 class="text-5xl font-bold text-center mb-12">ReadWillBe</h1>
 		<form hx-post="/auth/sign-up" hx-target="body"
-			class="w-full max-w-md p-8 space-y-6 card">
-			<h2 class="text-2xl font-bold text-center" style="color: var(--color-sage);">Create Account</h2>
-			<div>
-				<label for="name" class="label">Name</label>
-				<input id="name" type="text" name="name" autocomplete="name" required class="input"/>
+			class="w-full max-w-md p-8 space-y-6 card bg-base-200 shadow-xl">
+			<h2 class="text-2xl font-bold text-center">Create Account</h2>
+			<div class="form-control">
+				<label for="name" class="label">
+					<span class="label-text">Name</span>
+				</label>
+				<input id="name" type="text" name="name" autocomplete="name" required class="input input-bordered"/>
 			</div>
-			<div>
-				<label for="email" class="label">Email</label>
-				<input id="email" type="email" name="email" autocomplete="email" required class="input"/>
+			<div class="form-control">
+				<label for="email" class="label">
+					<span class="label-text">Email</span>
+				</label>
+				<input id="email" type="email" name="email" autocomplete="email" required class="input input-bordered"/>
 			</div>
-			<div>
-				<label for="password" class="label">Password</label>
-				<input id="password" type="password" name="password" required class="input"/>
+			<div class="form-control">
+				<label for="password" class="label">
+					<span class="label-text">Password</span>
+				</label>
+				<input id="password" type="password" name="password" required class="input input-bordered"/>
 			</div>
-			<button type="submit" class="btn-primary w-full">
+			<button type="submit" class="btn btn-primary w-full">
 				Create Account
 			</button>
 			if err != nil {
-				<div class="p-3 rounded" style="background-color: var(--color-burgundy); color: var(--color-cream);">
-					<p class="text-sm text-center">{err.Error()}</p>
+				<div class="alert alert-error">
+					<p class="text-sm">{err.Error()}</p>
 				</div>
 			}
 			<p class="text-sm text-center">
 				Already have an account?
-				<button type="button" hx-get="/auth/sign-in" hx-target="body" class="link">
+				<button type="button" hx-get="/auth/sign-in" hx-target="body" class="link link-hover">
 					Sign In
 				</button>
 			</p>

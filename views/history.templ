@@ -10,8 +10,10 @@ templ History(cfg types.Config, user *types.User, readings []types.Reading) {
 		<div>
 			<h1 class="text-3xl font-bold mb-6">Reading History</h1>
 			if len(readings) == 0 {
-				<div class="card text-center" style="color: var(--color-sage);">
-					No completed readings yet
+				<div class="card bg-base-200 shadow-xl text-center">
+					<div class="card-body">
+						No completed readings yet
+					</div>
 				</div>
 			} else {
 				<div class="space-y-4">
@@ -25,25 +27,27 @@ templ History(cfg types.Config, user *types.User, readings []types.Reading) {
 }
 
 templ CompletedReadingCard(reading types.Reading) {
-	<div class="card">
-		<div class="flex justify-between items-start">
-			<div class="flex-1">
-				<h3 class="font-bold text-lg mb-2">{reading.Plan.Title}</h3>
-				<p class="mb-2">{reading.Content}</p>
-				<p class="text-sm" style="color: var(--color-sage);">
-					Scheduled: {reading.Date.Format("January 2, 2006")}
-				</p>
-				if reading.CompletedAt != nil {
-					<p class="text-sm badge-success">
-						Completed: {reading.CompletedAt.Format("January 2, 2006")}
+	<div class="card bg-base-200 shadow-xl">
+		<div class="card-body">
+			<div class="flex justify-between items-start">
+				<div class="flex-1">
+					<h3 class="card-title mb-2">{reading.Plan.Title}</h3>
+					<p class="mb-2">{reading.Content}</p>
+					<p class="text-sm opacity-70">
+						Scheduled: {reading.Date.Format("January 2, 2006")}
 					</p>
-				}
+					if reading.CompletedAt != nil {
+						<div class="badge badge-success mt-2">
+							Completed: {reading.CompletedAt.Format("January 2, 2006")}
+						</div>
+					}
+				</div>
+				<form hx-post={fmt.Sprintf("/reading/%d/uncomplete", reading.ID)} hx-target="body">
+					<button type="submit" class="btn btn-outline">
+						Mark Incomplete
+					</button>
+				</form>
 			</div>
-			<form hx-post={fmt.Sprintf("/reading/%d/uncomplete", reading.ID)} hx-target="body">
-				<button type="submit" class="btn-outline">
-					Mark Incomplete
-				</button>
-			</form>
 		</div>
 	</div>
 }

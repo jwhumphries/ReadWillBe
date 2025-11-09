@@ -10,13 +10,15 @@ templ PlansList(cfg types.Config, user *types.User, plans []types.Plan) {
 		<div>
 			<div class="flex justify-between items-center mb-6">
 				<h1 class="text-3xl font-bold">Reading Plans</h1>
-				<a href="/plans/create" class="btn-primary">
+				<a href="/plans/create" class="btn btn-primary">
 					Create New Plan
 				</a>
 			</div>
 			if len(plans) == 0 {
-				<div class="card text-center" style="color: var(--color-sage);">
-					No plans yet. Create your first reading plan!
+				<div class="card bg-base-200 shadow-xl text-center">
+					<div class="card-body">
+						No plans yet. Create your first reading plan!
+					</div>
 				</div>
 			} else {
 				<div class="space-y-6">
@@ -30,57 +32,59 @@ templ PlansList(cfg types.Config, user *types.User, plans []types.Plan) {
 }
 
 templ PlanCard(plan types.Plan) {
-	<div class="card">
-		<div class="flex justify-between items-start mb-4">
-			<h2 class="text-2xl font-bold">{plan.Title}</h2>
-			<div class="flex space-x-2">
-				<button
-					type="button"
-					data-target={fmt.Sprintf("rename-%d", plan.ID)}
-					class="toggle-rename btn-secondary btn-sm">
-					Rename
-				</button>
-				<button
-					hx-delete={fmt.Sprintf("/plans/%d", plan.ID)}
-					hx-confirm="Are you sure you want to delete this plan?"
-					hx-target="body"
-					class="btn-danger btn-sm">
-					Delete
-				</button>
-			</div>
-		</div>
-		<div id={fmt.Sprintf("rename-%d", plan.ID)} class="hidden mb-4">
-			<form hx-post={fmt.Sprintf("/plans/%d/rename", plan.ID)} hx-target="body"
-				class="flex space-x-2">
-				<input type="text" name="title" value={plan.Title} required class="flex-1 input"/>
-				<button type="submit" class="btn-success">
-					Save
-				</button>
-			</form>
-		</div>
-		<div class="space-y-2">
-			<p class="text-sm" style="color: var(--color-sage);">{fmt.Sprintf("%d readings", len(plan.Readings))}</p>
-			if len(plan.Readings) > 0 {
-				<div class="mt-4 space-y-2 max-h-96 overflow-y-auto">
-					for _, reading := range plan.Readings {
-						@PlanReadingItem(reading)
-					}
+	<div class="card bg-base-200 shadow-xl">
+		<div class="card-body">
+			<div class="flex justify-between items-start mb-4">
+				<h2 class="card-title">{plan.Title}</h2>
+				<div class="flex space-x-2">
+					<button
+						type="button"
+						data-target={fmt.Sprintf("rename-%d", plan.ID)}
+						class="toggle-rename btn btn-secondary btn-sm">
+						Rename
+					</button>
+					<button
+						hx-delete={fmt.Sprintf("/plans/%d", plan.ID)}
+						hx-confirm="Are you sure you want to delete this plan?"
+						hx-target="body"
+						class="btn btn-error btn-sm">
+						Delete
+					</button>
 				</div>
-			}
+			</div>
+			<div id={fmt.Sprintf("rename-%d", plan.ID)} class="hidden mb-4">
+				<form hx-post={fmt.Sprintf("/plans/%d/rename", plan.ID)} hx-target="body"
+					class="flex space-x-2">
+					<input type="text" name="title" value={plan.Title} required class="flex-1 input input-bordered"/>
+					<button type="submit" class="btn btn-success">
+						Save
+					</button>
+				</form>
+			</div>
+			<div class="space-y-2">
+				<p class="text-sm opacity-70">{fmt.Sprintf("%d readings", len(plan.Readings))}</p>
+				if len(plan.Readings) > 0 {
+					<div class="mt-4 space-y-2 max-h-96 overflow-y-auto">
+						for _, reading := range plan.Readings {
+							@PlanReadingItem(reading)
+						}
+					</div>
+				}
+			</div>
 		</div>
 	</div>
 }
 
 templ PlanReadingItem(reading types.Reading) {
-	<div class="flex justify-between items-center p-3 rounded" style="background-color: var(--color-mint);">
+	<div class="flex justify-between items-center p-3 rounded bg-base-300">
 		<div class="flex-1">
 			<p class="text-sm font-bold">{reading.Date.Format("Jan 2, 2006")}</p>
-			<p class="text-sm" style="color: var(--color-sage);">{reading.Content}</p>
+			<p class="text-sm opacity-80">{reading.Content}</p>
 		</div>
-		<span class={templ.Classes(
+		<span class={templ.Classes("badge",
 			templ.KV("badge-success", reading.Status == types.StatusCompleted),
 			templ.KV("badge-warning", reading.Status == types.StatusPending && !reading.IsOverdue()),
-			templ.KV("badge-danger", reading.IsOverdue()))}>
+			templ.KV("badge-error", reading.IsOverdue()))}>
 			if reading.Status == types.StatusCompleted {
 				Completed
 			} else if reading.IsOverdue() {
@@ -97,32 +101,36 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 		<div class="max-w-2xl mx-auto">
 			<h1 class="text-3xl font-bold mb-6">Create Reading Plan</h1>
 			<form hx-post="/plans/create" hx-target="body" enctype="multipart/form-data"
-				class="card space-y-6">
-				<div>
-					<label for="title" class="label">
-						Plan Title
-					</label>
-					<input id="title" type="text" name="title" required class="input"/>
-				</div>
-				<div>
-					<label for="csv" class="label">
-						CSV File
-					</label>
-					<input id="csv" type="file" name="csv" accept=".csv" required class="input"/>
-					<p class="mt-2 text-sm" style="color: var(--color-sage);">
-						CSV format: date, reading content (e.g., "2025-01-15, Read Chapter 1")
-					</p>
-				</div>
-				if err != nil {
-					<p class="text-sm" style="color: var(--color-burgundy);">{err.Error()}</p>
-				}
-				<div class="flex space-x-4">
-					<button type="submit" class="btn-primary btn-lg">
-						Create Plan
-					</button>
-					<a href="/plans" class="btn-outline btn-lg">
-						Cancel
-					</a>
+				class="card bg-base-200 shadow-xl">
+				<div class="card-body space-y-6">
+					<div class="form-control">
+						<label for="title" class="label">
+							<span class="label-text">Plan Title</span>
+						</label>
+						<input id="title" type="text" name="title" required class="input input-bordered"/>
+					</div>
+					<div class="form-control">
+						<label for="csv" class="label">
+							<span class="label-text">CSV File</span>
+						</label>
+						<input id="csv" type="file" name="csv" accept=".csv" required class="file-input file-input-bordered"/>
+						<label class="label">
+							<span class="label-text-alt">CSV format: date, reading content (e.g., "2025-01-15, Read Chapter 1")</span>
+						</label>
+					</div>
+					if err != nil {
+						<div class="alert alert-error">
+							<p class="text-sm">{err.Error()}</p>
+						</div>
+					}
+					<div class="flex space-x-4">
+						<button type="submit" class="btn btn-primary btn-lg">
+							Create Plan
+						</button>
+						<a href="/plans" class="btn btn-outline btn-lg">
+							Cancel
+						</a>
+					</div>
 				</div>
 			</form>
 		</div>
@@ -130,5 +138,7 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 }
 
 templ CreatePlanFormError(err error) {
-	<div class="text-sm p-4 rounded" style="color: var(--color-burgundy); background-color: rgba(139, 64, 73, 0.1);">{err.Error()}</div>
+	<div class="alert alert-error">
+		<p class="text-sm">{err.Error()}</p>
+	</div>
 }

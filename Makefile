@@ -2,11 +2,11 @@ APP_NAME ?= readwillbe
 
 .PHONY: tailwind-dev
 tailwind-dev:
-	tailwindcss -i ./static/css/input.css -o ./static/css/style.css
+	tailwindcss -i ./input.css -o ./static/css/style.css
 
 .PHONY: tailwind-build
 tailwind-build:
-	tailwindcss -i ./static/css/input.css -o ./static/css/style.min.css --minify
+	tailwindcss -i ./input.css -o ./static/css/style.min.css --minify
 
 .PHONY: templ-generate
 templ-generate:
