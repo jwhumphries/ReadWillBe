@@ -31,7 +31,7 @@ docker-run:
 	chmod +x ./docker-run
 
 .PHONY: docker-build
-docker-build: templ-generate docker-run
+docker-build: templ-generate tailwind-dev docker-run
 	docker kill ${APP_NAME} || true
 	docker build --build-arg VERSION="$$(git rev-parse --short HEAD)" -t ${APP_NAME}:latest .
 
