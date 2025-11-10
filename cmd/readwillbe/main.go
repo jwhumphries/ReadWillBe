@@ -137,8 +137,11 @@ func run() error {
 	e.GET("/plans", plansListHandler(cfg, db))
 	e.GET("/plans/create", createPlanForm(cfg, db))
 	e.POST("/plans/create", createPlan(db))
+	e.GET("/plans/:id/edit", editPlanForm(cfg, db))
+	e.POST("/plans/:id/edit", editPlan(cfg, db))
 	e.POST("/plans/:id/rename", renamePlan(db))
 	e.DELETE("/plans/:id", deletePlan(db))
+	e.DELETE("/plans/:id/readings/:reading_id", deleteReading(db))
 	e.GET("/account", accountHandler(cfg, db))
 	e.POST("/account/settings", updateSettings(db))
 
