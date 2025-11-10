@@ -1,0 +1,1 @@
+docker run --env-file .env --name readwillbe --rm -v /Users/john/Documents/Code/repos/ReadWillBe/tmp/:/data/ --env DB_PATH="/data/readwillbe.db" -i -p 8080:8080 readwillbe:latest

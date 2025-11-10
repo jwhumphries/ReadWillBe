@@ -17,18 +17,18 @@ templ SignInForm(config types.Config, err error) {
 			<form hx-post="/auth/sign-in" hx-target="body">
 				<div class="card-body space-y-4">
 					<h2 class="card-title text-center justify-center text-2xl">Sign In</h2>
-					<label class="form-control">
-						<div class="label">
+					<div class="form-control">
+						<label class="label">
 							<span class="label-text">Email</span>
-						</div>
+						</label>
 						<input type="email" name="email" autocomplete="email" required class="input input-bordered"/>
-					</label>
-					<label class="form-control">
-						<div class="label">
+					</div>
+					<div class="form-control">
+						<label class="label">
 							<span class="label-text">Password</span>
-						</div>
+						</label>
 						<input type="password" name="password" required class="input input-bordered"/>
-					</label>
+					</div>
 					if err != nil {
 						<div role="alert" class="alert alert-error">
 							<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
@@ -69,24 +69,24 @@ templ SignUpForm(err error) {
 			<form hx-post="/auth/sign-up" hx-target="body">
 				<div class="card-body space-y-4">
 					<h2 class="card-title text-center justify-center text-2xl">Create Account</h2>
-					<label class="form-control">
-						<div class="label">
+					<div class="form-control">
+						<label class="label">
 							<span class="label-text">Name</span>
-						</div>
+						</label>
 						<input type="text" name="name" autocomplete="name" required class="input input-bordered"/>
-					</label>
-					<label class="form-control">
-						<div class="label">
+					</div>
+					<div class="form-control">
+						<label class="label">
 							<span class="label-text">Email</span>
-						</div>
+						</label>
 						<input type="email" name="email" autocomplete="email" required class="input input-bordered"/>
-					</label>
-					<label class="form-control">
-						<div class="label">
+					</div>
+					<div class="form-control">
+						<label class="label">
 							<span class="label-text">Password</span>
-						</div>
+						</label>
 						<input type="password" name="password" required class="input input-bordered"/>
-					</label>
+					</div>
 					if err != nil {
 						<div role="alert" class="alert alert-error">
 							<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">

@@ -50,15 +50,15 @@ templ Account(cfg types.Config, user *types.User) {
 							</label>
 						</div>
 						<div class="divider"></div>
-						<label class="form-control">
-							<div class="label">
+						<div class="form-control">
+							<label class="label">
 								<span class="label-text">Notification Time</span>
 								<span class="label-text-alt">When should we remind you?</span>
-							</div>
+							</label>
 							<input type="time" name="notification_time"
 								value={user.NotificationTime}
 								class="input input-bordered"/>
-						</label>
+						</div>
 						<div class="card-actions justify-end">
 							<button type="submit" class="btn btn-primary gap-2">
 								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
