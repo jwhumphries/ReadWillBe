@@ -78,14 +78,14 @@ COPY views ./views
 RUN templ generate
 
 # =============================================================================
-# WASM Builder Stage (for go-app migration)
+# WASM Builder Stage
 # Builds the WebAssembly binary for go-app frontend
 # =============================================================================
 FROM gomods AS wasm-builder
 COPY . .
 RUN mkdir -p web
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
-    GOOS=js GOARCH=wasm go build -o ./web/app.wasm ./web || true
+    GOOS=js GOARCH=wasm go build -o ./web/app.wasm ./web
 
 # =============================================================================
 # Server Builder Stage
@@ -93,12 +93,13 @@ RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-
 # =============================================================================
 FROM templer AS server-builder
 COPY cmd ./cmd
+COPY api ./api
 COPY types ./types
 COPY version ./version
 COPY --from=css-compile /app/static/css/style.min.css ./static/css/style.min.css
 ARG VERSION="dev"
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
-    go build -ldflags "-X readwillbe/version.Tag=${VERSION}" -o /app/bin/server ./cmd/readwillbe/
+    go build -ldflags "-X readwillbe/version.Tag=${VERSION}" -o /app/bin/server ./cmd/server/
 
 # Create non-root user entry
 RUN echo "nonroot:x:10001:10001:NonRoot User:/:/sbin/nologin" > /etc_passwd
@@ -114,6 +115,8 @@ RUN apk add --no-cache ca-certificates tzdata
 # Copy built artifacts
 COPY --from=server-builder /app/bin/server ./server
 COPY --from=server-builder /app/static ./static
+COPY --from=wasm-builder /app/web/app.wasm ./web/app.wasm
+COPY --from=gobase /usr/local/go/lib/wasm/wasm_exec.js ./static/js/wasm_exec.js
 COPY --from=server-builder /etc_passwd /etc/passwd
 
 ENV TZ=America/New_York

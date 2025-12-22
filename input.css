@@ -2,6 +2,7 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @source "./views/*.templ";
+@source "./web/**/*.go";
 
 @plugin "daisyui" {
   themes: light --default, dark --prefersdark, nord;

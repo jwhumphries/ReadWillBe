@@ -143,6 +143,16 @@ tasks:
       - echo "Server built to bin/server"
     silent: true
 
+  build:wasm:
+    desc: Build WASM binary using Docker (outputs to web/)
+    cmds:
+      - echo "Building WASM..."
+      - docker build --target wasm-builder -t {{.APP_NAME}}:wasm .
+      - mkdir -p web
+      - docker run --rm -v "{{.USER_WORKING_DIR}}/web:/output" {{.APP_NAME}}:wasm sh -c "cp /app/web/app.wasm /output/"
+      - echo "WASM built to web/app.wasm"
+    silent: true
+
   build:
     desc: Build all artifacts for production
     cmds:
@@ -299,4 +309,24 @@ tasks:
           - github.com/a-h/templ/cmd/templ@latest
           - github.com/air-verse/air@latest
           - honnef.co/go/tools/cmd/staticcheck@latest
+          - github.com/golangci/golangci-lint/cmd/golangci-lint@latest
         cmd: go install {{.ITEM}}
+
+  # ============================================================================
+  # Linting
+  # ============================================================================
+
+  lint:local:
+    desc: Run golangci-lint locally
+    cmds:
+      - golangci-lint run ./...
+
+  fmt:
+    desc: Format code with gofmt
+    cmds:
+      - gofmt -w -s .
+
+  fmt:check:
+    desc: Check formatting without modifying files
+    cmds:
+      - test -z "$(gofmt -l .)"
