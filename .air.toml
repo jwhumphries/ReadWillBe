@@ -7,8 +7,8 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  cmd = "GOOS=js GOARCH=wasm go build -o ./web/app.wasm ./web && go build -o ./tmp/server ./cmd/readwillbe/"
-  bin = "./tmp/server"
+  cmd = "GOOS=js GOARCH=wasm go build -o ./web/app.wasm ./web && go build -o ./tmp/server ./cmd/server/"
+  entrypoint = "./tmp/server"
   args_bin = []
 
   # Watch settings
