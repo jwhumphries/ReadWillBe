@@ -1,7 +1,3 @@
-# Taskfile.yml
-# https://taskfile.dev
-# Docker-based build pipeline for ReadWillBe
-
 version: '3'
 
 vars:
@@ -26,10 +22,6 @@ tasks:
     cmds:
       - task --list
 
-  # ============================================================================
-  # Docker Build Targets (Internal)
-  # ============================================================================
-
   docker:build-target:
     internal: true
     cmds:
@@ -49,18 +41,6 @@ tasks:
         task: docker:clean-image
         vars: { DOCKER_IMAGE: '{{.APP_NAME}}:{{.ITEM}}' }
 
-  clean:docker:
-    desc: Clean all Docker images
-    cmds:
-      - echo "Cleaning Docker images..."
-      - task: docker:clean-images
-      - echo "Done cleaning Docker images"
-    silent: true
-
-  # ============================================================================
-  # Development
-  # ============================================================================
-
   build:dev:
     desc: Build development Docker image
     cmds:
@@ -72,10 +52,7 @@ tasks:
   dev:
     desc: Start development environment with hot reload
     cmds:
-      - echo "Starting ReadWillBe development environment..."
-      - echo "Building dev image..."
       - task: build:dev
-      - echo "Starting dev container (air + tailwindcss --watch)..."
       - docker run --rm -it
         -p 8080:8080
         -v "{{.USER_WORKING_DIR}}:/app"
@@ -92,19 +69,13 @@ tasks:
     silent: true
     ignore_error: true
 
-  # ============================================================================
-  # Production Build
-  # ============================================================================
-
   build:release:
     desc: Build production Docker image
     cmds:
-      - echo "Building release image..."
       - task: docker:build-target
         vars:
           DOCKER_TARGET: release
           DOCKER_IMAGE: '{{.RELEASE_IMAGE}}'
-      - echo "Release image built: {{.RELEASE_IMAGE}}"
     silent: true
 
   run:release:
@@ -120,213 +91,54 @@ tasks:
         --name {{.APP_NAME}}
         {{.RELEASE_IMAGE}}
 
-  # ============================================================================
-  # Build Pipeline Stages (for CI/CD or manual builds)
-  # ============================================================================
-
   build:css:
-    desc: Build CSS using Docker (outputs to static/css/)
+    desc: Build CSS using Docker
     cmds:
-      - echo "Building CSS..."
       - docker build --target css-compile -t {{.APP_NAME}}:css .
       - docker run --rm -v "{{.USER_WORKING_DIR}}/static/css:/output" {{.APP_NAME}}:css sh -c "cp /app/static/css/style.min.css /output/"
-      - echo "CSS built to static/css/style.min.css"
     silent: true
 
   build:server:
-    desc: Build server binary using Docker (outputs to bin/)
+    desc: Build server binary using Docker
     cmds:
-      - echo "Building server..."
       - docker build --target server-builder -t {{.APP_NAME}}:server --build-arg VERSION={{.GIT_COMMIT}} .
       - mkdir -p bin
       - docker run --rm -v "{{.USER_WORKING_DIR}}/bin:/output" {{.APP_NAME}}:server sh -c "cp /app/bin/server /output/"
-      - echo "Server built to bin/server"
     silent: true
 
   build:wasm:
-    desc: Build WASM binary using Docker (outputs to web/)
+    desc: Build WASM binary using Docker
     cmds:
-      - echo "Building WASM..."
       - docker build --target wasm-builder -t {{.APP_NAME}}:wasm .
       - mkdir -p web
       - docker run --rm -v "{{.USER_WORKING_DIR}}/web:/output" {{.APP_NAME}}:wasm sh -c "cp /app/web/app.wasm /output/"
-      - echo "WASM built to web/app.wasm"
     silent: true
 
   build:
-    desc: Build all artifacts for production
+    desc: Build production Docker image
     cmds:
       - task: build:release
-
-  # ============================================================================
-  # Code Generation (Local - for IDE support)
-  # ============================================================================
-
-  templ:generate:
-    desc: Generate templ files (requires local templ)
-    aliases: [templ]
-    cmds:
-      - templ generate
-    sources:
-      - '**/*.templ'
-    generates:
-      - '**/*_templ.go'
-
-  templ:watch:
-    desc: Watch and regenerate templ files
-    cmds:
-      - templ generate --watch
-
-  # ============================================================================
-  # Testing
-  # ============================================================================
 
   test:
     desc: Run tests in Docker
     cmds:
-      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine go test -race -v -timeout 30s ./...
-
-  test:local:
-    desc: Run tests locally (requires local Go)
-    aliases: [t]
-    cmds:
-      - go test -race -v -timeout 30s ./...
-
-  # ============================================================================
-  # Quality Checks
-  # ============================================================================
-
-  vet:
-    desc: Run go vet
-    cmds:
-      - go vet ./...
+      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine go test -v -timeout 30s ./...
 
   lint:
-    desc: Run linters in Docker
+    desc: Run go vet in Docker
     cmds:
-      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine sh -c "go vet ./..."
-
-  check:
-    desc: Run all checks (vet + test)
-    cmds:
-      - task: vet
-      - task: test:local
-
-  # ============================================================================
-  # Local Development (without Docker)
-  # ============================================================================
-
-  tailwind:dev:
-    desc: Build Tailwind CSS for development (requires local tailwindcss)
-    cmds:
-      - npx tailwindcss -i ./input.css -o ./static/css/style.css
-    sources:
-      - input.css
-      - '**/*.templ'
-    generates:
-      - static/css/style.css
-
-  tailwind:watch:
-    desc: Watch and rebuild Tailwind CSS
-    cmds:
-      - npx tailwindcss -i ./input.css -o ./static/css/style.css --watch
-
-  tailwind:build:
-    desc: Build minified Tailwind CSS for production
-    cmds:
-      - npx tailwindcss -i ./input.css -o ./static/css/style.min.css --minify
-    sources:
-      - input.css
-      - '**/*.templ'
-    generates:
-      - static/css/style.min.css
-
-  go:build:
-    desc: Build Go binary locally
-    cmds:
-      - go build -o ./tmp/{{.APP_NAME}} ./cmd/{{.APP_NAME}}/
-    sources:
-      - '**/*.go'
-      - go.mod
-      - go.sum
-    generates:
-      - tmp/{{.APP_NAME}}
-
-  dev:local:
-    desc: Start local development with air (requires local tools)
-    deps:
-      - templ:generate
-      - tailwind:dev
-    cmds:
-      - air
-
-  run:
-    desc: Build and run the application locally
-    deps:
-      - templ:generate
-      - tailwind:dev
-      - go:build
-    cmds:
-      - ./tmp/{{.APP_NAME}}
-
-  # ============================================================================
-  # Utilities
-  # ============================================================================
+      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine go vet ./...
 
   clean:
-    desc: Remove all generated files and Docker images
+    desc: Remove generated files and Docker images
     cmds:
-      - rm -rf ./tmp/{{.APP_NAME}}
-      - rm -rf ./bin/
+      - rm -rf ./tmp ./bin
       - rm -f ./static/css/style.css ./static/css/style.min.css
       - rm -f ./web/app.wasm
-      - task: clean:docker
-    silent: true
-
-  clean:local:
-    desc: Remove generated files (keep Docker images)
-    cmds:
-      - rm -rf ./tmp/{{.APP_NAME}}
-      - rm -rf ./bin/
-      - rm -f ./static/css/style.css ./static/css/style.min.css
+      - task: docker:clean-images
     silent: true
 
   logs:
     desc: Follow logs from development container
     cmds:
       - docker logs -f {{.APP_NAME}}-dev
-
-  deps:
-    desc: Download and tidy Go dependencies
-    cmds:
-      - go mod download
-      - go mod tidy
-
-  install:tools:
-    desc: Install local development tools
-    cmds:
-      - for:
-          - github.com/a-h/templ/cmd/templ@latest
-          - github.com/air-verse/air@latest
-          - honnef.co/go/tools/cmd/staticcheck@latest
-          - github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-        cmd: go install {{.ITEM}}
-
-  # ============================================================================
-  # Linting
-  # ============================================================================
-
-  lint:local:
-    desc: Run golangci-lint locally
-    cmds:
-      - golangci-lint run ./...
-
-  fmt:
-    desc: Format code with gofmt
-    cmds:
-      - gofmt -w -s .
-
-  fmt:check:
-    desc: Check formatting without modifying files
-    cmds:
-      - test -z "$(gofmt -l .)"
