@@ -1,0 +1,176 @@
+version: '3'
+
+vars:
+  APP_NAME: '{{default "readwillbe" .APP_NAME}}'
+  GIT_COMMIT:
+    sh: git rev-parse --short HEAD
+
+env:
+  CGO_ENABLED: '0'
+
+tasks:
+  default:
+    desc: Show available tasks
+    silent: true
+    cmds:
+      - task --list
+
+  # Code Generation
+  templ:generate:
+    desc: Generate templ files
+    aliases: [templ]
+    cmds:
+      - templ generate
+    sources:
+      - '**/*.templ'
+    generates:
+      - '**/*_templ.go'
+
+  templ:watch:
+    desc: Watch and regenerate templ files
+    cmds:
+      - templ generate --watch
+
+  # Tailwind CSS
+  tailwind:dev:
+    desc: Build Tailwind CSS for development
+    cmds:
+      - npx tailwindcss -i ./input.css -o ./static/css/style.css
+    sources:
+      - input.css
+      - '**/*.templ'
+    generates:
+      - static/css/style.css
+
+  tailwind:build:
+    desc: Build minified Tailwind CSS for production
+    cmds:
+      - npx tailwindcss -i ./input.css -o ./static/css/style.min.css --minify
+    sources:
+      - input.css
+      - '**/*.templ'
+    generates:
+      - static/css/style.min.css
+
+  # Go Build
+  go:build:
+    desc: Build Go binary to tmp directory
+    cmds:
+      - go build -o ./tmp/{{.APP_NAME}} ./cmd/{{.APP_NAME}}/
+    sources:
+      - '**/*.go'
+      - go.mod
+      - go.sum
+    generates:
+      - tmp/{{.APP_NAME}}
+
+  go:vet:
+    desc: Run go vet
+    aliases: [vet]
+    cmds:
+      - go vet ./...
+
+  go:test:
+    desc: Run tests with race detection
+    aliases: [test]
+    cmds:
+      - go test -race -v -timeout 30s ./...
+
+  go:staticcheck:
+    desc: Run staticcheck
+    aliases: [staticcheck]
+    cmds:
+      - staticcheck ./...
+
+  go:deps:
+    desc: Download and tidy Go dependencies
+    aliases: [deps]
+    cmds:
+      - go mod download
+      - go mod tidy
+
+  # Development Builds
+  dev:build:
+    desc: Build for development (templ + tailwind + go)
+    deps:
+      - templ:generate
+      - tailwind:dev
+    cmds:
+      - task: go:build
+
+  # Docker
+  docker:run-script:
+    desc: Generate docker-run script
+    cmds:
+      - |
+        echo 'docker run --env-file .env --name {{.APP_NAME}} --rm -v $(pwd)/tmp/:/data/ --env DB_PATH="/data/{{.APP_NAME}}.db" -i -p 8080:8080 {{.APP_NAME}}:latest' > ./docker-run
+      - chmod +x ./docker-run
+    generates:
+      - docker-run
+    status:
+      - test -f docker-run
+
+  docker:build:
+    desc: Build Docker image
+    deps:
+      - templ:generate
+      - tailwind:dev
+      - docker:run-script
+    cmds:
+      - docker kill {{.APP_NAME}} || true
+      - docker build --build-arg VERSION="{{.GIT_COMMIT}}" -t {{.APP_NAME}}:latest .
+
+  # Main Commands
+  dev:
+    desc: Start development server with air (hot reload)
+    deps:
+      - docker:build
+    cmds:
+      - air
+
+  build:
+    desc: Build production binary
+    deps:
+      - templ:generate
+      - tailwind:build
+    cmds:
+      - go build -ldflags "-X readwillbe/version.Tag={{.GIT_COMMIT}}" -o ./bin/{{.APP_NAME}} ./cmd/{{.APP_NAME}}/
+    generates:
+      - bin/{{.APP_NAME}}
+
+  run:
+    desc: Build and run the application
+    deps:
+      - dev:build
+    cmds:
+      - ./tmp/{{.APP_NAME}}
+
+  # Quality Checks
+  lint:
+    desc: Run all linters
+    deps:
+      - go:vet
+      - go:staticcheck
+
+  check:
+    desc: Run all checks (lint + test)
+    cmds:
+      - task: lint
+      - task: go:test
+
+  # Cleanup
+  clean:
+    desc: Remove generated files
+    cmds:
+      - rm -f docker-run
+      - rm -rf ./tmp/{{.APP_NAME}}
+      - rm -rf ./bin/{{.APP_NAME}}
+
+  # Tools
+  install:tools:
+    desc: Install development tools
+    cmds:
+      - for:
+          - github.com/a-h/templ/cmd/templ@latest
+          - honnef.co/go/tools/cmd/staticcheck@latest
+        cmd: go install {{.ITEM}}
