@@ -22,6 +22,7 @@ func GetHistory(db *gorm.DB) echo.HandlerFunc {
 			Joins("JOIN plans ON plans.id = readings.plan_id").
 			Where("plans.user_id = ? AND readings.status = ?", userID, types.StatusCompleted).
 			Order("readings.completed_at DESC").
+			Limit(50).
 			Find(&readings)
 
 		if result.Error != nil {

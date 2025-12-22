@@ -24,12 +24,12 @@ const (
 
 type Reading struct {
 	gorm.Model
-	PlanID      uint
+	PlanID      uint          `gorm:"index"`
 	Plan        Plan
-	Date        time.Time
+	Date        time.Time     `gorm:"index"`
 	DateType    DateType
 	Content     string
-	Status      ReadingStatus `gorm:"default:pending"`
+	Status      ReadingStatus `gorm:"default:pending;index"`
 	CompletedAt *time.Time
 	CreatedAt   time.Time  `gorm:"autoCreateTime"`
 	UpdatedAt   *time.Time `gorm:"autoUpdateTime"`

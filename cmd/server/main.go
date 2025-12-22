@@ -61,6 +61,19 @@ func run() error {
 		return errors.Wrap(err, "connecting to database")
 	}
 
+	// Performance: Enable WAL mode for better concurrency
+	if err := db.Exec("PRAGMA journal_mode=WAL;").Error; err != nil {
+		log.Warn("failed to enable WAL mode", "error", err)
+	}
+
+	// Performance: Configure connection pool
+	sqlDB, err := db.DB()
+	if err == nil {
+		sqlDB.SetMaxOpenConns(25)
+		sqlDB.SetMaxIdleConns(25)
+		sqlDB.SetConnMaxLifetime(5 * time.Minute)
+	}
+
 	if err := db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{}); err != nil {
 		return errors.Wrap(err, "migrating database")
 	}
@@ -88,6 +101,8 @@ func run() error {
 	}))
 
 	e.Use(middleware.Secure())
+	e.Use(middleware.RequestID())
+	e.Use(middleware.Gzip())
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "method=${method}, uri=${uri}, status=${status}\n",
@@ -130,10 +145,12 @@ func run() error {
 
 	e.GET("/web/app.wasm", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "application/wasm")
+		c.Response().Header().Set("Cache-Control", "public, max-age=31536000")
 		return c.File("web/app.wasm")
 	})
 	e.GET("/app.wasm", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "application/wasm")
+		c.Response().Header().Set("Cache-Control", "public, max-age=31536000")
 		return c.File("web/app.wasm")
 	})
 

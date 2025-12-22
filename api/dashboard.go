@@ -33,8 +33,8 @@ func GetDashboard(db *gorm.DB) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(result.Error, "fetching readings").Error())
 		}
 
-		var todayReadings []types.Reading
-		var overdueReadings []types.Reading
+		todayReadings := make([]types.Reading, 0, len(readings))
+		overdueReadings := make([]types.Reading, 0, len(readings))
 
 		for _, reading := range readings {
 			if reading.IsActiveToday() {
