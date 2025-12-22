@@ -3,7 +3,6 @@ module readwillbe
 go 1.25
 
 require (
-	github.com/a-h/templ v0.3.960
 	github.com/charmbracelet/log v0.4.2
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/gorilla/sessions v1.4.0
@@ -15,7 +14,6 @@ require (
 	github.com/ncruces/go-sqlite3 v0.27.1
 	github.com/ncruces/go-sqlite3/gormlite v0.24.0
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/crypto v0.40.0
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.30.1

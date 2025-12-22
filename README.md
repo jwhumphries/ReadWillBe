@@ -44,8 +44,6 @@ make run
 
 ### Option 3: Manual Steps
 ```bash
-# Generate Templ templates
-make templ-generate
 
 # Compile TailwindCSS
 make tailwind-dev
