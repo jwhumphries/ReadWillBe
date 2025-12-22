@@ -27,7 +27,9 @@ func GetPlans(db *gorm.DB) echo.HandlerFunc {
 		userID := GetUserIDFromContext(c)
 
 		var plans []types.Plan
-		result := db.Preload("Readings").Where("user_id = ?", userID).Find(&plans)
+		result := db.Preload("Readings", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, plan_id, status")
+		}).Where("user_id = ?", userID).Find(&plans)
 		if result.Error != nil {
 			log.Error("failed to fetch plans", "error", result.Error, "user_id", userID)
 			return echo.NewHTTPError(http.StatusInternalServerError, errors.Wrap(result.Error, "fetching plans").Error())
