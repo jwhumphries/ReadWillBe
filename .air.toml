@@ -7,7 +7,7 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  cmd = "templ generate && GOOS=js GOARCH=wasm go build -o ./web/app.wasm ./web && go build -o ./tmp/server ./cmd/readwillbe/"
+  cmd = "GOOS=js GOARCH=wasm go build -o ./web/app.wasm ./web && go build -o ./tmp/server ./cmd/readwillbe/"
   bin = "./tmp/server"
   args_bin = []
 

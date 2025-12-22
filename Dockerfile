@@ -9,6 +9,8 @@ COPY --from=gobase /usr/local/go /usr/local/go
 ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOPATH="/go"
 ENV PATH="${GOPATH}/bin:${PATH}"
+RUN apk add --no-cache git
+RUN go install github.com/air-verse/air@latest
 COPY --chmod=755 scripts/develop.sh /develop.sh
 EXPOSE 8080
 ENTRYPOINT ["/develop.sh"]
