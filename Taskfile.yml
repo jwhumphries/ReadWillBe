@@ -1,9 +1,20 @@
+# Taskfile.yml
+# https://taskfile.dev
+# Docker-based build pipeline for ReadWillBe
+
 version: '3'
 
 vars:
-  APP_NAME: '{{default "readwillbe" .APP_NAME}}'
+  APP_NAME: readwillbe
   GIT_COMMIT:
     sh: git rev-parse --short HEAD
+  IMAGES:
+    - dev
+    - builder
+    - release
+  DEV_IMAGE: '{{.APP_NAME}}:dev'
+  BUILDER_IMAGE: '{{.APP_NAME}}:builder'
+  RELEASE_IMAGE: '{{.APP_NAME}}:release'
 
 env:
   CGO_ENABLED: '0'
@@ -15,9 +26,134 @@ tasks:
     cmds:
       - task --list
 
-  # Code Generation
+  # ============================================================================
+  # Docker Build Targets (Internal)
+  # ============================================================================
+
+  docker:build-target:
+    internal: true
+    cmds:
+      - docker build --target {{.DOCKER_TARGET}} -t {{.DOCKER_IMAGE}} --build-arg APP_NAME={{.APP_NAME}} --build-arg VERSION={{.GIT_COMMIT}} .
+
+  docker:clean-image:
+    internal: true
+    cmds:
+      - docker rmi {{.DOCKER_IMAGE}}
+    silent: true
+    ignore_error: true
+
+  docker:clean-images:
+    internal: true
+    cmds:
+      - for: { var: IMAGES }
+        task: docker:clean-image
+        vars: { DOCKER_IMAGE: '{{.APP_NAME}}:{{.ITEM}}' }
+
+  clean:docker:
+    desc: Clean all Docker images
+    cmds:
+      - echo "Cleaning Docker images..."
+      - task: docker:clean-images
+      - echo "Done cleaning Docker images"
+    silent: true
+
+  # ============================================================================
+  # Development
+  # ============================================================================
+
+  build:dev:
+    desc: Build development Docker image
+    cmds:
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: develop
+          DOCKER_IMAGE: '{{.DEV_IMAGE}}'
+
+  dev:
+    desc: Start development environment with hot reload
+    cmds:
+      - echo "Starting ReadWillBe development environment..."
+      - echo "Building dev image..."
+      - task: build:dev
+      - echo "Starting dev container (air + tailwindcss --watch)..."
+      - docker run --rm -it
+        -p 8080:8080
+        -v "{{.USER_WORKING_DIR}}:/app"
+        -v "{{.USER_WORKING_DIR}}/tmp:/app/tmp"
+        --env-file .env
+        --name {{.APP_NAME}}-dev
+        {{.DEV_IMAGE}}
+    silent: true
+
+  dev:stop:
+    desc: Stop development container
+    cmds:
+      - docker kill {{.APP_NAME}}-dev || true
+    silent: true
+    ignore_error: true
+
+  # ============================================================================
+  # Production Build
+  # ============================================================================
+
+  build:release:
+    desc: Build production Docker image
+    cmds:
+      - echo "Building release image..."
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: release
+          DOCKER_IMAGE: '{{.RELEASE_IMAGE}}'
+      - echo "Release image built: {{.RELEASE_IMAGE}}"
+    silent: true
+
+  run:release:
+    desc: Run the production container
+    deps:
+      - build:release
+    cmds:
+      - docker run --rm -it
+        -p 8080:8080
+        -v "{{.USER_WORKING_DIR}}/tmp:/data"
+        --env-file .env
+        --env DB_PATH="/data/{{.APP_NAME}}.db"
+        --name {{.APP_NAME}}
+        {{.RELEASE_IMAGE}}
+
+  # ============================================================================
+  # Build Pipeline Stages (for CI/CD or manual builds)
+  # ============================================================================
+
+  build:css:
+    desc: Build CSS using Docker (outputs to static/css/)
+    cmds:
+      - echo "Building CSS..."
+      - docker build --target css-compile -t {{.APP_NAME}}:css .
+      - docker run --rm -v "{{.USER_WORKING_DIR}}/static/css:/output" {{.APP_NAME}}:css sh -c "cp /app/static/css/style.min.css /output/"
+      - echo "CSS built to static/css/style.min.css"
+    silent: true
+
+  build:server:
+    desc: Build server binary using Docker (outputs to bin/)
+    cmds:
+      - echo "Building server..."
+      - docker build --target server-builder -t {{.APP_NAME}}:server --build-arg VERSION={{.GIT_COMMIT}} .
+      - mkdir -p bin
+      - docker run --rm -v "{{.USER_WORKING_DIR}}/bin:/output" {{.APP_NAME}}:server sh -c "cp /app/bin/server /output/"
+      - echo "Server built to bin/server"
+    silent: true
+
+  build:
+    desc: Build all artifacts for production
+    cmds:
+      - task: build:release
+
+  # ============================================================================
+  # Code Generation (Local - for IDE support)
+  # ============================================================================
+
   templ:generate:
-    desc: Generate templ files
+    desc: Generate templ files (requires local templ)
     aliases: [templ]
     cmds:
       - templ generate
@@ -31,9 +167,47 @@ tasks:
     cmds:
       - templ generate --watch
 
-  # Tailwind CSS
+  # ============================================================================
+  # Testing
+  # ============================================================================
+
+  test:
+    desc: Run tests in Docker
+    cmds:
+      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine go test -race -v -timeout 30s ./...
+
+  test:local:
+    desc: Run tests locally (requires local Go)
+    aliases: [t]
+    cmds:
+      - go test -race -v -timeout 30s ./...
+
+  # ============================================================================
+  # Quality Checks
+  # ============================================================================
+
+  vet:
+    desc: Run go vet
+    cmds:
+      - go vet ./...
+
+  lint:
+    desc: Run linters in Docker
+    cmds:
+      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine sh -c "go vet ./..."
+
+  check:
+    desc: Run all checks (vet + test)
+    cmds:
+      - task: vet
+      - task: test:local
+
+  # ============================================================================
+  # Local Development (without Docker)
+  # ============================================================================
+
   tailwind:dev:
-    desc: Build Tailwind CSS for development
+    desc: Build Tailwind CSS for development (requires local tailwindcss)
     cmds:
       - npx tailwindcss -i ./input.css -o ./static/css/style.css
     sources:
@@ -41,6 +215,11 @@ tasks:
       - '**/*.templ'
     generates:
       - static/css/style.css
+
+  tailwind:watch:
+    desc: Watch and rebuild Tailwind CSS
+    cmds:
+      - npx tailwindcss -i ./input.css -o ./static/css/style.css --watch
 
   tailwind:build:
     desc: Build minified Tailwind CSS for production
@@ -52,9 +231,8 @@ tasks:
     generates:
       - static/css/style.min.css
 
-  # Go Build
   go:build:
-    desc: Build Go binary to tmp directory
+    desc: Build Go binary locally
     cmds:
       - go build -o ./tmp/{{.APP_NAME}} ./cmd/{{.APP_NAME}}/
     sources:
@@ -64,113 +242,61 @@ tasks:
     generates:
       - tmp/{{.APP_NAME}}
 
-  go:vet:
-    desc: Run go vet
-    aliases: [vet]
+  dev:local:
+    desc: Start local development with air (requires local tools)
+    deps:
+      - templ:generate
+      - tailwind:dev
     cmds:
-      - go vet ./...
+      - air
 
-  go:test:
-    desc: Run tests with race detection
-    aliases: [test]
+  run:
+    desc: Build and run the application locally
+    deps:
+      - templ:generate
+      - tailwind:dev
+      - go:build
     cmds:
-      - go test -race -v -timeout 30s ./...
+      - ./tmp/{{.APP_NAME}}
 
-  go:staticcheck:
-    desc: Run staticcheck
-    aliases: [staticcheck]
+  # ============================================================================
+  # Utilities
+  # ============================================================================
+
+  clean:
+    desc: Remove all generated files and Docker images
     cmds:
-      - staticcheck ./...
+      - rm -rf ./tmp/{{.APP_NAME}}
+      - rm -rf ./bin/
+      - rm -f ./static/css/style.css ./static/css/style.min.css
+      - rm -f ./web/app.wasm
+      - task: clean:docker
+    silent: true
 
-  go:deps:
+  clean:local:
+    desc: Remove generated files (keep Docker images)
+    cmds:
+      - rm -rf ./tmp/{{.APP_NAME}}
+      - rm -rf ./bin/
+      - rm -f ./static/css/style.css ./static/css/style.min.css
+    silent: true
+
+  logs:
+    desc: Follow logs from development container
+    cmds:
+      - docker logs -f {{.APP_NAME}}-dev
+
+  deps:
     desc: Download and tidy Go dependencies
-    aliases: [deps]
     cmds:
       - go mod download
       - go mod tidy
 
-  # Development Builds
-  dev:build:
-    desc: Build for development (templ + tailwind + go)
-    deps:
-      - templ:generate
-      - tailwind:dev
-    cmds:
-      - task: go:build
-
-  # Docker
-  docker:run-script:
-    desc: Generate docker-run script
-    cmds:
-      - |
-        echo 'docker run --env-file .env --name {{.APP_NAME}} --rm -v $(pwd)/tmp/:/data/ --env DB_PATH="/data/{{.APP_NAME}}.db" -i -p 8080:8080 {{.APP_NAME}}:latest' > ./docker-run
-      - chmod +x ./docker-run
-    generates:
-      - docker-run
-    status:
-      - test -f docker-run
-
-  docker:build:
-    desc: Build Docker image
-    deps:
-      - templ:generate
-      - tailwind:dev
-      - docker:run-script
-    cmds:
-      - docker kill {{.APP_NAME}} || true
-      - docker build --build-arg VERSION="{{.GIT_COMMIT}}" -t {{.APP_NAME}}:latest .
-
-  # Main Commands
-  dev:
-    desc: Start development server with air (hot reload)
-    deps:
-      - docker:build
-    cmds:
-      - air
-
-  build:
-    desc: Build production binary
-    deps:
-      - templ:generate
-      - tailwind:build
-    cmds:
-      - go build -ldflags "-X readwillbe/version.Tag={{.GIT_COMMIT}}" -o ./bin/{{.APP_NAME}} ./cmd/{{.APP_NAME}}/
-    generates:
-      - bin/{{.APP_NAME}}
-
-  run:
-    desc: Build and run the application
-    deps:
-      - dev:build
-    cmds:
-      - ./tmp/{{.APP_NAME}}
-
-  # Quality Checks
-  lint:
-    desc: Run all linters
-    deps:
-      - go:vet
-      - go:staticcheck
-
-  check:
-    desc: Run all checks (lint + test)
-    cmds:
-      - task: lint
-      - task: go:test
-
-  # Cleanup
-  clean:
-    desc: Remove generated files
-    cmds:
-      - rm -f docker-run
-      - rm -rf ./tmp/{{.APP_NAME}}
-      - rm -rf ./bin/{{.APP_NAME}}
-
-  # Tools
   install:tools:
-    desc: Install development tools
+    desc: Install local development tools
     cmds:
       - for:
           - github.com/a-h/templ/cmd/templ@latest
+          - github.com/air-verse/air@latest
           - honnef.co/go/tools/cmd/staticcheck@latest
         cmd: go install {{.ITEM}}
