@@ -279,14 +279,14 @@ func (e *EditPlan) Render() app.UI {
 					app.H3().Class("card-title").Text(e.plan.Title),
 					app.Div().Class("overflow-x-auto").Body(
 						app.Table().Class("table").Body(
-							app.Thead().Body(
+							app.THead().Body(
 								app.Tr().Body(
 									app.Th().Text("Date"),
 									app.Th().Text("Content"),
 									app.Th().Text("Status"),
 								),
 							),
-							app.Tbody().Body(
+							app.TBody().Body(
 								app.Range(e.plan.Readings).Slice(func(i int) app.UI {
 									r := e.plan.Readings[i]
 									statusBadge := "badge-ghost"

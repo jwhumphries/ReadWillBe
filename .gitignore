@@ -10,3 +10,6 @@ node_modules/
 .DS_Store
 .claude/
 CLAUDE.md
+web/app.wasm
+server
+test_output.css
