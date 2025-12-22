@@ -15,12 +15,12 @@ ENTRYPOINT ["/develop.sh"]
 
 FROM frontend AS css-compile
 WORKDIR /app
-RUN bun add -D daisyui@latest
+COPY package.json bun.lock ./
+RUN bun install
 COPY input.css ./input.css
-COPY views/ ./views/
 COPY web/ ./web/
 RUN mkdir -p static/css
-RUN tailwindcss -i ./input.css -o ./static/css/style.min.css --minify
+RUN bunx tailwindcss -i ./input.css -o ./static/css/style.min.css --minify
 
 FROM gobase AS gomods
 ENV GOCACHE=/go-build-cache
@@ -31,13 +31,6 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
     go mod download
-RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
-    go install github.com/a-h/templ/cmd/templ@latest
-
-FROM gomods AS templer
-COPY static ./static
-COPY views ./views
-RUN templ generate
 
 FROM gomods AS wasm-builder
 COPY . .
@@ -45,7 +38,7 @@ RUN mkdir -p web
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
     GOOS=js GOARCH=wasm go build -o ./web/app.wasm ./web
 
-FROM templer AS server-builder
+FROM gomods AS server-builder
 COPY cmd ./cmd
 COPY api ./api
 COPY types ./types
