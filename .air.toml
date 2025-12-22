@@ -8,13 +8,13 @@ tmp_dir = "tmp"
 
 [build]
   # Build commands - templ generate then go build
-  cmd = "templ generate && go build -o ./tmp/server ./cmd/readwillbe/"
+  cmd = "templ generate && GOOS=js GOARCH=wasm go build -o ./web/app.wasm ./web && go build -o ./tmp/server ./cmd/readwillbe/"
   bin = "./tmp/server"
   args_bin = []
 
   # Watch settings
   delay = 500
-  exclude_dir = ["assets", "tmp", "vendor", "testdata", "node_modules", "web", "bin"]
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "node_modules", "bin"]
   exclude_file = []
   exclude_regex = ["_test.go", "_templ.go"]
   exclude_unchanged = false
