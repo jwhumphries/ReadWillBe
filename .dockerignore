@@ -1,0 +1,9 @@
+.git
+.gitignore
+.env
+bin
+tmp
+testdata
+node_modules
+*.log
+*.swp

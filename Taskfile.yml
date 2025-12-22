@@ -134,7 +134,7 @@ tasks:
     cmds:
       - rm -rf ./tmp ./bin
       - rm -f ./static/css/style.css ./static/css/style.min.css
-      - rm -f ./web/app.wasm
+      - rm -f ./web/app.wasm ./static/js/wasm_exec.js
       - task: docker:clean-images
     silent: true
 

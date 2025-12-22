@@ -13,6 +13,11 @@ go mod download
 echo "==> Generating templ files..."
 templ generate
 
+echo "==> Building initial WASM..."
+mkdir -p ./static/js
+cp $(go env GOROOT)/misc/wasm/wasm_exec.js ./static/js/wasm_exec.js
+GOOS=js GOARCH=wasm go build -o ./web/app.wasm ./web
+
 echo "==> Building initial CSS..."
 tailwindcss -i ./input.css -o ./static/css/style.css
 

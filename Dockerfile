@@ -33,7 +33,9 @@ RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-
     go mod download
 
 FROM gomods AS wasm-builder
-COPY . .
+COPY api ./api
+COPY types ./types
+COPY web ./web
 RUN mkdir -p web
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
     GOOS=js GOARCH=wasm go build -o ./web/app.wasm ./web

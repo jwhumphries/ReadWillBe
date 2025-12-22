@@ -132,6 +132,10 @@ func run() error {
 		c.Response().Header().Set("Content-Type", "application/wasm")
 		return c.File("web/app.wasm")
 	})
+	e.GET("/app.wasm", func(c echo.Context) error {
+		c.Response().Header().Set("Content-Type", "application/wasm")
+		return c.File("web/app.wasm")
+	})
 
 	appHandler := &app.Handler{
 		Name:        "ReadWillBe",
