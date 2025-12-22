@@ -27,6 +27,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// serverComp is a placeholder component for server-side route matching.
+// It ensures that the app handler serves the shell for these routes.
+type serverComp struct {
+	app.Compo
+}
+
+func (c *serverComp) Render() app.UI {
+	return app.Div()
+}
+
 func main() {
 	if err := run(); err != nil {
 		log.Fatal("server error", "error", err)
@@ -141,7 +151,12 @@ func run() error {
 	apiGroup.GET("/account", api.GetAccount(db))
 	apiGroup.PUT("/account/settings", api.UpdateSettings(db))
 
-	e.StaticFS("/static", static.FS)
+	e.Group("/static", func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Response().Header().Set("Cache-Control", "public, max-age=31536000")
+			return next(c)
+		}
+	}).StaticFS("/", static.FS)
 
 	e.GET("/web/app.wasm", func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "application/wasm")
@@ -153,6 +168,21 @@ func run() error {
 		c.Response().Header().Set("Cache-Control", "public, max-age=31536000")
 		return c.File("web/app.wasm")
 	})
+
+	// Server-side routing for PWA
+	// We register the same routes as the client to ensure the server
+	// knows they exist and serves the shell instead of 404.
+	// We use serverComp as a placeholder since the actual components
+	// are not compiled into the server binary.
+	app.Route("/", func() app.Composer { return &serverComp{} })
+	app.Route("/dashboard", func() app.Composer { return &serverComp{} })
+	app.Route("/auth/sign-in", func() app.Composer { return &serverComp{} })
+	app.Route("/auth/sign-up", func() app.Composer { return &serverComp{} })
+	app.Route("/history", func() app.Composer { return &serverComp{} })
+	app.Route("/plans", func() app.Composer { return &serverComp{} })
+	app.Route("/plans/create", func() app.Composer { return &serverComp{} })
+	app.Route("/plans/{id}/edit", func() app.Composer { return &serverComp{} })
+	app.Route("/account", func() app.Composer { return &serverComp{} })
 
 	appHandler := &app.Handler{
 		Name:        "ReadWillBe",
