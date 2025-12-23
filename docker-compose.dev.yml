@@ -30,17 +30,20 @@ services:
       - devnet
 
   css-reload:
-    image: readwillbe-frontend:dev
+    image: readwillbe-app:dev
     working_dir: /app
     volumes:
       - ./static/css:/app/static/css:ro
-    entrypoint: sh
+    environment:
+      - TEMPL_EXPERIMENT=rawgo
     command: >
-      -c "while true; do
-        inotifywait -q -e modify /app/static/css/main.css 2>/dev/null || sleep 1;
-        wget -q -O /dev/null --post-data='' http://templ:7331/_templ/reload/event 2>/dev/null || true;
-        sleep 0.1;
-      done"
+      air
+      --build.cmd "templ generate --notify-proxy"
+      --build.bin "true"
+      --build.include_ext "css"
+      --build.include_dir "static/css"
+      --build.exclude_dir ""
+      --build.delay 100
     depends_on:
       - templ
       - tailwind
