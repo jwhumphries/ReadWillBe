@@ -7,7 +7,7 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  cmd = "go build -o ./tmp/readwillbe ./cmd/readwillbe/"
+  cmd = "go build -tags dev -o ./tmp/readwillbe ./cmd/readwillbe/"
   entrypoint = "./tmp/readwillbe"
   args_bin = []
 

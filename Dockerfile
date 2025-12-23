@@ -16,7 +16,7 @@ COPY --chmod=755 scripts/develop.sh /develop.sh
 EXPOSE 8080
 ENTRYPOINT ["/develop.sh"]
 
-FROM frontend AS css-builder
+FROM frontend AS styler
 WORKDIR /app
 COPY package.json ./
 RUN bun install
@@ -38,18 +38,18 @@ COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
     go mod download
 
-FROM gomods AS templ-builder
+FROM gomods AS templer
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
    go install github.com/a-h/templ/cmd/templ@latest
 COPY static ./static
 COPY views ./views
 RUN templ generate
 
-FROM templ-builder AS builder
+FROM templer AS builder
 COPY cmd ./cmd
 COPY types ./types
 COPY version ./version
-COPY --from=css-builder /workdir/static/css/style.min.css ./static/css/style.min.css
+COPY --from=styler /app/static/css/main.css ./static/css/main.css
 ARG VERSION="dev"
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
   go build -ldflags "-X readwillbe/version.Tag=$VERSION" -o /readwillbe ./cmd/readwillbe/

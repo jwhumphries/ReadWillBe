@@ -115,6 +115,12 @@ func run() error {
 		return errors.Wrap(err, "Failed to migrate")
 	}
 
+	if cfg.SeedDB {
+		if err := seedDatabase(db); err != nil {
+			return errors.Wrap(err, "seeding database")
+		}
+	}
+
 	store := sessions.NewCookieStore(cfg.CookieSecret)
 	e.Use(session.Middleware(store))
 	e.Use(UserMiddleware(db))
@@ -160,6 +166,11 @@ func UserMiddleware(db *gorm.DB) echo.MiddlewareFunc {
 				userID := sess.Values[SessionUserIDKey].(uint)
 				user, err := getUserByID(db, userID)
 				if err != nil {
+					if errors.Is(err, gorm.ErrRecordNotFound) {
+						delete(sess.Values, SessionUserIDKey)
+						_ = sess.Save(c.Request(), c.Response())
+						return next(c)
+					}
 					return errors.Wrap(err, "getting user by id")
 				}
 				c.Set(UserKey, user)
@@ -192,12 +203,3 @@ func GetSessionUser(c echo.Context) (types.User, bool) {
 	return types.User{}, false
 }
 
-func requireAuth(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		_, ok := GetSessionUser(c)
-		if !ok {
-			return c.Redirect(http.StatusFound, "/auth/sign-in")
-		}
-		return next(c)
-	}
-}

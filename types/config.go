@@ -11,6 +11,7 @@ type Config struct {
 	DBPath       string
 	CookieSecret []byte
 	AllowSignup  bool
+	SeedDB       bool
 	Port         string
 }
 
@@ -34,6 +35,15 @@ func ConfigFromEnv() (Config, error) {
 		allowSignup = parsed
 	}
 
+	seedDB := false
+	if val := os.Getenv("SEED_DB"); val != "" {
+		parsed, err := strconv.ParseBool(val)
+		if err != nil {
+			return Config{}, errors.Wrap(err, "parsing SEED_DB")
+		}
+		seedDB = parsed
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -43,6 +53,7 @@ func ConfigFromEnv() (Config, error) {
 		DBPath:       dbPath,
 		CookieSecret: []byte(cookieSecret),
 		AllowSignup:  allowSignup,
+		SeedDB:       seedDB,
 		Port:         ":" + port,
 	}, nil
 }

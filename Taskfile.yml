@@ -106,8 +106,20 @@ tasks:
   build:css:
     desc: Build CSS using Docker
     cmds:
-      - docker build --target css-builder -t {{.APP_NAME}}:css .
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: styler
+          DOCKER_IMAGE: '{{.APP_NAME}}:css'
       - docker run --rm -v "{{.USER_WORKING_DIR}}/static/css:/output" {{.APP_NAME}}:css sh -c "cp /app/static/css/main.css /output/"
+    silent: true
+
+  build:templ:
+    desc: Build Templ using Docker
+    cmds:
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: templer
+          DOCKER_IMAGE: '{{.APP_NAME}}:templ'
     silent: true
 
   build:

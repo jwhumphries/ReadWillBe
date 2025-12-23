@@ -1,4 +1,4 @@
-version: "2"
+version: 2
 
 run:
   timeout: 5m
@@ -6,13 +6,10 @@ run:
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
     - unused
-    - gofmt
-    - goimports
     - misspell
     - unconvert
     - bodyclose
@@ -27,10 +24,6 @@ linters-settings:
     enable-all: true
     disable:
       - fieldalignment
-  gofmt:
-    simplify: true
-  goimports:
-    local-prefixes: readwillbe
   misspell:
     locale: US
 
@@ -40,6 +33,9 @@ issues:
       linters:
         - errcheck
         - noctx
+    - path: _templ\.go$
+      linters:
+        - all
     - path: web/
       text: "build constraints exclude all Go files"
   exclude-dirs:
@@ -50,6 +46,7 @@ issues:
 
 output:
   formats:
-    - format: colored-line-number
+    colored-line-number:
+      path: stdout
   print-issued-lines: true
   print-linter-name: true

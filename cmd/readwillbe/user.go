@@ -27,7 +27,7 @@ func userExists(email string, db *gorm.DB) bool {
 	var user types.User
 	err := db.First(&user, "email = ?", email).Error
 
-	return err != gorm.ErrRecordNotFound
+	return !errors.Is(err, gorm.ErrRecordNotFound)
 }
 
 func signUp(cfg types.Config) echo.HandlerFunc {
@@ -44,17 +44,17 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 
 		parsedEmail, err := mail.ParseAddress(email)
 		if err != nil {
-			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("Invalid email address")))
+			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("invalid email address")))
 		}
 		email = parsedEmail.Address
 
 		if userExists(email, db) {
-			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("Email already registered")))
+			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("email already registered")))
 		}
 
 		hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 		if err != nil {
-			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("Internal server error")))
+			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("internal server error")))
 		}
 
 		user := types.User{
@@ -100,13 +100,13 @@ func signInWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 
 		_, err := mail.ParseAddress(email)
 		if err != nil {
-			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("Invalid email")))
+			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email")))
 		}
 
 		var user types.User
 		db.First(&user, "email = ?", email)
 		if compareErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); compareErr != nil {
-			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("Invalid email or password")))
+			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email or password")))
 		}
 
 		sess, _ := session.Get(SessionKey, c)

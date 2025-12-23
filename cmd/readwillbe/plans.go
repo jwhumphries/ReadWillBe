@@ -46,7 +46,7 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 
 		title := c.FormValue("title")
 		if title == "" {
-			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("Plan title is required")))
+			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("plan title is required")))
 		}
 
 		file, err := c.FormFile("csv")
@@ -58,7 +58,9 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 		if err != nil {
 			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to open file")))
 		}
-		defer src.Close()
+		defer func() {
+			_ = src.Close()
+		}()
 
 		readings, err := parseCSV(src)
 		if err != nil {
@@ -190,14 +192,14 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 
 		title := c.FormValue("title")
 		if title == "" {
-			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("Plan title is required")))
+			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("plan title is required")))
 		}
 
 		plan.Title = title
 
 		params, err := c.FormParams()
 		if err != nil {
-			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("Failed to parse form data")))
+			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("failed to parse form data")))
 		}
 
 		err = db.Transaction(func(tx *gorm.DB) error {
