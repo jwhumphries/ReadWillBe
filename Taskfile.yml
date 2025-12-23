@@ -49,9 +49,16 @@ tasks:
           DOCKER_TARGET: develop
           DOCKER_IMAGE: '{{.DEV_IMAGE}}'
 
+  clean:bun:
+    desc: Clean bun leftovers
+    cmds:
+      - rm -rf node_modules
+      - rm bun.lock
+
   dev:
     desc: Start development environment with hot reload
     cmds:
+      - defer: { task: clean:bun }
       - task: build:dev
       - docker run --rm -it
         -p 8080:8080
@@ -60,13 +67,6 @@ tasks:
         --name {{.APP_NAME}}-dev
         {{.DEV_IMAGE}}
     silent: true
-
-  dev:stop:
-    desc: Stop development container
-    cmds:
-      - docker kill {{.APP_NAME}}-dev || true
-    silent: true
-    ignore_error: true
 
   build:release:
     desc: Build production Docker image
@@ -133,8 +133,3 @@ tasks:
       - rm -f ./web/app.wasm ./static/js/wasm_exec.js
       - task: docker:clean-images
     silent: true
-
-  logs:
-    desc: Follow logs from development container
-    cmds:
-      - docker logs -f {{.APP_NAME}}-dev
