@@ -1,0 +1,140 @@
+version: '3'
+
+vars:
+  APP_NAME: readwillbe
+  GIT_COMMIT:
+    sh: git rev-parse --short HEAD
+  IMAGES:
+    - dev
+    - builder
+    - release
+  DEV_IMAGE: '{{.APP_NAME}}:dev'
+  BUILDER_IMAGE: '{{.APP_NAME}}:builder'
+  RELEASE_IMAGE: '{{.APP_NAME}}:release'
+
+env:
+  CGO_ENABLED: '1'
+
+tasks:
+  default:
+    desc: Show available tasks
+    silent: true
+    cmds:
+      - task --list
+
+  docker:build-target:
+    internal: true
+    cmds:
+      - docker build --target {{.DOCKER_TARGET}} -t {{.DOCKER_IMAGE}} --build-arg APP_NAME={{.APP_NAME}} --build-arg VERSION={{.GIT_COMMIT}} .
+
+  docker:clean-image:
+    internal: true
+    cmds:
+      - docker rmi {{.DOCKER_IMAGE}}
+    silent: true
+    ignore_error: true
+
+  docker:clean-images:
+    internal: true
+    cmds:
+      - for: { var: IMAGES }
+        task: docker:clean-image
+        vars: { DOCKER_IMAGE: '{{.APP_NAME}}:{{.ITEM}}' }
+
+  build:dev:
+    desc: Build development Docker image
+    cmds:
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: develop
+          DOCKER_IMAGE: '{{.DEV_IMAGE}}'
+
+  dev:
+    desc: Start development environment with hot reload
+    cmds:
+      - task: build:dev
+      - docker run --rm -it
+        -p 8080:8080
+        -v "{{.USER_WORKING_DIR}}:/app"
+        --env-file .env
+        --name {{.APP_NAME}}-dev
+        {{.DEV_IMAGE}}
+    silent: true
+
+  dev:stop:
+    desc: Stop development container
+    cmds:
+      - docker kill {{.APP_NAME}}-dev || true
+    silent: true
+    ignore_error: true
+
+  build:release:
+    desc: Build production Docker image
+    cmds:
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: release
+          DOCKER_IMAGE: '{{.RELEASE_IMAGE}}'
+    silent: true
+
+  build:lint:
+    desc: Build linter Docker image
+    cmds:
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: lint
+          DOCKER_IMAGE: '{{.APP_NAME}}:lint'
+      - defer: 
+          task: docker:clean-image
+          vars:
+            DOCKER_IMAGE: '{{.APP_NAME}}:lint'
+    silent: true
+
+  run:release:
+    desc: Run the production container
+    deps:
+      - build:release
+    cmds:
+      - docker run --rm -it
+        -p 8080:8080
+        -v "{{.USER_WORKING_DIR}}/tmp:/data"
+        --env-file .env
+        --env DB_PATH="/data/{{.APP_NAME}}.db"
+        --name {{.APP_NAME}}
+        {{.RELEASE_IMAGE}}
+
+  build:css:
+    desc: Build CSS using Docker
+    cmds:
+      - docker build --target css-builder -t {{.APP_NAME}}:css .
+      - docker run --rm -v "{{.USER_WORKING_DIR}}/static/css:/output" {{.APP_NAME}}:css sh -c "cp /app/static/css/main.css /output/"
+    silent: true
+
+  build:
+    desc: Build production Docker image
+    cmds:
+      - task: build:release
+
+  test:
+    desc: Run tests in Docker
+    cmds:
+      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine go test -v -timeout 30s ./...
+
+  lint:
+    desc: Run linter
+    cmds:
+      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine go vet ./...
+
+  clean:
+    desc: Remove generated files and Docker images
+    cmds:
+      - rm -rf ./tmp ./bin
+      - rm -f ./static/css/style.css ./static/css/style.min.css
+      - rm -f ./web/app.wasm ./static/js/wasm_exec.js
+      - task: docker:clean-images
+    silent: true
+
+  logs:
+    desc: Follow logs from development container
+    cmds:
+      - docker logs -f {{.APP_NAME}}-dev

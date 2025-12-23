@@ -1,62 +1,68 @@
-FROM d3fk/tailwindcss:latest AS tailwind
+FROM golang:1.25-alpine AS gobase
+FROM ghcr.io/jwhumphries/frontend:latest AS frontend
 
-FROM oven/bun:latest AS styles
-WORKDIR /workdir
-RUN [ "bun",  "add", "-D", "daisyui@latest" ]
-COPY --from=tailwind /tailwindcss /workdir/tailwindcss
-COPY ./static/css/style.css /workdir/static/css/style.css
-RUN [ "/workdir/tailwindcss", "-i", "./static/css/style.css", "-o", "./static/css/style.min.css", "--minify"]
+FROM frontend AS develop
+ARG APP_NAME=readwillbe
+ENV APP_NAME=${APP_NAME}
+WORKDIR /app
+COPY --from=gobase /usr/local/go /usr/local/go
+ENV PATH="/usr/local/go/bin:${PATH}"
+ENV GOPATH="/go"
+ENV PATH="${GOPATH}/bin:${PATH}"
+RUN apk add --no-cache git
+RUN go install github.com/air-verse/air@latest
+RUN go install github.com/a-h/templ/cmd/templ@latest
+COPY --chmod=755 scripts/develop.sh /develop.sh
+EXPOSE 8080
+ENTRYPOINT ["/develop.sh"]
 
-FROM golang:1.25-alpine AS builder
+FROM frontend AS css-builder
+WORKDIR /app
+COPY package.json ./
+RUN bun install
+COPY input.css ./input.css
+RUN mkdir -p static/css
+RUN bun run build
 
+FROM golangci/golangci-lint:v2.7.2 AS lint
+WORKDIR /app
+COPY . /app
+RUN golangci-lint run
+
+FROM gobase AS gomods
 ENV GOCACHE=/go-build-cache
 ENV GOMODCACHE=/go-mod-cache
-ENV CGO_ENABLED=0
-
 RUN apk add --no-cache git ca-certificates
-
-RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
-   go install github.com/a-h/templ/cmd/templ@latest
-
 WORKDIR /app
-
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
-   go mod download
+    go mod download
 
+FROM gomods AS templ-builder
+RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
+   go install github.com/a-h/templ/cmd/templ@latest
 COPY static ./static
 COPY views ./views
 RUN templ generate
 
+FROM templ-builder AS builder
 COPY cmd ./cmd
 COPY types ./types
 COPY version ./version
-
-COPY --from=styles /workdir/static/css/style.min.css ./static/css/style.min.css
-
+COPY --from=css-builder /workdir/static/css/style.min.css ./static/css/style.min.css
 ARG VERSION="dev"
-
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
   go build -ldflags "-X readwillbe/version.Tag=$VERSION" -o /readwillbe ./cmd/readwillbe/
-
 RUN echo "nonroot:x:10001:10001:NonRoot User:/:/sbin/nologin" > /etc/passwd
 
-FROM alpine AS release
-
+FROM alpine:3.20 AS release
+WORKDIR /app
 RUN apk add --no-cache tzdata
-
-ENV TZ=America/New_York
-
 COPY --from=builder /readwillbe /readwillbe
-
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-
 COPY --from=builder /etc/passwd /etc/passwd
-
-USER 10001
-
+ENV TZ=America/New_York
 ENV PORT=:8080
-
 EXPOSE 8080
-
+USER 10001
 ENTRYPOINT ["/readwillbe"]
