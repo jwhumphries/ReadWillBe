@@ -1,8 +1,6 @@
 package views
 
-import (
-	"readwillbe/types"
-)
+import "readwillbe/types"
 
 templ SignInPage(cfg types.Config, err error) {
 	@Layout(cfg, nil, "Sign In - ReadWillBe") {
@@ -14,7 +12,7 @@ templ SignInForm(config types.Config, err error) {
 	<div class="flex flex-col items-center justify-center min-h-screen p-8">
 		<h1 class="text-5xl font-bold text-center mb-12">ReadWillBe</h1>
 		<div class="card w-full max-w-md bg-base-200 shadow-xl">
-			<form hx-post="/auth/sign-in" hx-target="body">
+			<form hx-post="/auth/sign-in" hx-target="body" hx-disabled-elt="find button" class="group">
 				<div class="card-body space-y-4">
 					<h2 class="card-title text-center justify-center text-2xl">Sign In</h2>
 					<div class="form-control">
@@ -34,11 +32,12 @@ templ SignInForm(config types.Config, err error) {
 							<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
 							</svg>
-							<span>{err.Error()}</span>
+							<span>{ err.Error() }</span>
 						</div>
 					}
 					<div class="card-actions">
 						<button type="submit" class="btn btn-primary w-full">
+							<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
 							Sign In
 						</button>
 					</div>
@@ -66,7 +65,7 @@ templ SignUpForm(err error) {
 	<div class="flex flex-col items-center justify-center min-h-screen p-8">
 		<h1 class="text-5xl font-bold text-center mb-12">ReadWillBe</h1>
 		<div class="card w-full max-w-md bg-base-200 shadow-xl">
-			<form hx-post="/auth/sign-up" hx-target="body">
+			<form hx-post="/auth/sign-up" hx-target="body" hx-disabled-elt="find button" class="group">
 				<div class="card-body space-y-4">
 					<h2 class="card-title text-center justify-center text-2xl">Create Account</h2>
 					<div class="form-control">
@@ -92,11 +91,12 @@ templ SignUpForm(err error) {
 							<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
 							</svg>
-							<span>{err.Error()}</span>
+							<span>{ err.Error() }</span>
 						</div>
 					}
 					<div class="card-actions">
 						<button type="submit" class="btn btn-primary w-full">
+							<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
 							Create Account
 						</button>
 					</div>
