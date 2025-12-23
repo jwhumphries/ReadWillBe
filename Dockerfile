@@ -27,6 +27,12 @@ RUN bun run build
 FROM golangci/golangci-lint:v2.7.2 AS lint
 WORKDIR /app
 COPY . /app
+RUN unformatted=$(find . -name "*.go" ! -name "*_templ.go" -type f -exec gofmt -l {} \;) && \
+    if [ -n "$unformatted" ]; then \
+        echo "The following files need formatting:"; \
+        echo "$unformatted"; \
+        exit 1; \
+    fi
 RUN golangci-lint run
 
 FROM gobase AS gomods

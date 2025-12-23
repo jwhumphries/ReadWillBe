@@ -132,6 +132,16 @@ tasks:
     cmds:
       - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine go test -v -timeout 30s ./...
 
+  fmt:check:
+    desc: Check if Go files need formatting (excludes templ files)
+    cmds:
+      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine sh -c 'unformatted=$(find . -name "*.go" ! -name "*_templ.go" -type f -exec gofmt -l {} \;) && if [ -n "$unformatted" ]; then echo "The following files need formatting:"; echo "$unformatted"; exit 1; fi'
+
+  fmt:
+    desc: Auto-format Go files that need formatting (excludes templ files)
+    cmds:
+      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine sh -c 'find . -name "*.go" ! -name "*_templ.go" -type f | xargs -I {} go fmt {}'
+
   lint:
     desc: Run linter
     cmds:

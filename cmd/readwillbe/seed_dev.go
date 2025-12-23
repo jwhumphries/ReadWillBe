@@ -20,10 +20,16 @@ func seedDatabase(db *gorm.DB) error {
 
 	// 1. Ensure Test User Exists
 	var testUser types.User
-	err := db.Where("email = ?", "testy@testicular.test").First(&testUser).Error
-	if err == nil {
+	var users []types.User
+	err := db.Where("email = ?", "testy@testicular.test").Limit(1).Find(&users).Error
+	if err != nil {
+		return errors.Wrap(err, "checking for test user")
+	}
+
+	if len(users) > 0 {
+		testUser = users[0]
 		logrus.Info("Test user already exists, using existing user")
-	} else if errors.Is(err, gorm.ErrRecordNotFound) {
+	} else {
 		logrus.Info("Creating test user...")
 		hash, err := bcrypt.GenerateFromPassword([]byte("password123"), 10)
 		if err != nil {
@@ -41,8 +47,6 @@ func seedDatabase(db *gorm.DB) error {
 			return errors.Wrap(err, "creating test user")
 		}
 		logrus.Infof("✓ Created test user: %s (password: password123)", testUser.Email)
-	} else {
-		return errors.Wrap(err, "checking for test user")
 	}
 
 	// 2. Seed Plans from @test/ directory
