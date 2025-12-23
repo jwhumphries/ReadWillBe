@@ -1,10 +1,10 @@
 package types
 
 import (
-	"os"
-	"strconv"
+	"fmt"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
@@ -15,45 +15,26 @@ type Config struct {
 	Port         string
 }
 
-func ConfigFromEnv() (Config, error) {
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		dbPath = "./tmp/readwillbe.db"
-	}
-
-	cookieSecret := os.Getenv("COOKIE_SECRET")
+func ConfigFromViper() (Config, error) {
+	cookieSecret := viper.GetString("cookie_secret")
 	if cookieSecret == "" {
-		return Config{}, errors.New("COOKIE_SECRET env var is required")
+		return Config{}, errors.New("cookie_secret is required (set via READWILLBE_COOKIE_SECRET env var or config file)")
 	}
 
-	allowSignup := true
-	if val := os.Getenv("ALLOW_SIGNUP"); val != "" {
-		parsed, err := strconv.ParseBool(val)
-		if err != nil {
-			return Config{}, errors.Wrap(err, "parsing ALLOW_SIGNUP")
-		}
-		allowSignup = parsed
-	}
-
-	seedDB := false
-	if val := os.Getenv("SEED_DB"); val != "" {
-		parsed, err := strconv.ParseBool(val)
-		if err != nil {
-			return Config{}, errors.Wrap(err, "parsing SEED_DB")
-		}
-		seedDB = parsed
-	}
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	port := viper.GetString("port")
+	if port != "" && port[0] != ':' {
+		port = ":" + port
 	}
 
 	return Config{
-		DBPath:       dbPath,
+		DBPath:       viper.GetString("db_path"),
 		CookieSecret: []byte(cookieSecret),
-		AllowSignup:  allowSignup,
-		SeedDB:       seedDB,
-		Port:         ":" + port,
+		AllowSignup:  viper.GetBool("allow_signup"),
+		SeedDB:       viper.GetBool("seed_db"),
+		Port:         port,
 	}, nil
+}
+
+func ConfigFromEnv() (Config, error) {
+	return Config{}, fmt.Errorf("ConfigFromEnv is deprecated, use ConfigFromViper instead")
 }
