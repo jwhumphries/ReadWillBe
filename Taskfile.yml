@@ -123,7 +123,7 @@ tasks:
   lint:
     desc: Run linter
     cmds:
-      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine go vet ./...
+      - task: build:lint
 
   clean:
     desc: Remove generated files and Docker images
