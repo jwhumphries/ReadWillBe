@@ -3,7 +3,6 @@
 package main
 
 import (
-	"os"
 	"path/filepath"
 	"readwillbe/types"
 	"strings"
@@ -11,11 +10,12 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-func seedDatabase(db *gorm.DB) error {
+func seedDatabase(db *gorm.DB, fs afero.Fs) error {
 	logrus.Info("Seeding database (dev environment)...")
 
 	// 1. Ensure Test User Exists
@@ -50,9 +50,9 @@ func seedDatabase(db *gorm.DB) error {
 	}
 
 	// 2. Seed Plans from test/ directory
-	files, err := os.ReadDir("test")
+	files, err := afero.ReadDir(fs, "test")
 	if err != nil {
-		if os.IsNotExist(err) {
+		if _, statErr := fs.Stat("test"); statErr != nil {
 			logrus.Info("test directory not found, skipping plan seeding")
 			return nil
 		}
@@ -85,7 +85,7 @@ func seedDatabase(db *gorm.DB) error {
 
 		logrus.Infof("Seeding plan '%s' from %s...", planTitle, filename)
 
-		f, err := os.Open(filepath.Join("test", filename))
+		f, err := fs.Open(filepath.Join("test", filename))
 		if err != nil {
 			return errors.Wrapf(err, "opening file %s", filename)
 		}

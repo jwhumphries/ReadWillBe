@@ -9,6 +9,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
+	"github.com/spf13/afero"
 	"readwillbe/static"
 	"readwillbe/types"
 	"github.com/labstack/echo-contrib/session"
@@ -128,7 +129,8 @@ func run() error {
 	}
 
 	if cfg.SeedDB {
-		if err := seedDatabase(db); err != nil {
+		fs := afero.NewOsFs()
+		if err := seedDatabase(db, fs); err != nil {
 			return errors.Wrap(err, "seeding database")
 		}
 	}

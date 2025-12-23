@@ -4,25 +4,22 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/ncruces/go-sqlite3/gormlite"
 	"github.com/stretchr/testify/assert"
-	"readwillbe/types"
-	sqlite "github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/gorm"
+	"readwillbe/types"
 )
 
 func TestCreatePlan_BackgroundProcessing(t *testing.T) {
-	// Setup temporary DB
-	dbPath := "test_bg_plan.db"
-	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	// Setup temporary in-memory DB
+	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
 	assert.NoError(t, err)
 	db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
-	defer os.Remove(dbPath)
 
 	// Create test user
 	user := types.User{
@@ -80,12 +77,10 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 }
 
 func TestCreatePlan_BackgroundProcessingFailure(t *testing.T) {
-	// Setup temporary DB
-	dbPath := "test_bg_plan_fail.db"
-	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	// Setup temporary in-memory DB
+	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
 	assert.NoError(t, err)
 	db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
-	defer os.Remove(dbPath)
 
 	// Create test user
 	user := types.User{
