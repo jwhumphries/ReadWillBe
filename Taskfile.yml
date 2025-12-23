@@ -53,14 +53,13 @@ tasks:
 
   clean:
     desc: Remove generated files and Docker images
+    deps: [clean:bun, clean:css, docker:clean-images]
     cmds:
       - rm -rf ./tmp ./bin
-      - task: clean:bun
-      - task: clean:css
-      - task: docker:clean-images
     silent: true
 
   build:dev:
+    internal: true
     desc: Build development Docker image
     cmds:
       - task: docker:build-target
@@ -68,16 +67,20 @@ tasks:
           DOCKER_TARGET: dev
           DOCKER_IMAGE: '{{.DEV_IMAGE}}'
 
-  dev:
+  dev:start:
     desc: Start development environment with hot reload
+    deps: [build:dev]
     cmds:
-      - defer: { task: clean:bun }
-      - task: build:dev
-      - docker run --rm -it
-        -p 8080:8080
-        -v "{{.USER_WORKING_DIR}}:/app"
-        --name {{.APP_NAME}}-dev
-        {{.DEV_IMAGE}}
+      - docker compose -f docker-compose.dev.yml up -d
+    silent: true
+
+  dev:stop:
+    desc: Stop development environment
+    cmds:
+      - docker compose -f docker-compose.dev.yml down
+      - task: clean:bun
+      - task: clean:css
+      - rm -rf ./tmp ./bin
     silent: true
 
   build:builder:
