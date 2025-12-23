@@ -110,6 +110,18 @@ func run() error {
 		return errors.Wrap(err, "failed to connect database")
 	}
 
+	sqlDB, err := db.DB()
+	if err != nil {
+		return errors.Wrap(err, "failed to get underlying sql.DB")
+	}
+
+	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
+	sqlDB.SetMaxIdleConns(10)
+	// SetMaxOpenConns sets the maximum number of open connections to the database.
+	sqlDB.SetMaxOpenConns(100)
+	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
 	err = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
 	if err != nil {
 		return errors.Wrap(err, "Failed to migrate")
@@ -123,7 +135,8 @@ func run() error {
 
 	store := sessions.NewCookieStore(cfg.CookieSecret)
 	e.Use(session.Middleware(store))
-	e.Use(UserMiddleware(db))
+	userCache := NewUserCache(5 * time.Minute)
+	e.Use(UserMiddleware(db, userCache))
 
 	e.GET("/", dashboardHandler(cfg, db))
 	e.GET("/healthz", func(c echo.Context) error {
@@ -158,21 +171,28 @@ func run() error {
 	return e.Start(cfg.Port)
 }
 
-func UserMiddleware(db *gorm.DB) echo.MiddlewareFunc {
+func UserMiddleware(db *gorm.DB, cache *UserCache) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			sess, _ := session.Get(SessionKey, c)
 			if sess.Values[SessionUserIDKey] != nil {
 				userID := sess.Values[SessionUserIDKey].(uint)
-				user, err := getUserByID(db, userID)
-				if err != nil {
-					if errors.Is(err, gorm.ErrRecordNotFound) {
-						delete(sess.Values, SessionUserIDKey)
-						_ = sess.Save(c.Request(), c.Response())
-						return next(c)
+
+				user, found := cache.Get(userID)
+				if !found {
+					var err error
+					user, err = getUserByID(db, userID)
+					if err != nil {
+						if errors.Is(err, gorm.ErrRecordNotFound) {
+							delete(sess.Values, SessionUserIDKey)
+							_ = sess.Save(c.Request(), c.Response())
+							return next(c)
+						}
+						return errors.Wrap(err, "getting user by id")
 					}
-					return errors.Wrap(err, "getting user by id")
+					cache.Set(user)
 				}
+
 				c.Set(UserKey, user)
 
 				sess.Options = &sessions.Options{
@@ -183,7 +203,7 @@ func UserMiddleware(db *gorm.DB) echo.MiddlewareFunc {
 
 				sess.Values[SessionUserIDKey] = user.ID
 
-				err = sess.Save(c.Request(), c.Response())
+				err := sess.Save(c.Request(), c.Response())
 				if err != nil {
 					return errors.Wrap(err, "saving session")
 				}
