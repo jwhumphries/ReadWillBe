@@ -12,9 +12,6 @@ vars:
   BUILDER_IMAGE: '{{.APP_NAME}}:builder'
   RELEASE_IMAGE: '{{.APP_NAME}}:release'
 
-env:
-  CGO_ENABLED: '1'
-
 tasks:
   default:
     desc: Show available tasks
@@ -41,19 +38,35 @@ tasks:
         task: docker:clean-image
         vars: { DOCKER_IMAGE: '{{.APP_NAME}}:{{.ITEM}}' }
 
+  clean:bun:
+    internal: true
+    desc: Clean bun leftovers
+    cmds:
+      - rm -rf node_modules
+      - rm bun.lock
+
+  clean:css:
+    internal: true
+    desc: Clean compiled css
+    cmds:
+      - rm -f ./static/css/style.css
+
+  clean:
+    desc: Remove generated files and Docker images
+    cmds:
+      - rm -rf ./tmp ./bin
+      - task: clean:bun
+      - task: clean:css
+      - task: docker:clean-images
+    silent: true
+
   build:dev:
     desc: Build development Docker image
     cmds:
       - task: docker:build-target
         vars:
-          DOCKER_TARGET: develop
+          DOCKER_TARGET: dev
           DOCKER_IMAGE: '{{.DEV_IMAGE}}'
-
-  clean:bun:
-    desc: Clean bun leftovers
-    cmds:
-      - rm -rf node_modules
-      - rm bun.lock
 
   dev:
     desc: Start development environment with hot reload
@@ -63,12 +76,20 @@ tasks:
       - docker run --rm -it
         -p 8080:8080
         -v "{{.USER_WORKING_DIR}}:/app"
-        --env-file .env
         --name {{.APP_NAME}}-dev
         {{.DEV_IMAGE}}
     silent: true
 
-  build:release:
+  build:builder:
+    desc: Build builder Docker image
+    cmds:
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: builder
+          DOCKER_IMAGE: '{{.BUILDER_IMAGE}}'
+    silent: true
+
+  build:
     desc: Build production Docker image
     cmds:
       - task: docker:build-target
@@ -77,8 +98,13 @@ tasks:
           DOCKER_IMAGE: '{{.RELEASE_IMAGE}}'
     silent: true
 
-  build:lint:
-    desc: Build linter Docker image
+  fmt:
+    desc: Auto-format go files
+    cmds:
+      - for file in $(gofmt -s -l . | grep -v "^vendor/"); do go fmt $file; done
+
+  lint:
+    desc: Run linter
     cmds:
       - task: docker:build-target
         vars:
@@ -88,70 +114,15 @@ tasks:
           task: docker:clean-image
           vars:
             DOCKER_IMAGE: '{{.APP_NAME}}:lint'
-    silent: true
-
-  run:release:
-    desc: Run the production container
-    deps:
-      - build:release
-    cmds:
-      - docker run --rm -it
-        -p 8080:8080
-        -v "{{.USER_WORKING_DIR}}/tmp:/data"
-        --env-file .env
-        --env DB_PATH="/data/{{.APP_NAME}}.db"
-        --name {{.APP_NAME}}
-        {{.RELEASE_IMAGE}}
-
-  build:css:
-    desc: Build CSS using Docker
-    cmds:
-      - task: docker:build-target
-        vars:
-          DOCKER_TARGET: styler
-          DOCKER_IMAGE: '{{.APP_NAME}}:css'
-      - docker run --rm -v "{{.USER_WORKING_DIR}}/static/css:/output" {{.APP_NAME}}:css sh -c "cp /app/static/css/main.css /output/"
-    silent: true
-
-  build:templ:
-    desc: Build Templ using Docker
-    cmds:
-      - task: docker:build-target
-        vars:
-          DOCKER_TARGET: templer
-          DOCKER_IMAGE: '{{.APP_NAME}}:templ'
-    silent: true
-
-  build:
-    desc: Build production Docker image
-    cmds:
-      - task: build:release
 
   test:
     desc: Run tests in Docker
     cmds:
-      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine go test -v -timeout 30s ./...
-
-  fmt:check:
-    desc: Check if Go files need formatting (excludes templ files)
-    cmds:
-      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine sh -c 'unformatted=$(find . -name "*.go" ! -name "*_templ.go" -type f -exec gofmt -l {} \;) && if [ -n "$unformatted" ]; then echo "The following files need formatting:"; echo "$unformatted"; exit 1; fi'
-
-  fmt:
-    desc: Auto-format Go files that need formatting (excludes templ files)
-    cmds:
-      - docker run --rm -v "{{.USER_WORKING_DIR}}:/app" -w /app golang:1.25-alpine sh -c 'find . -name "*.go" ! -name "*_templ.go" -type f | xargs -I {} go fmt {}'
-
-  lint:
-    desc: Run linter
-    cmds:
-      - task: build:lint
-
-  clean:
-    desc: Remove generated files and Docker images
-    cmds:
-      - rm -rf ./tmp ./bin
-      - rm -f ./static/css/style.css ./static/css/style.min.css
-      - rm -f ./web/app.wasm ./static/js/wasm_exec.js
-      - task: docker:clean-images
-    silent: true
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: test
+          DOCKER_IMAGE: '{{.APP_NAME}}:test'
+      - defer: 
+          task: docker:clean-image
+          vars:
+            DOCKER_IMAGE: '{{.APP_NAME}}:test'

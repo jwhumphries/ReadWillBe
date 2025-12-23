@@ -1,6 +1,6 @@
 services:
   templ:
-    image: readwillbe-templ:dev
+    image: readwillbe:dev
     working_dir: /app
     volumes:
       - .:/app
@@ -20,17 +20,16 @@ services:
       - devnet
 
   tailwind:
-    image: readwillbe-frontend:dev
+    image: ghcr.io/jwhumphries/frontend:latest
     working_dir: /app
     volumes:
       - .:/app
-      - node-modules:/app/node_modules
-    command: sh -c "bun install && bun run dev"
+    command: sh -c "bun install && bun run init && bun run dev"
     networks:
       - devnet
 
   css-reload:
-    image: readwillbe-app:dev
+    image: readwillbe:dev
     working_dir: /app
     volumes:
       - ./static/css:/app/static/css:ro
@@ -51,7 +50,7 @@ services:
       - devnet
 
   app:
-    image: readwillbe-app:dev
+    image: readwillbe:dev
     working_dir: /app
     volumes:
       - .:/app
@@ -74,7 +73,6 @@ services:
 volumes:
   go-mod-cache:
   go-build-cache:
-  node-modules:
 
 networks:
   devnet:
