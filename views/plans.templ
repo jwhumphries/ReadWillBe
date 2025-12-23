@@ -414,12 +414,6 @@ templ ManualPlanCreate(cfg types.Config, user *types.User, title string, reading
 	}
 }
 
-type ManualReading struct {
-	ID      string
-	Date    string
-	Content string
-}
-
 templ ManualPlanForm(title string, readings []ManualReading, err error) {
 	<div class="card bg-base-200 shadow-xl" id="manual-plan-form">
 		<div class="card-body">
