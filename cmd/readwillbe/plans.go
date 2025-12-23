@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 
@@ -58,39 +59,58 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 		if err != nil {
 			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to open file")))
 		}
-		defer func() {
-			_ = src.Close()
-		}()
 
-		readings, err := parseCSV(src)
-		if err != nil {
-			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to parse CSV")))
-		}
-
+		// Create plan immediately in processing state
 		plan := types.Plan{
 			Title:  title,
 			UserID: user.ID,
+			Status: "processing",
 		}
 
-		err = db.Transaction(func(tx *gorm.DB) error {
-			if err := tx.Create(&plan).Error; err != nil {
-				return err
-			}
-
-			for i := range readings {
-				readings[i].PlanID = plan.ID
-			}
-
-			if err := tx.Create(&readings).Error; err != nil {
-				return err
-			}
-
-			return nil
-		})
-
-		if err != nil {
-			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to create plan")))
+		if err := db.Create(&plan).Error; err != nil {
+			src.Close()
+			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to create plan record")))
 		}
+
+		// Process CSV in background
+		go func(p types.Plan, f multipart.File, d *gorm.DB) {
+			defer func() {
+				if r := recover(); r != nil {
+					p.Status = "failed"
+					p.ErrorMessage = fmt.Sprintf("Panic during processing: %v", r)
+					d.Save(&p)
+				}
+				f.Close()
+			}()
+
+			readings, err := parseCSV(f)
+			if err != nil {
+				p.Status = "failed"
+				p.ErrorMessage = fmt.Sprintf("Failed to parse CSV: %v", err)
+				d.Save(&p)
+				return
+			}
+
+			err = d.Transaction(func(tx *gorm.DB) error {
+				for i := range readings {
+					readings[i].PlanID = p.ID
+				}
+				if err := tx.Create(&readings).Error; err != nil {
+					return err
+				}
+				p.Status = "active"
+				if err := tx.Save(&p).Error; err != nil {
+					return err
+				}
+				return nil
+			})
+
+			if err != nil {
+				p.Status = "failed"
+				p.ErrorMessage = fmt.Sprintf("Failed to save readings: %v", err)
+				d.Save(&p)
+			}
+		}(plan, src, db)
 
 		return htmxRedirect(c, "/plans")
 	}

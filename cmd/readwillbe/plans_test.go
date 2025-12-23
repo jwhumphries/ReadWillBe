@@ -1,0 +1,155 @@
+package main
+
+import (
+	"mime/multipart"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
+	"readwillbe/types"
+	sqlite "github.com/ncruces/go-sqlite3/gormlite"
+	"gorm.io/gorm"
+)
+
+func TestCreatePlan_BackgroundProcessing(t *testing.T) {
+	// Setup temporary DB
+	dbPath := "test_bg_plan.db"
+	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	assert.NoError(t, err)
+	db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
+	defer os.Remove(dbPath)
+
+	// Create test user
+	user := types.User{
+		Email: "test@example.com",
+		Name:  "Test User",
+	}
+	db.Create(&user)
+
+	// Setup Echo context
+	e := echo.New()
+
+	// Create CSV content
+	csvContent := `date,reading
+2025-01-01,Genesis 1
+2025-01-02,Genesis 2`
+
+	body := new(strings.Builder)
+	writer := multipart.NewWriter(body)
+
+	// Add title
+	writer.WriteField("title", "Test Plan")
+
+	// Add CSV file
+	part, _ := writer.CreateFormFile("csv", "readings.csv")
+	part.Write([]byte(csvContent))
+	writer.Close()
+
+	req := httptest.NewRequest(http.MethodPost, "/plans/create", strings.NewReader(body.String()))
+	req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.Set(UserKey, user)
+
+	// Invoke handler
+	h := createPlan(db)
+	err = h(c)
+	assert.NoError(t, err)
+
+	// Verify redirect
+	assert.Equal(t, http.StatusOK, rec.Code) // HTMX redirect returns 200 with HX-Redirect header
+	assert.Equal(t, "/plans", rec.Header().Get("HX-Redirect"))
+
+	// Verify plan status is initially "processing" or eventually "active"
+	// Since it's a goroutine, it might be fast enough to be active immediately or still processing.
+	// We'll poll for "active" status.
+
+	var plan types.Plan
+	assert.Eventually(t, func() bool {
+		db.Preload("Readings").First(&plan, "title = ?", "Test Plan")
+		return plan.Status == "active"
+	}, 2*time.Second, 100*time.Millisecond, "Plan should eventually be active")
+
+	assert.Equal(t, "Test Plan", plan.Title)
+	assert.Len(t, plan.Readings, 2)
+}
+
+func TestCreatePlan_BackgroundProcessingFailure(t *testing.T) {
+	// Setup temporary DB
+	dbPath := "test_bg_plan_fail.db"
+	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+	assert.NoError(t, err)
+	db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
+	defer os.Remove(dbPath)
+
+	// Create test user
+	user := types.User{
+		Email: "test@example.com",
+		Name:  "Test User",
+	}
+	db.Create(&user)
+
+	// Setup Echo context
+	e := echo.New()
+
+	// Create Invalid CSV content (missing columns)
+	csvContent := `date,reading
+invalid-row`
+
+	body := new(strings.Builder)
+	writer := multipart.NewWriter(body)
+	writer.WriteField("title", "Failed Plan")
+	part, _ := writer.CreateFormFile("csv", "readings.csv")
+	part.Write([]byte(csvContent))
+	writer.Close()
+
+	req := httptest.NewRequest(http.MethodPost, "/plans/create", strings.NewReader(body.String()))
+	req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.Set(UserKey, user)
+
+	// Invoke handler
+	h := createPlan(db)
+	err = h(c)
+	assert.NoError(t, err)
+
+	// Verify plan status eventually "failed"
+	var plan types.Plan
+	assert.Eventually(t, func() bool {
+		db.First(&plan, "title = ?", "Failed Plan")
+		return plan.Status == "failed"
+	}, 2*time.Second, 100*time.Millisecond, "Plan should eventually fail")
+
+	assert.Contains(t, plan.ErrorMessage, "reading CSV")
+}
+
+func TestUserCache(t *testing.T) {
+	cache := NewUserCache(100 * time.Millisecond)
+	user := types.User{
+		Model: gorm.Model{ID: 1},
+		Email: "cache@example.com",
+	}
+
+	// Set
+	cache.Set(user)
+
+	// Get Hit
+	got, found := cache.Get(1)
+	assert.True(t, found)
+	assert.Equal(t, user.Email, got.Email)
+
+	// Get Miss (wrong ID)
+	_, found = cache.Get(2)
+	assert.False(t, found)
+
+	// Expiration
+	time.Sleep(150 * time.Millisecond)
+	_, found = cache.Get(1)
+	assert.False(t, found, "Should have expired")
+}

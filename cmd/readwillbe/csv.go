@@ -13,6 +13,7 @@ import (
 
 func parseCSV(r io.Reader) ([]types.Reading, error) {
 	reader := csv.NewReader(r)
+	reader.LazyQuotes = true
 	records, err := reader.ReadAll()
 	if err != nil {
 		return nil, errors.Wrap(err, "reading CSV")
