@@ -49,14 +49,14 @@ func seedDatabase(db *gorm.DB) error {
 		logrus.Infof("✓ Created test user: %s (password: password123)", testUser.Email)
 	}
 
-	// 2. Seed Plans from @test/ directory
-	files, err := os.ReadDir("@test")
+	// 2. Seed Plans from test/ directory
+	files, err := os.ReadDir("test")
 	if err != nil {
 		if os.IsNotExist(err) {
-			logrus.Info("@test directory not found, skipping plan seeding")
+			logrus.Info("test directory not found, skipping plan seeding")
 			return nil
 		}
-		return errors.Wrap(err, "reading @test directory")
+		return errors.Wrap(err, "reading test directory")
 	}
 
 	for _, file := range files {
@@ -85,7 +85,7 @@ func seedDatabase(db *gorm.DB) error {
 
 		logrus.Infof("Seeding plan '%s' from %s...", planTitle, filename)
 
-		f, err := os.Open(filepath.Join("@test", filename))
+		f, err := os.Open(filepath.Join("test", filename))
 		if err != nil {
 			return errors.Wrapf(err, "opening file %s", filename)
 		}
