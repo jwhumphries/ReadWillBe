@@ -4,8 +4,7 @@ bin/
 *.db
 *_templ.go
 build-errors.log
-static/css/style.css
-static/css/style.min.css
+static/css/main.css
 node_modules/
 .DS_Store
 .claude/
