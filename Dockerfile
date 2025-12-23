@@ -50,10 +50,10 @@ RUN --mount=type=cache,target=/${GOBUILDCACHE} --mount=type=cache,target=/${GOMO
   golangci-lint run --color=always --issues-exit-code=1 --timeout=5m
 
 FROM init AS test
-COPY .git .git
 SHELL ["/bin/sh", "-eo", "pipefail", "-c"]
 RUN --mount=type=cache,target=/${GOBUILDCACHE} --mount=type=cache,target=/${GOMODCACHE} \
-  go test -paralell=10
+  go vet  ./... && \
+  go test ./...
 
 FROM frontend AS develop
 ARG APP_NAME=readwillbe
