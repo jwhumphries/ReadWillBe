@@ -8,15 +8,15 @@ import (
 
 type User struct {
 	gorm.Model
-	Name              string
-	Email             string `gorm:"uniqueIndex"`
-	Password          string
-	Plans             []Plan
+	Name                 string
+	Email                string `gorm:"uniqueIndex"`
+	Password             string
+	Plans                []Plan
 	NotificationsEnabled bool
-	NotificationTime  string
-	CreatedAt         time.Time  `gorm:"autoCreateTime"`
-	UpdatedAt         *time.Time `gorm:"autoUpdateTime"`
-	DeletedAt         *time.Time
+	NotificationTime     string
+	CreatedAt            time.Time  `gorm:"autoCreateTime"`
+	UpdatedAt            *time.Time `gorm:"autoUpdateTime"`
+	DeletedAt            *time.Time
 }
 
 func (u User) IsSet() bool {

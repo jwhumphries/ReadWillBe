@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"readwillbe/types"
 	"github.com/pkg/errors"
+	"readwillbe/types"
 )
 
 func parseCSV(r io.Reader) ([]types.Reading, error) {

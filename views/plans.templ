@@ -10,12 +10,35 @@ templ PlansList(cfg types.Config, user *types.User, plans []types.Plan) {
 		<div>
 			<div class="flex justify-between items-center mb-6">
 				<h1 class="text-3xl font-bold">Reading Plans</h1>
-				<a href="/plans/create" class="btn btn-primary gap-2">
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-						<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
-					</svg>
-					Create New Plan
-				</a>
+				<div class="dropdown dropdown-end">
+					<div tabindex="0" role="button" class="btn btn-primary gap-2">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+						</svg>
+						Create New Plan
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+						</svg>
+					</div>
+					<ul tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-10 w-52 p-2 shadow-lg mt-1">
+						<li>
+							<a href="/plans/create" class="gap-2">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+									<path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+								</svg>
+								Upload CSV
+							</a>
+						</li>
+						<li>
+							<a href="/plans/create-manual" class="gap-2">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+									<path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+								</svg>
+								Create Manually
+							</a>
+						</li>
+					</ul>
+				</div>
 			</div>
 			if len(plans) == 0 {
 				<div role="alert" class="alert">
@@ -152,7 +175,19 @@ templ PlanReadingItem(reading types.Reading) {
 templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 	@Layout(cfg, user, "Create Plan - ReadWillBe") {
 		<div class="max-w-2xl mx-auto">
-			<h1 class="text-3xl font-bold mb-6">Create Reading Plan</h1>
+			<div class="flex items-center gap-4 mb-6">
+				<a href="/plans" class="btn btn-ghost btn-sm gap-2">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+					</svg>
+					Back to Plans
+				</a>
+				<h1 class="text-3xl font-bold">Create Reading Plan</h1>
+			</div>
+			<div role="tablist" class="tabs tabs-box mb-6">
+				<a role="tab" class="tab tab-active">Upload CSV</a>
+				<a href="/plans/create-manual" role="tab" class="tab">Create Manually</a>
+			</div>
 			<div class="card bg-base-200 shadow-xl">
 				<form hx-post="/plans/create" hx-target="body" enctype="multipart/form-data">
 					<div class="card-body">
@@ -356,4 +391,222 @@ templ EditableReadingItem(reading types.Reading, planID uint) {
 			</form>
 		</dialog>
 	</div>
+}
+
+templ ManualPlanCreate(cfg types.Config, user *types.User, title string, readings []ManualReading, err error) {
+	@Layout(cfg, user, "Create Plan Manually - ReadWillBe") {
+		<div class="max-w-4xl mx-auto">
+			<div class="flex items-center gap-4 mb-6">
+				<a href="/plans" hx-delete="/plans/draft" hx-swap="none" class="btn btn-ghost btn-sm gap-2">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+					</svg>
+					Back to Plans
+				</a>
+				<h1 class="text-3xl font-bold">Create Reading Plan</h1>
+			</div>
+			<div role="tablist" class="tabs tabs-box mb-6">
+				<a href="/plans/create" role="tab" class="tab">Upload CSV</a>
+				<a role="tab" class="tab tab-active">Create Manually</a>
+			</div>
+			@ManualPlanForm(title, readings, err)
+		</div>
+	}
+}
+
+type ManualReading struct {
+	ID      string
+	Date    string
+	Content string
+}
+
+templ ManualPlanForm(title string, readings []ManualReading, err error) {
+	<div class="card bg-base-200 shadow-xl" id="manual-plan-form">
+		<div class="card-body">
+			<form hx-post="/plans/draft/title" hx-trigger="change from:#plan-title" hx-swap="none">
+				<div class="form-control mb-6">
+					<label class="label">
+						<span class="label-text font-bold">Plan Title</span>
+					</label>
+					<input
+						type="text"
+						id="plan-title"
+						name="title"
+						value={title}
+						placeholder="Enter plan title"
+						class="input input-bordered"
+					/>
+				</div>
+			</form>
+			<div class="divider my-2">Readings</div>
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr>
+							<th class="w-48">Date</th>
+							<th>Reading Content</th>
+							<th class="w-24">Actions</th>
+						</tr>
+					</thead>
+					<tbody id="readings-table">
+						<tr class="bg-base-300">
+							<td>
+								<input
+									type="date"
+									name="date"
+									form="add-reading-form"
+									class="input input-bordered input-sm w-full"
+								/>
+							</td>
+							<td>
+								<input
+									type="text"
+									name="content"
+									form="add-reading-form"
+									placeholder="What to read..."
+									class="input input-bordered input-sm w-full"
+								/>
+							</td>
+							<td>
+								<button
+									type="submit"
+									form="add-reading-form"
+									class="btn btn-primary btn-sm"
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+										<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+									</svg>
+								</button>
+							</td>
+						</tr>
+						for _, reading := range readings {
+							@ManualReadingRow(reading)
+						}
+					</tbody>
+				</table>
+			</div>
+			<form id="add-reading-form" hx-post="/plans/draft/reading" hx-target="#readings-table" hx-swap="beforeend" hx-on::after-request="if(event.detail.successful) this.reset()"></form>
+			if len(readings) == 0 {
+				<div class="text-center py-8 text-base-content/60">
+					No readings added yet. Add your first reading above.
+				</div>
+			}
+			if err != nil {
+				<div role="alert" class="alert alert-error mt-4">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+					</svg>
+					<span>{err.Error()}</span>
+				</div>
+			}
+			<div class="card-actions justify-end gap-2 mt-6">
+				<a href="/plans" hx-delete="/plans/draft" hx-swap="none" class="btn btn-ghost">Cancel</a>
+				if len(readings) > 0 && title != "" {
+					<button
+						hx-post="/plans/create-manual"
+						hx-target="body"
+						class="btn btn-primary gap-2"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+						</svg>
+						Create Plan
+					</button>
+				} else {
+					<button class="btn btn-primary gap-2" disabled>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+							<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+						</svg>
+						Create Plan
+					</button>
+				}
+			</div>
+		</div>
+	</div>
+}
+
+templ ManualReadingRow(reading ManualReading) {
+	<tr class="reading-row" id={"reading-" + reading.ID}>
+		<td>
+			<span class="font-medium">{reading.Date}</span>
+		</td>
+		<td>
+			<span>{reading.Content}</span>
+		</td>
+		<td>
+			<div class="flex gap-1">
+				<button
+					hx-get={"/plans/draft/reading/" + reading.ID + "/edit"}
+					hx-target={"#reading-" + reading.ID}
+					hx-swap="outerHTML"
+					class="btn btn-ghost btn-xs"
+					title="Edit"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+						<path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+					</svg>
+				</button>
+				<button
+					hx-delete={"/plans/draft/reading/" + reading.ID}
+					hx-target="#manual-plan-form"
+					hx-swap="outerHTML"
+					class="btn btn-ghost btn-xs text-error"
+					title="Delete"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+					</svg>
+				</button>
+			</div>
+		</td>
+	</tr>
+}
+
+templ ManualReadingRowEdit(reading ManualReading) {
+	<tr class="reading-row bg-base-300" id={"reading-" + reading.ID}>
+		<td>
+			<input
+				type="date"
+				name="date"
+				value={reading.Date}
+				form={"edit-form-" + reading.ID}
+				class="input input-bordered input-sm w-full"
+			/>
+		</td>
+		<td>
+			<input
+				type="text"
+				name="content"
+				value={reading.Content}
+				form={"edit-form-" + reading.ID}
+				class="input input-bordered input-sm w-full"
+			/>
+		</td>
+		<td>
+			<div class="flex gap-1">
+				<form id={"edit-form-" + reading.ID} hx-put={"/plans/draft/reading/" + reading.ID} hx-target={"#reading-" + reading.ID} hx-swap="outerHTML"></form>
+				<button
+					type="submit"
+					form={"edit-form-" + reading.ID}
+					class="btn btn-success btn-xs"
+					title="Save"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+					</svg>
+				</button>
+				<button
+					hx-get={"/plans/draft/reading/" + reading.ID}
+					hx-target={"#reading-" + reading.ID}
+					hx-swap="outerHTML"
+					class="btn btn-ghost btn-xs"
+					title="Cancel"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+						<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+					</svg>
+				</button>
+			</div>
+		</td>
+	</tr>
 }

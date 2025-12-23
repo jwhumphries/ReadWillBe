@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"net/http"
 	"os"
 	"strings"
@@ -9,20 +10,25 @@ import (
 	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
-	"github.com/spf13/afero"
-	"readwillbe/static"
-	"readwillbe/types"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
+	"readwillbe/static"
+	"readwillbe/types"
+	"readwillbe/views"
 
 	_ "github.com/ncruces/go-sqlite3/embed"
 	sqlite "github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/gorm"
 )
+
+func init() {
+	gob.Register([]views.ManualReading{})
+}
 
 const SessionKey = "session"
 const UserKey = "session-user"
@@ -158,6 +164,15 @@ func run() error {
 	e.GET("/plans", plansListHandler(cfg, db))
 	e.GET("/plans/create", createPlanForm(cfg, db))
 	e.POST("/plans/create", createPlan(db))
+	e.GET("/plans/create-manual", manualPlanForm(cfg))
+	e.POST("/plans/create-manual", createManualPlan(cfg, db))
+	e.POST("/plans/draft/title", updateDraftTitle())
+	e.POST("/plans/draft/reading", addDraftReading())
+	e.GET("/plans/draft/reading/:id", getDraftReading())
+	e.GET("/plans/draft/reading/:id/edit", getDraftReadingEdit())
+	e.PUT("/plans/draft/reading/:id", updateDraftReading())
+	e.DELETE("/plans/draft/reading/:id", deleteDraftReading())
+	e.DELETE("/plans/draft", deleteDraft())
 	e.GET("/plans/:id/edit", editPlanForm(cfg, db))
 	e.POST("/plans/:id/edit", editPlan(cfg, db))
 	e.POST("/plans/:id/rename", renamePlan(db))
@@ -224,4 +239,3 @@ func GetSessionUser(c echo.Context) (types.User, bool) {
 	}
 	return types.User{}, false
 }
-

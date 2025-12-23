@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/gorilla/sessions"
-	"readwillbe/types"
-	"readwillbe/views"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"readwillbe/types"
+	"readwillbe/views"
 )
 
 func getUserByID(db *gorm.DB, id uint) (types.User, error) {

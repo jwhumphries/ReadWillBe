@@ -3,10 +3,10 @@ package main
 import (
 	"net/http"
 
-	"readwillbe/types"
-	"readwillbe/views"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"readwillbe/types"
+	"readwillbe/views"
 )
 
 func historyHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {

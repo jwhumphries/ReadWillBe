@@ -19,7 +19,7 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 	// Setup temporary in-memory DB
 	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
 	assert.NoError(t, err)
-	db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
+	_ = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
 
 	// Create test user
 	user := types.User{
@@ -40,12 +40,12 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 	writer := multipart.NewWriter(body)
 
 	// Add title
-	writer.WriteField("title", "Test Plan")
+	_ = writer.WriteField("title", "Test Plan")
 
 	// Add CSV file
 	part, _ := writer.CreateFormFile("csv", "readings.csv")
-	part.Write([]byte(csvContent))
-	writer.Close()
+	_, _ = part.Write([]byte(csvContent))
+	_ = writer.Close()
 
 	req := httptest.NewRequest(http.MethodPost, "/plans/create", strings.NewReader(body.String()))
 	req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
@@ -80,7 +80,7 @@ func TestCreatePlan_BackgroundProcessingFailure(t *testing.T) {
 	// Setup temporary in-memory DB
 	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
 	assert.NoError(t, err)
-	db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
+	_ = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
 
 	// Create test user
 	user := types.User{
@@ -98,10 +98,10 @@ invalid-row`
 
 	body := new(strings.Builder)
 	writer := multipart.NewWriter(body)
-	writer.WriteField("title", "Failed Plan")
+	_ = writer.WriteField("title", "Failed Plan")
 	part, _ := writer.CreateFormFile("csv", "readings.csv")
-	part.Write([]byte(csvContent))
-	writer.Close()
+	_, _ = part.Write([]byte(csvContent))
+	_ = writer.Close()
 
 	req := httptest.NewRequest(http.MethodPost, "/plans/create", strings.NewReader(body.String()))
 	req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())

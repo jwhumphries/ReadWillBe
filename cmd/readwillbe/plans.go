@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"readwillbe/types"
-	"readwillbe/views"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	"readwillbe/types"
+	"readwillbe/views"
 )
 
 func plansListHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
@@ -35,6 +36,264 @@ func createPlanForm(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		return render(c, 200, views.CreatePlanForm(cfg, &user, nil))
+	}
+}
+
+const DraftTitleKey = "draft-plan-title"
+const DraftReadingsKey = "draft-plan-readings"
+
+func getDraftData(c echo.Context) (string, []views.ManualReading) {
+	sess, _ := session.Get(SessionKey, c)
+	title, _ := sess.Values[DraftTitleKey].(string)
+	readings, _ := sess.Values[DraftReadingsKey].([]views.ManualReading)
+	if readings == nil {
+		readings = []views.ManualReading{}
+	}
+	return title, readings
+}
+
+func saveDraftData(c echo.Context, title string, readings []views.ManualReading) error {
+	sess, _ := session.Get(SessionKey, c)
+	sess.Values[DraftTitleKey] = title
+	sess.Values[DraftReadingsKey] = readings
+	return sess.Save(c.Request(), c.Response())
+}
+
+func clearDraftData(c echo.Context) error {
+	sess, _ := session.Get(SessionKey, c)
+	delete(sess.Values, DraftTitleKey)
+	delete(sess.Values, DraftReadingsKey)
+	return sess.Save(c.Request(), c.Response())
+}
+
+func manualPlanForm(cfg types.Config) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user, ok := GetSessionUser(c)
+		if !ok {
+			return c.Redirect(http.StatusFound, "/auth/sign-in")
+		}
+
+		title, readings := getDraftData(c)
+		return render(c, 200, views.ManualPlanCreate(cfg, &user, title, readings, nil))
+	}
+}
+
+func updateDraftTitle() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		_, ok := GetSessionUser(c)
+		if !ok {
+			return c.NoContent(http.StatusUnauthorized)
+		}
+
+		title := c.FormValue("title")
+		_, readings := getDraftData(c)
+		if err := saveDraftData(c, title, readings); err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		return c.NoContent(http.StatusOK)
+	}
+}
+
+func addDraftReading() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		_, ok := GetSessionUser(c)
+		if !ok {
+			return c.NoContent(http.StatusUnauthorized)
+		}
+
+		date := c.FormValue("date")
+		content := c.FormValue("content")
+
+		if date == "" || content == "" {
+			return c.NoContent(http.StatusBadRequest)
+		}
+
+		title, readings := getDraftData(c)
+		newReading := views.ManualReading{
+			ID:      fmt.Sprintf("%d", len(readings)+1),
+			Date:    date,
+			Content: content,
+		}
+		readings = append(readings, newReading)
+
+		if err := saveDraftData(c, title, readings); err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
+
+		return render(c, 200, views.ManualReadingRow(newReading))
+	}
+}
+
+func getDraftReading() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		_, ok := GetSessionUser(c)
+		if !ok {
+			return c.NoContent(http.StatusUnauthorized)
+		}
+
+		id := c.Param("id")
+		_, readings := getDraftData(c)
+
+		for _, r := range readings {
+			if r.ID == id {
+				return render(c, 200, views.ManualReadingRow(r))
+			}
+		}
+		return c.NoContent(http.StatusNotFound)
+	}
+}
+
+func getDraftReadingEdit() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		_, ok := GetSessionUser(c)
+		if !ok {
+			return c.NoContent(http.StatusUnauthorized)
+		}
+
+		id := c.Param("id")
+		_, readings := getDraftData(c)
+
+		for _, r := range readings {
+			if r.ID == id {
+				return render(c, 200, views.ManualReadingRowEdit(r))
+			}
+		}
+		return c.NoContent(http.StatusNotFound)
+	}
+}
+
+func updateDraftReading() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		_, ok := GetSessionUser(c)
+		if !ok {
+			return c.NoContent(http.StatusUnauthorized)
+		}
+
+		id := c.Param("id")
+		date := c.FormValue("date")
+		content := c.FormValue("content")
+
+		if date == "" || content == "" {
+			return c.NoContent(http.StatusBadRequest)
+		}
+
+		title, readings := getDraftData(c)
+		var updated views.ManualReading
+		for i, r := range readings {
+			if r.ID == id {
+				readings[i].Date = date
+				readings[i].Content = content
+				updated = readings[i]
+				break
+			}
+		}
+
+		if err := saveDraftData(c, title, readings); err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
+
+		return render(c, 200, views.ManualReadingRow(updated))
+	}
+}
+
+func deleteDraftReading() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		_, ok := GetSessionUser(c)
+		if !ok {
+			return c.NoContent(http.StatusUnauthorized)
+		}
+
+		id := c.Param("id")
+		title, readings := getDraftData(c)
+
+		newReadings := make([]views.ManualReading, 0, len(readings))
+		for _, r := range readings {
+			if r.ID != id {
+				newReadings = append(newReadings, r)
+			}
+		}
+
+		if err := saveDraftData(c, title, newReadings); err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
+
+		return render(c, 200, views.ManualPlanForm(title, newReadings, nil))
+	}
+}
+
+func deleteDraft() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		_, ok := GetSessionUser(c)
+		if !ok {
+			return c.NoContent(http.StatusUnauthorized)
+		}
+
+		if err := clearDraftData(c); err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		return c.NoContent(http.StatusOK)
+	}
+}
+
+func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user, ok := GetSessionUser(c)
+		if !ok {
+			return c.Redirect(http.StatusFound, "/auth/sign-in")
+		}
+
+		title, draftReadings := getDraftData(c)
+
+		if title == "" {
+			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("plan title is required")))
+		}
+
+		if len(draftReadings) == 0 {
+			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("at least one reading is required")))
+		}
+
+		readings := make([]types.Reading, 0, len(draftReadings))
+		for _, mr := range draftReadings {
+			parsedDate, dateType, err := parseDate(mr.Date)
+			if err != nil {
+				return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, errors.Wrap(err, fmt.Sprintf("invalid date: %s", mr.Date))))
+			}
+			readings = append(readings, types.Reading{
+				Date:     parsedDate,
+				DateType: dateType,
+				Content:  mr.Content,
+				Status:   types.StatusPending,
+			})
+		}
+
+		plan := types.Plan{
+			Title:  title,
+			UserID: user.ID,
+			Status: "active",
+		}
+
+		err := db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Create(&plan).Error; err != nil {
+				return err
+			}
+
+			for i := range readings {
+				readings[i].PlanID = plan.ID
+			}
+
+			if err := tx.Create(&readings).Error; err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, errors.Wrap(err, "failed to create plan")))
+		}
+
+		_ = clearDraftData(c)
+		return htmxRedirect(c, "/plans")
 	}
 }
 
@@ -68,7 +327,7 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		if err := db.Create(&plan).Error; err != nil {
-			src.Close()
+			_ = src.Close()
 			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to create plan record")))
 		}
 
@@ -80,7 +339,7 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 					p.ErrorMessage = fmt.Sprintf("Panic during processing: %v", r)
 					d.Save(&p)
 				}
-				f.Close()
+				_ = f.Close()
 			}()
 
 			readings, err := parseCSV(f)

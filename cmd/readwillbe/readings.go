@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"readwillbe/types"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"readwillbe/types"
 )
 
 func completeReading(db *gorm.DB) echo.HandlerFunc {
