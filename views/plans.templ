@@ -189,7 +189,7 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 				<a href="/plans/create-manual" role="tab" class="tab">Create Manually</a>
 			</div>
 			<div class="card bg-base-200 shadow-xl">
-				<form hx-post="/plans/create" hx-target="body" enctype="multipart/form-data">
+				<form hx-post="/plans/create" hx-target="body" enctype="multipart/form-data" class="group">
 					<div class="card-body">
 						<fieldset class="fieldset">
 							<legend class="fieldset-legend">Plan Details</legend>
@@ -229,7 +229,8 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 								Cancel
 							</a>
 							<button type="submit" class="btn btn-primary">
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+								<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-[.htmx-request]:hidden" viewBox="0 0 20 20" fill="currentColor">
 									<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
 								</svg>
 								Create Plan
@@ -264,7 +265,7 @@ templ EditPlan(cfg types.Config, user *types.User, plan types.Plan, err error) {
 				<h1 class="text-3xl font-bold">Edit Reading Plan</h1>
 			</div>
 			<div class="card bg-base-200 shadow-xl">
-				<form hx-post={fmt.Sprintf("/plans/%d/edit", plan.ID)} hx-target="body">
+				<form hx-post={fmt.Sprintf("/plans/%d/edit", plan.ID)} hx-target="body" class="group">
 					<div class="card-body">
 						<h2 class="card-title mb-4">Plan Details</h2>
 						<div class="form-control mb-6">
@@ -301,7 +302,8 @@ templ EditPlan(cfg types.Config, user *types.User, plan types.Plan, err error) {
 								Cancel
 							</a>
 							<button type="submit" class="btn btn-primary gap-2">
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+								<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-[.htmx-request]:hidden" viewBox="0 0 20 20" fill="currentColor">
 									<path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z"></path>
 								</svg>
 								Save Changes
@@ -499,9 +501,10 @@ templ ManualPlanForm(title string, readings []ManualReading, err error) {
 					<button
 						hx-post="/plans/create-manual"
 						hx-target="body"
-						class="btn btn-primary gap-2"
+						class="btn btn-primary gap-2 group"
 					>
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+						<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-[.htmx-request]:hidden" viewBox="0 0 20 20" fill="currentColor">
 							<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
 						</svg>
 						Create Plan
