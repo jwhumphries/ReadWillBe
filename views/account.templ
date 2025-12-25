@@ -1,8 +1,6 @@
 package views
 
-import (
-	"readwillbe/types"
-)
+import "readwillbe/types"
 
 templ Account(cfg types.Config, user *types.User) {
 	@Layout(cfg, user, "Account - ReadWillBe") {
@@ -14,22 +12,17 @@ templ Account(cfg types.Config, user *types.User) {
 					<ul class="list">
 						<li class="list-row">
 							<div class="flex items-center gap-2">
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 opacity-75" viewBox="0 0 20 20" fill="currentColor">
-									<path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-								</svg>
+								@UserIcon()
 								<span class="text-sm opacity-70">Name</span>
 							</div>
-							<span class="font-bold">{user.Name}</span>
+							<span class="font-bold">{ user.Name }</span>
 						</li>
 						<li class="list-row">
 							<div class="flex items-center gap-2">
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 opacity-75" viewBox="0 0 20 20" fill="currentColor">
-									<path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
-									<path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
-								</svg>
+								@EmailIcon()
 								<span class="text-sm opacity-70">Email</span>
 							</div>
-							<span class="font-bold">{user.Email}</span>
+							<span class="font-bold">{ user.Email }</span>
 						</li>
 					</ul>
 				</div>
@@ -40,9 +33,12 @@ templ Account(cfg types.Config, user *types.User) {
 						<h2 class="card-title">Notification Settings</h2>
 						<div class="form-control">
 							<label class="label cursor-pointer justify-start gap-4">
-								<input type="checkbox" name="notifications_enabled"
-									checked?={user.NotificationsEnabled}
-									class="toggle toggle-primary"/>
+								<input
+									type="checkbox"
+									name="notifications_enabled"
+									checked?={ user.NotificationsEnabled }
+									class="toggle toggle-primary"
+								/>
 								<div>
 									<span class="label-text font-bold">Enable daily reading notifications</span>
 									<p class="text-sm opacity-70">Receive reminders for your daily readings</p>
@@ -55,15 +51,16 @@ templ Account(cfg types.Config, user *types.User) {
 								<span class="label-text">Notification Time</span>
 								<span class="label-text-alt">When should we remind you?</span>
 							</label>
-							<input type="time" name="notification_time"
-								value={user.NotificationTime}
-								class="input input-bordered"/>
+							<input
+								type="time"
+								name="notification_time"
+								value={ user.NotificationTime }
+								class="input input-bordered"
+							/>
 						</div>
 						<div class="card-actions justify-end">
 							<button type="submit" class="btn btn-primary gap-2">
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-									<path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z"></path>
-								</svg>
+								@SaveIcon()
 								Save Settings
 							</button>
 						</div>
