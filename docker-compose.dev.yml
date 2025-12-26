@@ -24,7 +24,9 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-    command: sh -c "bun install && bun run init && bun run dev"
+    command: sh -c "bun install && bun run init && exec bun run dev"
+    stdin_open: true
+    tty: true
     networks:
       - devnet
 

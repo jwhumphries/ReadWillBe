@@ -120,7 +120,7 @@ func addDraftReading() echo.HandlerFunc {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 
-		return render(c, 200, views.ManualReadingRow(newReading))
+		return render(c, 200, views.ManualPlanForm(title, readings, nil))
 	}
 }
 
@@ -231,7 +231,7 @@ func deleteDraft() echo.HandlerFunc {
 		if err := clearDraftData(c); err != nil {
 			return c.NoContent(http.StatusInternalServerError)
 		}
-		return c.NoContent(http.StatusOK)
+		return htmxRedirect(c, "/plans")
 	}
 }
 

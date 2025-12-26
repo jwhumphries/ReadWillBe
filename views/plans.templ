@@ -419,7 +419,7 @@ templ ManualPlanForm(title string, readings []ManualReading, err error) {
 				</div>
 			</form>
 			<div class="divider my-2">Readings</div>
-			<div class="overflow-x-auto">
+			<div class="overflow-x-auto overflow-y-visible">
 				<table class="table">
 					<thead>
 						<tr>
@@ -431,12 +431,45 @@ templ ManualPlanForm(title string, readings []ManualReading, err error) {
 					<tbody id="readings-table">
 						<tr class="bg-base-300">
 							<td>
+								<button
+									type="button"
+									onclick="document.getElementById('date-picker-modal').showModal()"
+									class="input input-bordered input-sm w-full text-left"
+									id="date-display"
+								>
+									Select date
+								</button>
 								<input
-									type="date"
+									type="hidden"
 									name="date"
+									id="date-input"
 									form="add-reading-form"
-									class="input input-bordered input-sm w-full"
 								/>
+								<dialog id="date-picker-modal" class="modal">
+									<div class="modal-box p-4">
+										<calendar-date
+											class="cally"
+											id="date-calendar"
+											hx-on:change="
+												const date = new Date(event.target.value);
+												document.getElementById('date-input').value = event.target.value;
+												document.getElementById('date-display').textContent = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+												document.getElementById('date-picker-modal').close();
+											"
+										>
+											<span slot="previous" aria-label="Previous">
+												@ChevronLeftIcon()
+											</span>
+											<span slot="next" aria-label="Next">
+												@ChevronRightIcon()
+											</span>
+											<calendar-month></calendar-month>
+										</calendar-date>
+									</div>
+									<form method="dialog" class="modal-backdrop">
+										<button>close</button>
+									</form>
+								</dialog>
 							</td>
 							<td>
 								<input
@@ -463,7 +496,7 @@ templ ManualPlanForm(title string, readings []ManualReading, err error) {
 					</tbody>
 				</table>
 			</div>
-			<form id="add-reading-form" hx-post="/plans/draft/reading" hx-target="#readings-table" hx-swap="beforeend" hx-on::after-request="if(event.detail.successful) this.reset()"></form>
+			<form id="add-reading-form" hx-post="/plans/draft/reading" hx-target="#manual-plan-form" hx-swap="outerHTML" hx-on::after-request="if(event.detail.successful) this.reset()"></form>
 			if len(readings) == 0 {
 				<div class="text-center py-8 text-base-content/60">
 					No readings added yet. Add your first reading above.
