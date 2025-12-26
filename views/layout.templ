@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"readwillbe/types"
 	"readwillbe/version"
+	"strings"
 )
 
 func versionedPath(path string) string {
@@ -59,19 +60,19 @@ templ Layout(cfg types.Config, user *types.User, title string) {
 							</div>
 							<ul class="menu flex-1">
 								<li>
-									<a href="/dashboard">
+									<a href="/dashboard" class={ templ.Classes(templ.KV("active", strings.HasPrefix(title, "Dashboard"))) }>
 										@DashboardIcon()
 										Dashboard
 									</a>
 								</li>
 								<li>
-									<a href="/history">
+									<a href="/history" class={ templ.Classes(templ.KV("active", strings.HasPrefix(title, "History"))) }>
 										@HistoryIcon()
 										History
 									</a>
 								</li>
 								<li>
-									<a href="/plans">
+									<a href="/plans" class={ templ.Classes(templ.KV("active", strings.Contains(title, "Plan"))) }>
 										@PlansIcon()
 										Plans
 									</a>
@@ -79,7 +80,7 @@ templ Layout(cfg types.Config, user *types.User, title string) {
 							</ul>
 							<ul class="menu">
 								<li>
-									<a href="/account">
+									<a href="/account" class={ templ.Classes(templ.KV("active", strings.HasPrefix(title, "Account"))) }>
 										@SettingsIcon()
 										Settings
 									</a>
