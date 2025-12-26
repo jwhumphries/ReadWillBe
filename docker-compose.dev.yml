@@ -66,6 +66,9 @@ services:
       - READWILLBE_ALLOW_SIGNUP=true
       - READWILLBE_LOG_LEVEL=debug
       - TEMPL_EXPERIMENT=rawgo
+      - READWILLBE_VAPID_PUBLIC_KEY=${READWILLBE_VAPID_PUBLIC_KEY}
+      - READWILLBE_VAPID_PRIVATE_KEY=${READWILLBE_VAPID_PRIVATE_KEY}
+      - READWILLBE_HOSTNAME=localhost:7331
     command: sh -c "go mod download && mkdir -p tmp data && air"
     expose:
       - "8080"

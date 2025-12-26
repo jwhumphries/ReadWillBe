@@ -107,7 +107,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	err = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
+	err = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{}, &types.PushSubscription{})
 	if err != nil {
 		return errors.Wrap(err, "failed to migrate")
 	}
@@ -118,6 +118,8 @@ func runServer(cmd *cobra.Command, args []string) error {
 			return errors.Wrap(err, "seeding database")
 		}
 	}
+
+	startNotificationWorker(cfg, db)
 
 	store := sessions.NewCookieStore(cfg.CookieSecret)
 	e.Use(session.Middleware(store))
@@ -158,6 +160,13 @@ func runServer(cmd *cobra.Command, args []string) error {
 	e.DELETE("/plans/:id/readings/:reading_id", deleteReading(db))
 	e.GET("/account", accountHandler(cfg, db))
 	e.POST("/account/settings", updateSettings(db))
+
+	e.GET("/notifications/count", notificationCount(db))
+	e.GET("/notifications/dropdown", notificationDropdown(db))
+
+	e.POST("/push/subscribe", saveSubscription(db))
+	e.POST("/push/unsubscribe", removeSubscription(db))
+	e.POST("/push/unsubscribe-all", removeAllSubscriptions(db))
 
 	e.POST("/reading/:id/complete", completeReading(db))
 	e.POST("/reading/:id/uncomplete", uncompleteReading(db))

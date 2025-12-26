@@ -12,6 +12,7 @@ type User struct {
 	Email                string `gorm:"uniqueIndex"`
 	Password             string
 	Plans                []Plan
+	PushSubscriptions    []PushSubscription
 	NotificationsEnabled bool
 	NotificationTime     string
 	CreatedAt            time.Time  `gorm:"autoCreateTime"`

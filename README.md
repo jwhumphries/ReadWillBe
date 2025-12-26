@@ -10,7 +10,9 @@ Heavily inspired by [fanks](https://github.com/oliverisaac/fanks).
 - Dashboard view showing today's readings and overdue items
 - History view of completed readings
 - Manage multiple reading plans
-- Configure notification settings
+- Configure notification settings (time-based alerts)
+- Browser push notifications for daily reading reminders
+- In-app notification bell with real-time updates
 - Support for day, week, and month-based reading schedules
 
 ### CSV Format Example
@@ -28,6 +30,42 @@ Supported date formats:
 - **Day**: `2025-10-15` or `10/15/2025`
 - **Month**: `January 2025` or `Jan 2025` or `2025-01`
 - **Week**: `2025-W42`
+
+## Setup
+
+### 1. Generate VAPID Keys for Push Notifications
+
+Browser push notifications require VAPID (Voluntary Application Server Identification) keys. Generate them using:
+
+```bash
+go run github.com/SherClockHolmes/webpush-go/cmd/vapid-keygen@latest
+```
+
+This will output:
+```
+Public Key: <your-public-key>
+Private Key: <your-private-key>
+```
+
+Add these keys to your `.env` file or environment variables:
+```bash
+READWILLBE_VAPID_PUBLIC_KEY=<your-public-key>
+READWILLBE_VAPID_PRIVATE_KEY=<your-private-key>
+READWILLBE_HOSTNAME=yourdomain.com  # or localhost:7331 for development
+```
+
+**Note**:
+- VAPID keys should be generated once and kept consistent across deployments
+- Push notifications require HTTPS in production (localhost works for development)
+- Without VAPID keys, the app will run but browser push notifications will be disabled
+
+### 2. Create Notification Icon Assets
+
+Create the following icon files in the `static/` directory:
+- `static/icon-192.png` - 192x192px notification icon
+- `static/badge-128.png` - 128x128px notification badge
+
+Or use placeholder images during development.
 
 ## Development
 
@@ -56,9 +94,19 @@ go run ./cmd/readwillbe/
 
 ## Environment Variables
 
-- `DB_PATH` - SQLite database path (default: `./tmp/readwillbe.db`)
-- `COOKIE_SECRET` - Secret for session cookies (required)
-- `ALLOW_SIGNUP` - Enable user registration (default: `true`)
-- `PORT` - Server port (default: `8080`)
-- `TZ` - Timezone (default: `America/Chicago`)
+### Required
+- `READWILLBE_COOKIE_SECRET` - Secret for session cookies (required)
+
+### Optional
+- `READWILLBE_DB_PATH` - SQLite database path (default: `./tmp/readwillbe.db`)
+- `READWILLBE_ALLOW_SIGNUP` - Enable user registration (default: `true`)
+- `READWILLBE_PORT` - Server port (default: `8080`)
+- `READWILLBE_SEED_DB` - Seed database with sample data (default: `false`)
+
+### Push Notifications (Optional)
+- `READWILLBE_VAPID_PUBLIC_KEY` - VAPID public key for push notifications
+- `READWILLBE_VAPID_PRIVATE_KEY` - VAPID private key for push notifications
+- `READWILLBE_HOSTNAME` - Hostname for notification URLs (e.g., `yourdomain.com`)
+
+If VAPID keys are not provided, the app will run normally but browser push notifications will be unavailable. Users can still use in-app notifications and set notification preferences.
 

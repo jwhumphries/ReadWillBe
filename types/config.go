@@ -8,11 +8,14 @@ import (
 )
 
 type Config struct {
-	DBPath       string
-	CookieSecret []byte
-	AllowSignup  bool
-	SeedDB       bool
-	Port         string
+	DBPath          string
+	CookieSecret    []byte
+	AllowSignup     bool
+	SeedDB          bool
+	Port            string
+	VAPIDPublicKey  string
+	VAPIDPrivateKey string
+	Hostname        string
 }
 
 func ConfigFromViper() (Config, error) {
@@ -27,11 +30,14 @@ func ConfigFromViper() (Config, error) {
 	}
 
 	return Config{
-		DBPath:       viper.GetString("db_path"),
-		CookieSecret: []byte(cookieSecret),
-		AllowSignup:  viper.GetBool("allow_signup"),
-		SeedDB:       viper.GetBool("seed_db"),
-		Port:         port,
+		DBPath:          viper.GetString("db_path"),
+		CookieSecret:    []byte(cookieSecret),
+		AllowSignup:     viper.GetBool("allow_signup"),
+		SeedDB:          viper.GetBool("seed_db"),
+		Port:            port,
+		VAPIDPublicKey:  viper.GetString("vapid_public_key"),
+		VAPIDPrivateKey: viper.GetString("vapid_private_key"),
+		Hostname:        viper.GetString("hostname"),
 	}, nil
 }
 

@@ -19,7 +19,7 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 	// Setup temporary in-memory DB
 	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
 	assert.NoError(t, err)
-	_ = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
+	_ = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{}, &types.PushSubscription{})
 
 	// Create test user
 	user := types.User{
@@ -80,7 +80,7 @@ func TestCreatePlan_BackgroundProcessingFailure(t *testing.T) {
 	// Setup temporary in-memory DB
 	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
 	assert.NoError(t, err)
-	_ = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{})
+	_ = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{}, &types.PushSubscription{})
 
 	// Create test user
 	user := types.User{
