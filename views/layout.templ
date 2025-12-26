@@ -1,9 +1,10 @@
 package views
 
 import (
+	"fmt"
 	"readwillbe/types"
 	"readwillbe/version"
-	"fmt"
+	"strings"
 )
 
 func versionedPath(path string) string {
@@ -13,114 +14,115 @@ func versionedPath(path string) string {
 templ Layout(cfg types.Config, user *types.User, title string) {
 	<!DOCTYPE html>
 	<html lang="en">
-	<head>
-		<meta charset="UTF-8"/>
-		<meta name="viewport" content="width=device-width, initial-scale=1"/>
-		<title>{title}</title>
-		<link href={versionedPath("/static/css/main.css")} rel="stylesheet"/>
-		<script src="https://unpkg.com/htmx.org@2.0.6"></script>
-		<script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@v1/bundles/datastar.js"></script>
-	</head>
-	<body class="flex flex-col min-h-screen" data-theme="nord">
-		if user != nil && user.IsSet() {
-			<div class="drawer lg:drawer-open">
-				<input id="drawer" type="checkbox" class="drawer-toggle"/>
-				<div class="drawer-content flex flex-col">
-					<header class="navbar bg-base-200 border-b border-base-300">
-						<div class="flex-none lg:hidden">
-							<label for="drawer" class="btn btn-square btn-ghost">
-								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-6 h-6 stroke-current">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-								</svg>
-							</label>
-						</div>
-						<div class="flex-1 text-center lg:text-left">
-							<a href="/dashboard" class="text-3xl font-bold link link-hover">ReadWillBe</a>
-						</div>
-					</header>
-					<main class="flex-1 p-8 bg-base-100">
-						{children...}
-					</main>
-					<footer class="footer footer-center p-4 bg-base-200 text-base-content border-t border-base-300">
-						<aside>
-							<p class="text-sm">Version: {version.Tag}</p>
-						</aside>
-					</footer>
-				</div>
-				<div class="drawer-side">
-					<label for="drawer" class="drawer-overlay"></label>
-					<div class="w-64 min-h-full bg-base-200 flex flex-col">
-						<div class="p-4 text-center border-b border-base-300">
-							<div class="avatar placeholder">
-								<div class="bg-neutral text-neutral-content w-12 rounded-full">
-									<span class="text-xl">{string([]rune(user.Name)[0:1])}</span>
-								</div>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ title }</title>
+			<link href={ versionedPath("/static/css/main.css") } rel="stylesheet"/>
+			<script src="https://unpkg.com/htmx.org@2.0.6"></script>
+			<script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@v1/bundles/datastar.js"></script>
+		</head>
+		<body class="flex flex-col min-h-screen" data-theme="nord">
+			if user != nil && user.IsSet() {
+				<div class="drawer lg:drawer-open">
+					<input id="drawer" type="checkbox" class="drawer-toggle"/>
+					<div class="drawer-content flex flex-col">
+						<header class="navbar bg-base-200 border-b border-base-300">
+							<div class="flex-none lg:hidden">
+								<label for="drawer" class="btn btn-square btn-ghost">
+									@MenuIcon()
+								</label>
 							</div>
-							<h2 class="text-lg font-bold mt-2">{user.Name}</h2>
-							<p class="text-sm opacity-70">{user.Email}</p>
+							<div class="flex-1 text-center lg:text-left">
+								<a href="/dashboard" class="text-3xl font-bold link link-hover">ReadWillBe</a>
+							</div>
+						</header>
+						<main class="flex-1 p-8 bg-base-100">
+							{ children... }
+						</main>
+						<footer class="footer footer-center p-4 bg-base-200 text-base-content border-t border-base-300">
+							<aside>
+								<p class="text-sm">Version: { version.Tag }</p>
+							</aside>
+						</footer>
+					</div>
+					<div class="drawer-side">
+						<label for="drawer" class="drawer-overlay"></label>
+						<div class="w-64 min-h-full bg-base-200 flex flex-col">
+							<div class="p-4 text-center border-b border-base-300">
+								<div class="avatar placeholder">
+									<div class="bg-neutral text-neutral-content w-12 rounded-full">
+										<span class="text-xl">{ string([]rune(user.Name)[0:1]) }</span>
+									</div>
+								</div>
+								<h2 class="text-lg font-bold mt-2">{ user.Name }</h2>
+								<p class="text-sm opacity-70">{ user.Email }</p>
+							</div>
+							<ul class="menu flex-1">
+								<li>
+									<a href="/dashboard" class={ templ.Classes(templ.KV("active", strings.HasPrefix(title, "Dashboard"))) }>
+										@DashboardIcon()
+										Dashboard
+									</a>
+								</li>
+								<li>
+									<a href="/history" class={ templ.Classes(templ.KV("active", strings.HasPrefix(title, "History"))) }>
+										@HistoryIcon()
+										History
+									</a>
+								</li>
+								<li>
+									<a href="/plans" class={ templ.Classes(templ.KV("active", strings.Contains(title, "Plan"))) }>
+										@PlansIcon()
+										Plans
+									</a>
+								</li>
+							</ul>
+							<ul class="menu">
+								<li>
+									<a href="/account" class={ templ.Classes(templ.KV("active", strings.HasPrefix(title, "Account"))) }>
+										@SettingsIcon()
+										Settings
+									</a>
+								</li>
+								<li>
+									<button hx-post="/auth/sign-out" hx-target="body">
+										@SignOutIcon()
+										Sign Out
+									</button>
+								</li>
+							</ul>
 						</div>
-						<ul class="menu flex-1">
-							<li>
-								<a href="/dashboard">
-									@DashboardIcon()
-									Dashboard
-								</a>
-							</li>
-							<li>
-								<a href="/history">
-									@HistoryIcon()
-									History
-								</a>
-							</li>
-							<li>
-								<a href="/plans">
-									@PlansIcon()
-									Plans
-								</a>
-							</li>
-						</ul>
-						<ul class="menu">
-							<li>
-								<a href="/account">
-									@SettingsIcon()
-									Settings
-								</a>
-							</li>
-							<li>
-								<button hx-post="/auth/sign-out" hx-target="body">
-									@SignOutIcon()
-									Sign Out
-								</button>
-							</li>
-						</ul>
 					</div>
 				</div>
-			</div>
-		} else {
-			<main class="flex-1 flex flex-col">
-				{children...}
-			</main>
-		}
-		<script type="text/javascript">
-			document.addEventListener("DOMContentLoaded", (event) => {
-				document.body.addEventListener('htmx:beforeSwap', function(evt) {
-					if (evt.detail.xhr.status === 422 || evt.detail.xhr.status === 500) {
-						evt.detail.shouldSwap = true;
-						evt.detail.isError = false;
-					}
-				});
-
-				document.body.addEventListener('click', function(evt) {
-					if (evt.target.classList.contains('toggle-rename')) {
-						const target = evt.target.getAttribute('data-target');
-						const el = document.getElementById(target);
-						if (el) {
-							el.classList.toggle('hidden');
+			} else {
+				<main class="flex-1 flex flex-col">
+					{ children... }
+				</main>
+			}
+			<script type="text/javascript">
+				document.addEventListener("DOMContentLoaded", (event) => {
+					document.body.addEventListener("htmx:beforeSwap", function (evt) {
+						if (
+							evt.detail.xhr.status === 422 ||
+							evt.detail.xhr.status === 500
+						) {
+							evt.detail.shouldSwap = true;
+							evt.detail.isError = false;
 						}
-					}
+					});
+
+					document.body.addEventListener("click", function (evt) {
+						if (evt.target.classList.contains("toggle-rename")) {
+							const target = evt.target.getAttribute("data-target");
+							const el = document.getElementById(target);
+							if (el) {
+								el.classList.toggle("hidden");
+							}
+						}
+					});
 				});
-			});
-		</script>
-	</body>
+			</script>
+		</body>
 	</html>
 }
