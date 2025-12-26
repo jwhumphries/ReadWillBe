@@ -187,7 +187,7 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 				<a href="/plans/create-manual" role="tab" class="tab">Create Manually</a>
 			</div>
 			<div class="card bg-base-200 shadow-xl">
-				<form hx-post="/plans/create" hx-target="body" enctype="multipart/form-data">
+				<form hx-post="/plans/create" hx-target="body" enctype="multipart/form-data" class="group">
 					<div class="card-body">
 						<fieldset class="fieldset">
 							<legend class="fieldset-legend">Plan Details</legend>
@@ -223,7 +223,8 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 								Cancel
 							</a>
 							<button type="submit" class="btn btn-primary">
-								@PlusIcon("h-5 w-5")
+								<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
+								@PlusIcon("h-5 w-5 group-[.htmx-request]:hidden")
 								Create Plan
 							</button>
 						</div>
@@ -252,7 +253,7 @@ templ EditPlan(cfg types.Config, user *types.User, plan types.Plan, err error) {
 				<h1 class="text-3xl font-bold">Edit Reading Plan</h1>
 			</div>
 			<div class="card bg-base-200 shadow-xl">
-				<form hx-post={ fmt.Sprintf("/plans/%d/edit", plan.ID) } hx-target="body">
+				<form hx-post={ fmt.Sprintf("/plans/%d/edit", plan.ID) } hx-target="body" class="group">
 					<div class="card-body">
 						<h2 class="card-title mb-4">Plan Details</h2>
 						<div class="form-control mb-6">
@@ -285,7 +286,8 @@ templ EditPlan(cfg types.Config, user *types.User, plan types.Plan, err error) {
 								Cancel
 							</a>
 							<button type="submit" class="btn btn-primary gap-2">
-								@SaveIcon()
+								<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
+								@SaveIcon("h-5 w-5 group-[.htmx-request]:hidden")
 								Save Changes
 							</button>
 						</div>
@@ -479,9 +481,10 @@ templ ManualPlanForm(title string, readings []ManualReading, err error) {
 					<button
 						hx-post="/plans/create-manual"
 						hx-target="body"
-						class="btn btn-primary gap-2"
+						class="btn btn-primary gap-2 group"
 					>
-						@PlusIcon("h-5 w-5")
+						<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
+						@PlusIcon("h-5 w-5 group-[.htmx-request]:hidden")
 						Create Plan
 					</button>
 				} else {
