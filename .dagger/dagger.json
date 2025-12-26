@@ -1,5 +1,15 @@
 {
   "name": "readwillbe",
   "sdk": "go",
-  "source": "."
+  "source": ".",
+  "dependencies": [
+    {
+      "name": "golangci",
+      "source": "github.com/sagikazarmark/daggerverse/golangci-lint@main"
+    },
+    {
+      "name": "go",
+      "source": "github.com/dagger/dagger/modules/go@main"
+    }
+  ]
 }

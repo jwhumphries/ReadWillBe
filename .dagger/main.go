@@ -9,109 +9,128 @@ import (
 
 type Readwillbe struct{}
 
-// Build runs the full build pipeline: templ, css, lint, test, and build.
+// Build runs the full build pipeline: templ, lint, test, css, and build.
 func (m *Readwillbe) Build(
 	ctx context.Context,
-	// The source directory
 	source *dagger.Directory,
-	// The version tag for the build (default: "dev")
 	// +optional
 	// +default="dev"
 	version string,
 ) (*dagger.Container, error) {
-	// 1. Frontend: Build CSS
-	// Use the custom frontend image as requested
-	frontend := dagger.Container().From("ghcr.io/jwhumphries/frontend:latest")
+	templSource := m.TemplGenerate(source)
 
-	// Mount source and run build
-	// We only need input.css and package files effectively, but mounting source is easiest.
-	cssDir := frontend.
+	if _, err := m.Lint(ctx, templSource); err != nil {
+		return nil, fmt.Errorf("lint failed: %w", err)
+	}
+
+	if _, err := m.Test(ctx, templSource); err != nil {
+		return nil, fmt.Errorf("test failed: %w", err)
+	}
+
+	cssDir := m.Minify(source)
+
+	buildSource := templSource.WithDirectory("static/css", cssDir)
+
+	return m.BuildBinary(buildSource, version), nil
+}
+
+// Lint runs golangci-lint on the source.
+func (m *Readwillbe) Lint(ctx context.Context, source *dagger.Directory) (string, error) {
+	return dag.Golangci().
+		Run(source, dagger.GolangciRunOpts{
+			Verbose: true,
+			Timeout: "5m",
+		}).
+		Stdout(ctx)
+}
+
+// GolangciLintFix runs golangci-lint with the fix option and returns the modified source.
+func (m *Readwillbe) GolangciLintFix(source *dagger.Directory) *dagger.Directory {
+	return dag.Golangci().
+		Run(source, dagger.GolangciRunOpts{
+			Verbose: true,
+			Timeout: "5m",
+			Fix:     true,
+		}).
+		Directory()
+}
+
+// Test runs Go tests.
+func (m *Readwillbe) Test(ctx context.Context, source *dagger.Directory) (string, error) {
+	return dag.Go().
+		Test(source, dagger.GoTestOpts{
+			Verbose: true,
+		}).
+		Stdout(ctx)
+}
+
+// Minify builds the frontend assets using the project's frontend image.
+func (m *Readwillbe) Minify(source *dagger.Directory) *dagger.Directory {
+	return dag.Container().
+		From("ghcr.io/jwhumphries/frontend:latest").
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithExec([]string{"bun", "install"}).
 		WithExec([]string{"bun", "run", "build"}).
 		Directory("/app/static/css")
+}
 
-	// 2. Templ: Generate Go code
-	// Use Go image
-	gobase := dagger.Container().From("golang:1.25-alpine")
-
-	// Install templ
-	// We mount caches to speed up build
-	templer := gobase.
+// TemplGenerate generates Templ Go code.
+func (m *Readwillbe) TemplGenerate(source *dagger.Directory) *dagger.Directory {
+	return dag.Container().
+		From("golang:1.25-alpine").
 		WithEnvVariable("GOCACHE", "/go-build-cache").
 		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
-		WithMountedCache("/go-build-cache", dagger.CacheVolume("go-build-cache")).
-		WithMountedCache("/go-mod-cache", dagger.CacheVolume("go-mod-cache")).
+		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
+		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
 		WithExec([]string{"apk", "add", "--no-cache", "git"}).
-		WithExec([]string{"go", "install", "github.com/a-h/templ/cmd/templ@latest"})
-
-	// Generate templ files
-	// We need to return the directory with generated files to be used by subsequent steps
-	templSource := templer.
+		WithExec([]string{"go", "install", "github.com/a-h/templ/cmd/templ@latest"}).
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithExec([]string{"templ", "generate"}).
 		Directory("/app")
+}
 
-	// 3. Lint
-	// Use specific lint image from Dockerfile
-	// We run lint on the source *after* templ generation to avoid missing file errors
-	_, err := dagger.Container().From("golangci/golangci-lint:v2.7.2").
-		WithDirectory("/app", templSource).
-		WithWorkdir("/app").
-		WithExec([]string{"golangci-lint", "run", "-v", "--timeout=5m"}).
-		Sync(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("lint failed: %w", err)
-	}
-
-	// 4. Test
-	// Run tests on the templ-generated source
-	_, err = gobase.
-		WithDirectory("/app", templSource).
-		WithWorkdir("/app").
-		WithExec([]string{"go", "test", "-v", "./..."}).
-		Sync(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("tests failed: %w", err)
-	}
-
-	// 5. Go Build
-	// Prepare source: overlay css
-	// We take the templSource and overlay the CSS generated in step 1
-	buildSource := templSource.
-		WithDirectory("static/css", cssDir)
-
-	builder := gobase.
-		WithDirectory("/app", buildSource).
+// BuildBinary builds the Go binary.
+func (m *Readwillbe) BuildBinary(source *dagger.Directory, version string) *dagger.Container {
+	return dag.Container().
+		From("golang:1.25-alpine").
+		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithEnvVariable("GOCACHE", "/go-build-cache").
 		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
-		WithMountedCache("/go-build-cache", dagger.CacheVolume("go-build-cache")).
-		WithMountedCache("/go-mod-cache", dagger.CacheVolume("go-mod-cache")).
+		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
+		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
 		WithExec([]string{
 			"go", "build",
 			"-ldflags", "-X readwillbe/version.Tag=" + version,
 			"-o", "/readwillbe",
 			"./cmd/readwillbe/",
 		})
+}
 
-	binary := builder.File("/readwillbe")
+// Release packages the binary into a minimal Alpine image.
+func (m *Readwillbe) Release(
+	ctx context.Context,
+	source *dagger.Directory,
+	// +optional
+	// +default="dev"
+	version string,
+) (*dagger.Container, error) {
+	binaryContainer, err := m.Build(ctx, source, version)
+	if err != nil {
+		return nil, err
+	}
+	binary := binaryContainer.File("/readwillbe")
 
-	// 6. Release
-	// Create the final alpine image
-	release := dagger.Container().From("alpine:3.20").
+	return dag.Container().
+		From("alpine:3.23").
 		WithExec([]string{"apk", "add", "--no-cache", "tzdata", "ca-certificates"}).
 		WithFile("/readwillbe", binary).
-		// Add nonroot user. Dockerfile does this by copying a passwd file.
-		// We can achieve the same by appending to /etc/passwd.
 		WithExec([]string{"sh", "-c", "echo 'nonroot:x:10001:10001:NonRoot User:/:/sbin/nologin' >> /etc/passwd"}).
 		WithEnvVariable("TZ", "America/New_York").
 		WithEnvVariable("PORT", ":8080").
 		WithExposedPort(8080).
 		WithUser("10001").
-		WithEntrypoint([]string{"/readwillbe"})
-
-	return release, nil
+		WithEntrypoint([]string{"/readwillbe"}), nil
 }
