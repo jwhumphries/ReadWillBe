@@ -354,12 +354,12 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 				for i := range readings {
 					readings[i].PlanID = p.ID
 				}
-				if err := tx.Create(&readings).Error; err != nil {
-					return err
+				if txErr := tx.Create(&readings).Error; txErr != nil {
+					return txErr
 				}
 				p.Status = "active"
-				if err := tx.Save(&p).Error; err != nil {
-					return err
+				if txErr := tx.Save(&p).Error; txErr != nil {
+					return txErr
 				}
 				return nil
 			})
@@ -465,7 +465,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plan types.Plan
-		if err := db.Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
+		if dbErr := db.Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; dbErr != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
@@ -482,8 +482,8 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		err = db.Transaction(func(tx *gorm.DB) error {
-			if err := tx.Save(&plan).Error; err != nil {
-				return err
+			if txErr := tx.Save(&plan).Error; txErr != nil {
+				return txErr
 			}
 
 			for _, reading := range plan.Readings {
@@ -492,9 +492,9 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 
 				if dateStr, ok := params[dateKey]; ok && len(dateStr) > 0 {
 					dateValue := dateStr[0]
-					parsedDate, _, err := parseDate(dateValue)
-					if err != nil {
-						return errors.Wrap(err, "Failed to parse date")
+					parsedDate, _, parseErr := parseDate(dateValue)
+					if parseErr != nil {
+						return errors.Wrap(parseErr, "Failed to parse date")
 					}
 					reading.Date = parsedDate
 				}
@@ -503,8 +503,8 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 					reading.Content = content[0]
 				}
 
-				if err := tx.Save(&reading).Error; err != nil {
-					return err
+				if txErr := tx.Save(&reading).Error; txErr != nil {
+					return txErr
 				}
 			}
 

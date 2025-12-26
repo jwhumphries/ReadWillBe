@@ -188,7 +188,10 @@ func UserMiddleware(db *gorm.DB, cache *UserCache) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			sess, _ := session.Get(SessionKey, c)
 			if sess.Values[SessionUserIDKey] != nil {
-				userID := sess.Values[SessionUserIDKey].(uint)
+				userID, ok := sess.Values[SessionUserIDKey].(uint)
+				if !ok {
+					return next(c)
+				}
 
 				user, found := cache.Get(userID)
 				if !found {
@@ -228,7 +231,10 @@ func UserMiddleware(db *gorm.DB, cache *UserCache) echo.MiddlewareFunc {
 func GetSessionUser(c echo.Context) (types.User, bool) {
 	u := c.Get(UserKey)
 	if u != nil {
-		user := u.(types.User)
+		user, ok := u.(types.User)
+		if !ok {
+			return types.User{}, false
+		}
 		logrus.Debugf("Found session user %s", user.Email)
 		return user, true
 	}

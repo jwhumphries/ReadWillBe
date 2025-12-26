@@ -29,7 +29,10 @@ func (c *UserCache) Get(id uint) (types.User, bool) {
 		return types.User{}, false
 	}
 
-	cached := val.(cachedUser)
+	cached, ok := val.(cachedUser)
+	if !ok {
+		return types.User{}, false
+	}
 	if time.Now().After(cached.expiresAt) {
 		c.cache.Delete(id)
 		return types.User{}, false

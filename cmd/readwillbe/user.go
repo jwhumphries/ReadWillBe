@@ -64,9 +64,9 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 			CreatedAt: time.Now(),
 		}
 
-		if err := db.Create(&user).Error; err != nil {
-			err := errors.Wrap(err, "Create user error")
-			return render(c, 422, views.SignUpPage(cfg, err))
+		if dbErr := db.Create(&user).Error; dbErr != nil {
+			wrappedErr := errors.Wrap(dbErr, "Create user error")
+			return render(c, 422, views.SignUpPage(cfg, wrappedErr))
 		}
 
 		sess, _ := session.Get(SessionKey, c)
