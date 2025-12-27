@@ -9,6 +9,7 @@ templ NotificationBell(count int) {
 			tabindex="0"
 			role="button"
 			class="btn btn-ghost btn-circle"
+			aria-label="Notifications"
 			hx-get="/notifications/dropdown"
 			hx-trigger="click"
 			hx-target="#notification-dropdown"
