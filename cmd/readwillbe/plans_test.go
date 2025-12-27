@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -16,7 +17,12 @@ import (
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {
-	db, err := gorm.Open(gormlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	// Use a unique name for each test to ensure isolation and prevent flaky tests
+	// caused by shared in-memory database state.
+	// We sanitize the test name to be safe for URI usage.
+	safeName := strings.ReplaceAll(t.Name(), "/", "_")
+	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", safeName)
+	db, err := gorm.Open(gormlite.Open(dsn), &gorm.Config{})
 	assert.NoError(t, err)
 
 	sqlDB, err := db.DB()
