@@ -175,7 +175,7 @@ func sendNotification(cfg types.Config, db *gorm.DB, user types.User) {
 			fmt.Printf("Error sending notification: %v\n", err)
 			continue
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode == 410 {
 			db.Delete(&subscription)

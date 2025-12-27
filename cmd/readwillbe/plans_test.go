@@ -15,11 +15,26 @@ import (
 	"readwillbe/types"
 )
 
-func TestCreatePlan_BackgroundProcessing(t *testing.T) {
-	// Setup temporary in-memory DB
-	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
+func setupTestDB(t *testing.T) *gorm.DB {
+	db, err := gorm.Open(gormlite.Open("file::memory:?cache=shared"), &gorm.Config{})
 	assert.NoError(t, err)
-	_ = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{}, &types.PushSubscription{})
+
+	sqlDB, err := db.DB()
+	assert.NoError(t, err)
+	sqlDB.SetMaxOpenConns(1)
+
+	err = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{}, &types.PushSubscription{})
+	assert.NoError(t, err)
+
+	t.Cleanup(func() {
+		sqlDB.Close()
+	})
+
+	return db
+}
+
+func TestCreatePlan_BackgroundProcessing(t *testing.T) {
+	db := setupTestDB(t)
 
 	// Create test user
 	user := types.User{
@@ -55,7 +70,7 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 
 	// Invoke handler
 	h := createPlan(db)
-	err = h(c)
+	err := h(c)
 	assert.NoError(t, err)
 
 	// Verify redirect
@@ -77,12 +92,8 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 }
 
 func TestCreatePlan_BackgroundProcessingFailure(t *testing.T) {
-	// Setup temporary in-memory DB
-	db, err := gorm.Open(gormlite.Open(":memory:"), &gorm.Config{})
-	assert.NoError(t, err)
-	_ = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{}, &types.PushSubscription{})
+	db := setupTestDB(t)
 
-	// Create test user
 	user := types.User{
 		Email: "test@example.com",
 		Name:  "Test User",
@@ -111,7 +122,7 @@ invalid-row`
 
 	// Invoke handler
 	h := createPlan(db)
-	err = h(c)
+	err := h(c)
 	assert.NoError(t, err)
 
 	// Verify plan status eventually "failed"

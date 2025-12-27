@@ -36,31 +36,37 @@ func (m *Readwillbe) Build(
 
 // Lint runs golangci-lint on the source.
 func (m *Readwillbe) Lint(ctx context.Context, source *dagger.Directory) (string, error) {
-	return dag.Golangci().
-		Run(source, dagger.GolangciRunOpts{
-			Verbose: true,
-			Timeout: "5m",
-		}).
+	templSource := m.TemplGenerate(source)
+
+	return dag.Container().
+		From("golangci/golangci-lint:v2.7.2").
+		WithDirectory("/app", templSource).
+		WithWorkdir("/app").
+		WithExec([]string{"sh", "-c", "ls -la && golangci-lint run --verbose --timeout=5m ./cmd/... ./types/... ./views/... ./version/..."}).
 		Stdout(ctx)
 }
 
 // GolangciLintFix runs golangci-lint with the fix option and returns the modified source.
 func (m *Readwillbe) GolangciLintFix(source *dagger.Directory) *dagger.Directory {
-	return dag.Golangci().
-		Run(source, dagger.GolangciRunOpts{
-			Verbose: true,
-			Timeout: "5m",
-			Fix:     true,
-		}).
-		Directory()
+	return dag.Container().
+		From("golangci/golangci-lint:v2.7.2").
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"golangci-lint", "run", "--fix", "--verbose", "--timeout=5m"}).
+		Directory("/app")
 }
 
 // Test runs Go tests.
 func (m *Readwillbe) Test(ctx context.Context, source *dagger.Directory) (string, error) {
-	return dag.Go().
-		Test(source, dagger.GoTestOpts{
-			Verbose: true,
-		}).
+	return dag.Container().
+		From("golang:1.25-alpine").
+		WithEnvVariable("GOCACHE", "/go-build-cache").
+		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
+		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
+		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"go", "test", "-v", "./..."}).
 		Stdout(ctx)
 }
 
