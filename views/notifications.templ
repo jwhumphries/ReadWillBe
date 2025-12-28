@@ -45,7 +45,7 @@ templ NotificationDropdown(readings []types.Reading) {
 				for _, reading := range readings {
 					<li>
 						<a href="/" class="flex items-start gap-2 p-2 hover:bg-base-300 rounded">
-							@BookIcon()
+							@BookIcon("h-5 w-5 shrink-0 opacity-75")
 							<div class="flex-1 min-w-0">
 								<div class="font-medium truncate">{ reading.Plan.Title }</div>
 								<div class="text-sm opacity-70 truncate">{ reading.Content }</div>

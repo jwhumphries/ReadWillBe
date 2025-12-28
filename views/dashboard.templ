@@ -11,11 +11,16 @@ templ Dashboard(cfg types.Config, user *types.User, todayReadings []types.Readin
 			<div>
 				<h2 class="text-3xl font-bold mb-6">Today's Reading</h2>
 				if len(todayReadings) == 0 {
-					<div role="alert" class="alert">
-						@InfoIcon()
-						<div>
-							<div class="text-lg">No readings scheduled for today</div>
-							<div class="text-sm">Enjoy your free time or check your <a href="/plans" class="link link-primary">reading plans</a></div>
+					<div class="hero bg-base-200 rounded-box py-12">
+						<div class="hero-content text-center">
+							<div class="max-w-md">
+								<div class="mx-auto w-24 h-24 mb-4 opacity-20 text-base-content">
+									@BookIcon("w-full h-full")
+								</div>
+								<h3 class="text-2xl font-bold">All caught up!</h3>
+								<p class="py-6">No readings scheduled for today. You can relax or check your reading plans.</p>
+								<a href="/plans" class="btn btn-primary">View Plans</a>
+							</div>
 						</div>
 					</div>
 				} else {
