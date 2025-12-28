@@ -17,8 +17,9 @@ func notificationCount(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var readings []types.Reading
-		db.Where("plan_id IN (?)",
+		db.Where("plan_id IN (?) AND status != ?",
 			db.Table("plans").Select("id").Where("user_id = ?", user.ID),
+			types.StatusCompleted,
 		).Find(&readings)
 
 		count := 0
@@ -40,8 +41,9 @@ func notificationDropdown(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var readings []types.Reading
-		db.Preload("Plan").Where("plan_id IN (?)",
+		db.Preload("Plan").Where("plan_id IN (?) AND status != ?",
 			db.Table("plans").Select("id").Where("user_id = ?", user.ID),
+			types.StatusCompleted,
 		).Find(&readings)
 
 		todayReadings := []types.Reading{}
