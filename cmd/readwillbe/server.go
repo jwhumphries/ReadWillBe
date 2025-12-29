@@ -85,6 +85,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	}))
 
 	e.Use(middleware.Secure())
+	e.Use(middleware.Gzip())
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "method=${method}, uri=${uri}, status=${status}\n",
