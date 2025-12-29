@@ -25,7 +25,13 @@ templ SignInForm(config types.Config, err error) {
 						<label class="label">
 							<span class="label-text">Password</span>
 						</label>
-						<input type="password" name="password" required class="input input-bordered"/>
+						<label class="input input-bordered flex items-center gap-2 pr-0">
+							<input type="password" name="password" id="signin-password" required class="grow"/>
+							<button type="button" class="btn btn-ghost btn-sm btn-circle" onclick={ togglePassword("signin-password") } aria-label="Toggle password visibility">
+								<span class="icon-eye">@EyeIcon("h-5 w-5 opacity-70")</span>
+								<span class="icon-eye-slash hidden">@EyeSlashIcon("h-5 w-5 opacity-70")</span>
+							</button>
+						</label>
 					</div>
 					if err != nil {
 						<div role="alert" class="alert alert-error">
@@ -82,13 +88,17 @@ templ SignUpForm(err error) {
 						<label class="label">
 							<span class="label-text">Password</span>
 						</label>
-						<input type="password" name="password" required class="input input-bordered"/>
+						<label class="input input-bordered flex items-center gap-2 pr-0">
+							<input type="password" name="password" id="signup-password" required class="grow"/>
+							<button type="button" class="btn btn-ghost btn-sm btn-circle" onclick={ togglePassword("signup-password") } aria-label="Toggle password visibility">
+								<span class="icon-eye">@EyeIcon("h-5 w-5 opacity-70")</span>
+								<span class="icon-eye-slash hidden">@EyeSlashIcon("h-5 w-5 opacity-70")</span>
+							</button>
+						</label>
 					</div>
 					if err != nil {
 						<div role="alert" class="alert alert-error">
-							<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-							</svg>
+							@AlertErrorIcon()
 							<span>{ err.Error() }</span>
 						</div>
 					}
@@ -108,4 +118,21 @@ templ SignUpForm(err error) {
 			</form>
 		</div>
 	</div>
+}
+
+script togglePassword(id string) {
+	const input = document.getElementById(id);
+	const btn = input.nextElementSibling;
+	const eye = btn.querySelector('.icon-eye');
+	const slash = btn.querySelector('.icon-eye-slash');
+
+	if (input.type === 'password') {
+		input.type = 'text';
+		eye.classList.add('hidden');
+		slash.classList.remove('hidden');
+	} else {
+		input.type = 'password';
+		eye.classList.remove('hidden');
+		slash.classList.add('hidden');
+	}
 }
