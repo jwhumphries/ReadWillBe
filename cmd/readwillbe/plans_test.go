@@ -33,7 +33,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	assert.NoError(t, err)
 
 	t.Cleanup(func() {
-		sqlDB.Close()
+		_ = sqlDB.Close()
 	})
 
 	return db

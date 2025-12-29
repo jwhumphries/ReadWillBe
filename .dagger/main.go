@@ -9,7 +9,6 @@ import (
 
 type Readwillbe struct{}
 
-// Build runs the full build pipeline: templ, lint, test, css, and build.
 func (m *Readwillbe) Build(
 	ctx context.Context,
 	source *dagger.Directory,
@@ -27,36 +26,21 @@ func (m *Readwillbe) Build(
 		return nil, fmt.Errorf("test failed: %w", err)
 	}
 
-	cssDir := m.Minify(source)
+	cssDir := m.BuildCss(source)
 
 	buildSource := templSource.WithDirectory("static/css", cssDir)
 
 	return m.BuildBinary(buildSource, version), nil
 }
 
-// Lint runs golangci-lint on the source.
 func (m *Readwillbe) Lint(ctx context.Context, source *dagger.Directory) (string, error) {
-	templSource := m.TemplGenerate(source)
-
-	return dag.Container().
-		From("golangci/golangci-lint:v2.7.2").
-		WithDirectory("/app", templSource).
-		WithWorkdir("/app").
-		WithExec([]string{"sh", "-c", "ls -la && golangci-lint run --verbose --timeout=5m ./cmd/... ./types/... ./views/... ./version/..."}).
+	return dag.GolangciLint().
+		WithModuleCache(dag.CacheVolume("go-mod-cache")).
+		WithLinterCache(dag.CacheVolume("golangci-lint-cache")).
+		Run(source).
 		Stdout(ctx)
 }
 
-// GolangciLintFix runs golangci-lint with the fix option and returns the modified source.
-func (m *Readwillbe) GolangciLintFix(source *dagger.Directory) *dagger.Directory {
-	return dag.Container().
-		From("golangci/golangci-lint:v2.7.2").
-		WithDirectory("/app", source).
-		WithWorkdir("/app").
-		WithExec([]string{"golangci-lint", "run", "--fix", "--verbose", "--timeout=5m"}).
-		Directory("/app")
-}
-
-// Test runs Go tests.
 func (m *Readwillbe) Test(ctx context.Context, source *dagger.Directory) (string, error) {
 	return dag.Container().
 		From("golang:1.25-alpine").
@@ -70,8 +54,7 @@ func (m *Readwillbe) Test(ctx context.Context, source *dagger.Directory) (string
 		Stdout(ctx)
 }
 
-// Minify builds the frontend assets using the project's frontend image.
-func (m *Readwillbe) Minify(source *dagger.Directory) *dagger.Directory {
+func (m *Readwillbe) BuildCss(source *dagger.Directory) *dagger.Directory {
 	return dag.Container().
 		From("ghcr.io/jwhumphries/frontend:latest").
 		WithDirectory("/app", source).
@@ -81,7 +64,6 @@ func (m *Readwillbe) Minify(source *dagger.Directory) *dagger.Directory {
 		Directory("/app/static/css")
 }
 
-// TemplGenerate generates Templ Go code.
 func (m *Readwillbe) TemplGenerate(source *dagger.Directory) *dagger.Directory {
 	return dag.Container().
 		From("golang:1.25-alpine").
@@ -97,7 +79,6 @@ func (m *Readwillbe) TemplGenerate(source *dagger.Directory) *dagger.Directory {
 		Directory("/app")
 }
 
-// BuildBinary builds the Go binary.
 func (m *Readwillbe) BuildBinary(source *dagger.Directory, version string) *dagger.Container {
 	return dag.Container().
 		From("golang:1.25-alpine").
@@ -115,7 +96,6 @@ func (m *Readwillbe) BuildBinary(source *dagger.Directory, version string) *dagg
 		})
 }
 
-// Release packages the binary into a minimal Alpine image.
 func (m *Readwillbe) Release(
 	ctx context.Context,
 	source *dagger.Directory,
@@ -139,4 +119,13 @@ func (m *Readwillbe) Release(
 		WithExposedPort(8080).
 		WithUser("10001").
 		WithEntrypoint([]string{"/readwillbe"}), nil
+}
+
+func (m *Readwillbe) Fmt(source *dagger.Directory) *dagger.Directory {
+	return dag.Container().
+		From("golang:1.25-alpine").
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"go", "fmt", "./..."}).
+		Directory("/app")
 }

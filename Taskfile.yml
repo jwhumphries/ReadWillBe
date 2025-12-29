@@ -114,23 +114,9 @@ tasks:
   lint:
     desc: Run linter
     cmds:
-      - task: docker:build-target
-        vars:
-          DOCKER_TARGET: lint
-          DOCKER_IMAGE: '{{.APP_NAME}}:lint'
-      - defer: 
-          task: docker:clean-image
-          vars:
-            DOCKER_IMAGE: '{{.APP_NAME}}:lint'
+      - dagger -m .dagger call lint --source=.
 
   test:
     desc: Run tests in Docker
     cmds:
-      - task: docker:build-target
-        vars:
-          DOCKER_TARGET: test
-          DOCKER_IMAGE: '{{.APP_NAME}}:test'
-      - defer: 
-          task: docker:clean-image
-          vars:
-            DOCKER_IMAGE: '{{.APP_NAME}}:test'
+      - dagger -m .dagger call test --source=.
