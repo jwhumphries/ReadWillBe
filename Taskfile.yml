@@ -58,7 +58,7 @@ tasks:
       - rm -rf ./tmp ./bin
     silent: true
 
-  build:dev:
+  build-dev:
     internal: true
     desc: Build development Docker image
     cmds:
@@ -67,14 +67,14 @@ tasks:
           DOCKER_TARGET: dev
           DOCKER_IMAGE: '{{.DEV_IMAGE}}'
 
-  dev:start:
+  dev-start:
     desc: Start development environment with hot reload
     deps: [build:dev]
     cmds:
       - docker compose -f docker-compose.dev.yml up -d
     silent: true
 
-  dev:stop:
+  dev-stop:
     desc: Stop development environment
     cmds:
       - docker compose -f docker-compose.dev.yml down
@@ -83,7 +83,7 @@ tasks:
       - rm -rf ./tmp ./bin
     silent: true
 
-  build:builder:
+  build-builder:
     desc: Build builder Docker image
     cmds:
       - task: docker:build-target
@@ -105,6 +105,11 @@ tasks:
     desc: Auto-format go files
     cmds:
       - for file in $(gofmt -s -l . | grep -v "^vendor/"); do go fmt $file; done
+
+  templ-fmt:
+    desc: Auto-format templ files
+    cmds:
+      - for file in $(find ./views -type f -name '*.templ'); do templ fmt $file; done
 
   lint:
     desc: Run linter
