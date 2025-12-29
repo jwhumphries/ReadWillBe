@@ -21,6 +21,14 @@ npx tailwindcss -i ./input.css -o ./static/css/main.css  # Build CSS
 # Production Build
 task build              # Build production Docker image
 task clean              # Remove generated files and Docker images
+
+# Dagger CI Pipeline (runs from repo root)
+dagger -m .dagger call lint --source=.           # Run golangci-lint
+dagger -m .dagger call test --source=.           # Run tests
+dagger -m .dagger call build --source=.          # Full pipeline (templ→lint→test→css→binary)
+dagger -m .dagger call release --source=.        # Build production container
+dagger -m .dagger call templ-generate --source=. # Generate templ files only
+dagger -m .dagger call build-css --source=.      # Build CSS only
 ```
 
 ## Architecture Overview
@@ -32,6 +40,7 @@ task clean              # Remove generated files and Docker images
 - `views/` - Templ templates (.templ files)
 - `types/` - Data models (User, Plan, Reading, Config)
 - `static/` - CSS, icons, static assets
+- `.dagger/` - Dagger CI pipeline (Go SDK, uses golangci-lint module)
 
 ### Key Patterns
 
