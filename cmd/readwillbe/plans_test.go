@@ -142,7 +142,7 @@ invalid-row`
 }
 
 func TestUserCache(t *testing.T) {
-	cache := NewUserCache(100 * time.Millisecond)
+	cache := NewUserCache(100*time.Millisecond, 200*time.Millisecond)
 	user := types.User{
 		Model: gorm.Model{ID: 1},
 		Email: "cache@example.com",

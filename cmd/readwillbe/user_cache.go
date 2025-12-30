@@ -17,10 +17,33 @@ type UserCache struct {
 	ttl   time.Duration
 }
 
-func NewUserCache(ttl time.Duration) *UserCache {
-	return &UserCache{
+// NewUserCache creates a new user cache with the given TTL and cleanup interval.
+// It starts a background goroutine to clean up expired entries.
+func NewUserCache(ttl time.Duration, cleanupInterval time.Duration) *UserCache {
+	uc := &UserCache{
 		ttl: ttl,
 	}
+
+	go func() {
+		t := time.NewTicker(cleanupInterval)
+		defer t.Stop()
+		for range t.C {
+			uc.cleanup()
+		}
+	}()
+
+	return uc
+}
+
+func (c *UserCache) cleanup() {
+	now := time.Now()
+	c.cache.Range(func(key, value interface{}) bool {
+		cached, ok := value.(cachedUser)
+		if !ok || now.After(cached.expiresAt) {
+			c.cache.Delete(key)
+		}
+		return true
+	})
 }
 
 func (c *UserCache) Get(id uint) (types.User, bool) {
@@ -31,6 +54,7 @@ func (c *UserCache) Get(id uint) (types.User, bool) {
 
 	cached, ok := val.(cachedUser)
 	if !ok {
+		c.cache.Delete(id)
 		return types.User{}, false
 	}
 	if time.Now().After(cached.expiresAt) {
