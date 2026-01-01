@@ -85,6 +85,8 @@ func runServer(cmd *cobra.Command, args []string) error {
 	}))
 
 	e.Use(middleware.Secure())
+	e.Use(middleware.BodyLimit("2M"))
+	e.Use(middleware.RequestID())
 	e.Use(middleware.Gzip())
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
@@ -220,17 +222,19 @@ func UserMiddleware(db *gorm.DB, cache *UserCache) echo.MiddlewareFunc {
 
 				c.Set(UserKey, user)
 
-				sess.Options = &sessions.Options{
-					Path:     "/",
-					MaxAge:   3600 * 24 * 365,
-					HttpOnly: true,
-				}
+				// Only save session if user ID changed or options need setting
+				if val, ok := sess.Values[SessionUserIDKey]; !ok || val != user.ID {
+					sess.Options = &sessions.Options{
+						Path:     "/",
+						MaxAge:   3600 * 24 * 365,
+						HttpOnly: true,
+					}
+					sess.Values[SessionUserIDKey] = user.ID
 
-				sess.Values[SessionUserIDKey] = user.ID
-
-				err := sess.Save(c.Request(), c.Response())
-				if err != nil {
-					return errors.Wrap(err, "saving session")
+					err := sess.Save(c.Request(), c.Response())
+					if err != nil {
+						return errors.Wrap(err, "saving session")
+					}
 				}
 			}
 			return next(c)
