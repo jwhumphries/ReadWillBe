@@ -41,6 +41,11 @@ func htmxRedirect(c echo.Context, url string) error {
 	return c.NoContent(http.StatusOK)
 }
 
+var gzipConfig = middleware.GzipConfig{
+	Level:     5,
+	MinLength: 1400,
+}
+
 func runServer(cmd *cobra.Command, args []string) error {
 	configureLogging()
 
