@@ -28,10 +28,12 @@ templ SignInForm(config types.Config, err error) {
 						<label class="input input-bordered flex items-center gap-2 pr-0">
 							<input type="password" name="password" id="signin-password" required class="grow"/>
 							<button type="button" class="btn btn-ghost btn-sm btn-circle" onclick={ togglePassword("signin-password") } aria-label="Toggle password visibility">
-								<span class="icon-eye">@EyeIcon("h-5 w-5 opacity-70")
-</span>
-								<span class="icon-eye-slash hidden">@EyeSlashIcon("h-5 w-5 opacity-70")
-</span>
+								<span class="icon-eye">
+									@EyeIcon("h-5 w-5 opacity-70")
+								</span>
+								<span class="icon-eye-slash hidden">
+									@EyeSlashIcon("h-5 w-5 opacity-70")
+								</span>
 							</button>
 						</label>
 					</div>
@@ -93,10 +95,12 @@ templ SignUpForm(err error) {
 						<label class="input input-bordered flex items-center gap-2 pr-0">
 							<input type="password" name="password" id="signup-password" required class="grow"/>
 							<button type="button" class="btn btn-ghost btn-sm btn-circle" onclick={ togglePassword("signup-password") } aria-label="Toggle password visibility">
-								<span class="icon-eye">@EyeIcon("h-5 w-5 opacity-70")
-</span>
-								<span class="icon-eye-slash hidden">@EyeSlashIcon("h-5 w-5 opacity-70")
-</span>
+								<span class="icon-eye">
+									@EyeIcon("h-5 w-5 opacity-70")
+								</span>
+								<span class="icon-eye-slash hidden">
+									@EyeSlashIcon("h-5 w-5 opacity-70")
+								</span>
 							</button>
 						</label>
 					</div>

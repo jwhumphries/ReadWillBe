@@ -78,7 +78,7 @@ templ Layout(cfg types.Config, user *types.User, title string) {
 								</li>
 								<li>
 									<a href="/history" class={ templ.Classes(templ.KV("active", strings.HasPrefix(title, "History"))) }>
-										@HistoryIcon()
+										@HistoryIcon("h-5 w-5 opacity-75")
 										History
 									</a>
 								</li>
