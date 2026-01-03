@@ -509,6 +509,7 @@ templ ManualPlanForm(title string, readings []ManualReading, err error) {
 									type="submit"
 									form="add-reading-form"
 									class="btn btn-primary btn-sm"
+									aria-label="Add reading"
 								>
 									@PlusIcon("h-5 w-5")
 								</button>
@@ -572,6 +573,7 @@ templ ManualReadingRow(reading ManualReading) {
 					hx-swap="outerHTML"
 					class="btn btn-ghost btn-xs"
 					title="Edit"
+					aria-label="Edit reading"
 				>
 					@PencilIcon("h-4 w-4")
 				</button>
@@ -581,6 +583,7 @@ templ ManualReadingRow(reading ManualReading) {
 					hx-swap="outerHTML"
 					class="btn btn-ghost btn-xs text-error"
 					title="Delete"
+					aria-label="Delete reading"
 				>
 					@TrashIcon("h-4 w-4")
 				</button>
@@ -617,6 +620,7 @@ templ ManualReadingRowEdit(reading ManualReading) {
 					form={ "edit-form-" + reading.ID }
 					class="btn btn-success btn-xs"
 					title="Save"
+					aria-label="Save changes"
 				>
 					@CheckIcon("h-4 w-4")
 				</button>
@@ -626,6 +630,7 @@ templ ManualReadingRowEdit(reading ManualReading) {
 					hx-swap="outerHTML"
 					class="btn btn-ghost btn-xs"
 					title="Cancel"
+					aria-label="Cancel editing"
 				>
 					@CloseIcon("h-4 w-4")
 				</button>
