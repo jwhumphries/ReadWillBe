@@ -17,8 +17,9 @@ func dashboardHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var readings []types.Reading
-		db.Preload("Plan").Where("plan_id IN (?)",
-			db.Table("plans").Select("id").Where("user_id = ?", user.ID),
+		tx := db.WithContext(c.Request().Context())
+		tx.Preload("Plan").Where("plan_id IN (?)",
+			tx.Table("plans").Select("id").Where("user_id = ?", user.ID),
 		).Find(&readings)
 
 		todayReadings := []types.Reading{}

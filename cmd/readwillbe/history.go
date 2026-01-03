@@ -17,9 +17,10 @@ func historyHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var readings []types.Reading
-		db.Preload("Plan").
+		tx := db.WithContext(c.Request().Context())
+		tx.Preload("Plan").
 			Where("plan_id IN (?) AND status = ?",
-				db.Table("plans").Select("id").Where("user_id = ?", user.ID),
+				tx.Table("plans").Select("id").Where("user_id = ?", user.ID),
 				types.StatusCompleted,
 			).
 			Order("completed_at DESC").

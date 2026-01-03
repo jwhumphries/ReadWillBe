@@ -23,7 +23,7 @@ func completeReading(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var reading types.Reading
-		if err := db.Preload("Plan").First(&reading, id).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Preload("Plan").First(&reading, id).Error; err != nil {
 			return c.String(http.StatusNotFound, "Reading not found")
 		}
 
@@ -35,7 +35,7 @@ func completeReading(db *gorm.DB) echo.HandlerFunc {
 		reading.Status = types.StatusCompleted
 		reading.CompletedAt = &now
 
-		if err := db.Save(&reading).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Save(&reading).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to update reading")
 		}
 
@@ -56,7 +56,7 @@ func uncompleteReading(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var reading types.Reading
-		if err := db.Preload("Plan").First(&reading, id).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Preload("Plan").First(&reading, id).Error; err != nil {
 			return c.String(http.StatusNotFound, "Reading not found")
 		}
 
@@ -67,7 +67,7 @@ func uncompleteReading(db *gorm.DB) echo.HandlerFunc {
 		reading.Status = types.StatusPending
 		reading.CompletedAt = nil
 
-		if err := db.Save(&reading).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Save(&reading).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to update reading")
 		}
 
@@ -88,7 +88,7 @@ func updateReading(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var reading types.Reading
-		if err := db.Preload("Plan").First(&reading, id).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Preload("Plan").First(&reading, id).Error; err != nil {
 			return c.String(http.StatusNotFound, "Reading not found")
 		}
 
@@ -103,7 +103,7 @@ func updateReading(db *gorm.DB) echo.HandlerFunc {
 
 		reading.Content = content
 
-		if err := db.Save(&reading).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Save(&reading).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to update reading")
 		}
 

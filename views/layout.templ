@@ -78,13 +78,13 @@ templ Layout(cfg types.Config, user *types.User, title string) {
 								</li>
 								<li>
 									<a href="/history" class={ templ.Classes(templ.KV("active", strings.HasPrefix(title, "History"))) }>
-										@HistoryIcon()
+										@HistoryIcon("h-5 w-5 opacity-75")
 										History
 									</a>
 								</li>
 								<li>
 									<a href="/plans" class={ templ.Classes(templ.KV("active", strings.Contains(title, "Plan"))) }>
-										@PlansIcon()
+										@PlansIcon("h-5 w-5 opacity-75")
 										Plans
 									</a>
 								</li>
