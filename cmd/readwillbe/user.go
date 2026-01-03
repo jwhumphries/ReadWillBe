@@ -23,7 +23,7 @@ func getUserByID(db *gorm.DB, id uint) (types.User, error) {
 	return user, errors.Wrap(err, "Finding user")
 }
 
-func userExists(email string, db *gorm.DB) bool {
+func userExists(db *gorm.DB, email string) bool {
 	var user types.User
 	err := db.First(&user, "email = ?", email).Error
 
@@ -48,7 +48,7 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 		}
 		email = parsedEmail.Address
 
-		if userExists(email, db) {
+		if userExists(db.WithContext(c.Request().Context()), email) {
 			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("email already registered")))
 		}
 
@@ -64,7 +64,7 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 			CreatedAt: time.Now(),
 		}
 
-		if dbErr := db.Create(&user).Error; dbErr != nil {
+		if dbErr := db.WithContext(c.Request().Context()).Create(&user).Error; dbErr != nil {
 			wrappedErr := errors.Wrap(dbErr, "Create user error")
 			return render(c, 422, views.SignUpPage(cfg, wrappedErr))
 		}
@@ -104,7 +104,7 @@ func signInWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 		}
 
 		var user types.User
-		db.First(&user, "email = ?", email)
+		db.WithContext(c.Request().Context()).First(&user, "email = ?", email)
 		if compareErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); compareErr != nil {
 			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email or password")))
 		}

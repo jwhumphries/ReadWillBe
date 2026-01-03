@@ -212,7 +212,7 @@ func UserMiddleware(db *gorm.DB, cache *UserCache) echo.MiddlewareFunc {
 				user, found := cache.Get(userID)
 				if !found {
 					var err error
-					user, err = getUserByID(db, userID)
+					user, err = getUserByID(db.WithContext(c.Request().Context()), userID)
 					if err != nil {
 						if errors.Is(err, gorm.ErrRecordNotFound) {
 							delete(sess.Values, SessionUserIDKey)
