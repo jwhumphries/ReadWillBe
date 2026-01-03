@@ -33,7 +33,7 @@ func updateSettings(db *gorm.DB) echo.HandlerFunc {
 		user.NotificationsEnabled = notificationsEnabled
 		user.NotificationTime = notificationTime
 
-		if err := db.Save(&user).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Save(&user).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to update settings")
 		}
 

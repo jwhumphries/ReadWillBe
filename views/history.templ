@@ -10,11 +10,16 @@ templ History(cfg types.Config, user *types.User, readings []types.Reading) {
 		<div>
 			<h1 class="text-3xl font-bold mb-6">Reading History</h1>
 			if len(readings) == 0 {
-				<div role="alert" class="alert">
-					@InfoIcon()
-					<div>
-						<div class="text-lg">No completed readings yet</div>
-						<div class="text-sm">Complete readings from your <a href="/dashboard" class="link link-primary">dashboard</a> to see them here</div>
+				<div class="hero bg-base-200 rounded-box py-12">
+					<div class="hero-content text-center">
+						<div class="max-w-md">
+							<div class="mx-auto w-24 h-24 mb-4 opacity-20 text-base-content">
+								@HistoryIcon("w-full h-full")
+							</div>
+							<h3 class="text-2xl font-bold">No history yet</h3>
+							<p class="py-6">Complete readings from your dashboard to see them here.</p>
+							<a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+						</div>
 					</div>
 				</div>
 			} else {
