@@ -2,10 +2,14 @@ package types
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
+
+const MinCookieSecretLength = 32
 
 type Config struct {
 	DBPath          string
@@ -18,10 +22,19 @@ type Config struct {
 	Hostname        string
 }
 
+func (c Config) IsProduction() bool {
+	env := strings.ToLower(os.Getenv("GO_ENV"))
+	return env == "production" || env == "prod"
+}
+
 func ConfigFromViper() (Config, error) {
 	cookieSecret := viper.GetString("cookie_secret")
 	if cookieSecret == "" {
 		return Config{}, errors.New("cookie_secret is required (set via READWILLBE_COOKIE_SECRET env var or config file)")
+	}
+
+	if len(cookieSecret) < MinCookieSecretLength {
+		return Config{}, errors.Errorf("cookie_secret must be at least %d characters for security", MinCookieSecretLength)
 	}
 
 	port := viper.GetString("port")

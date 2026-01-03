@@ -14,6 +14,12 @@ import (
 	"readwillbe/views"
 )
 
+const (
+	MaxCSVFileSize   = 10 * 1024 * 1024 // 10MB
+	MaxTitleLength   = 500
+	MaxContentLength = 2000
+)
+
 func plansListHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user, ok := GetSessionUser(c)
@@ -308,10 +314,17 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 		if title == "" {
 			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("plan title is required")))
 		}
+		if len(title) > MaxTitleLength {
+			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("plan title must be less than %d characters", MaxTitleLength)))
+		}
 
 		file, err := c.FormFile("csv")
 		if err != nil {
 			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("CSV file is required")))
+		}
+
+		if file.Size > MaxCSVFileSize {
+			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("CSV file must be less than 10MB")))
 		}
 
 		src, err := file.Open()
@@ -395,6 +408,9 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 		newTitle := c.FormValue("title")
 		if newTitle == "" {
 			return c.String(http.StatusBadRequest, "Title is required")
+		}
+		if len(newTitle) > MaxTitleLength {
+			return c.String(http.StatusBadRequest, fmt.Sprintf("Title must be less than %d characters", MaxTitleLength))
 		}
 
 		plan.Title = newTitle

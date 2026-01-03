@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/time/rate"
 
 	"readwillbe/static"
 	"readwillbe/types"
@@ -39,11 +40,6 @@ func render(ctx echo.Context, status int, t templ.Component) error {
 func htmxRedirect(c echo.Context, url string) error {
 	c.Response().Header().Set("HX-Redirect", url)
 	return c.NoContent(http.StatusOK)
-}
-
-var gzipConfig = middleware.GzipConfig{
-	Level:     5,
-	MinLength: 1400,
 }
 
 func runServer(cmd *cobra.Command, args []string) error {
@@ -89,13 +85,25 @@ func runServer(cmd *cobra.Command, args []string) error {
 		DisableErrorHandler: false,
 	}))
 
-	e.Use(middleware.Secure())
-	e.Use(middleware.BodyLimit("2M"))
-	e.Use(middleware.RequestID())
-	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
-		Level:     5,
-		MinLength: 1400,
-		Skipper:   middleware.DefaultSkipper,
+	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+		XSSProtection:         "1; mode=block",
+		ContentTypeNosniff:    "nosniff",
+		XFrameOptions:         "DENY",
+		HSTSMaxAge:            31536000,
+		ContentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'",
+		ReferrerPolicy:        "strict-origin-when-cross-origin",
+	}))
+	e.Use(middleware.Gzip())
+
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup:    "form:_csrf,header:X-CSRF-Token",
+		CookiePath:     "/",
+		CookieSecure:   cfg.IsProduction(),
+		CookieHTTPOnly: true,
+		CookieSameSite: http.SameSiteStrictMode,
+		Skipper: func(c echo.Context) bool {
+			return c.Path() == "/healthz"
+		},
 	}))
 
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
@@ -135,7 +143,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 	store := sessions.NewCookieStore(cfg.CookieSecret)
 	e.Use(session.Middleware(store))
-	userCache := NewUserCache(5*time.Minute, 10*time.Minute)
+	userCache := NewUserCache(5 * time.Minute)
 	e.Use(UserMiddleware(db, userCache))
 
 	e.GET("/", dashboardHandler(cfg, db))
@@ -143,11 +151,13 @@ func runServer(cmd *cobra.Command, args []string) error {
 		return c.String(http.StatusOK, "ok")
 	})
 
+	authRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(5)))
+
 	e.GET("/auth/sign-in", signIn(cfg))
-	e.POST("/auth/sign-in", signInWithEmailAndPassword(db, cfg))
+	e.POST("/auth/sign-in", signInWithEmailAndPassword(db, cfg), authRateLimiter)
 	if cfg.AllowSignup {
 		e.GET("/auth/sign-up", signUp(cfg))
-		e.POST("/auth/sign-up", signUpWithEmailAndPassword(db, cfg))
+		e.POST("/auth/sign-up", signUpWithEmailAndPassword(db, cfg), authRateLimiter)
 	}
 	e.POST("/auth/sign-out", signOut())
 
@@ -204,10 +214,24 @@ func configureLogging() {
 	}
 }
 
+func getSecureSessionOptions() *sessions.Options {
+	return &sessions.Options{
+		Path:     "/",
+		MaxAge:   3600 * 24, // 24 hours
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}
+}
+
 func UserMiddleware(db *gorm.DB, cache *UserCache) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			sess, _ := session.Get(SessionKey, c)
+			sess, err := session.Get(SessionKey, c)
+			if err != nil {
+				logrus.Warnf("Failed to get session: %v", err)
+				return next(c)
+			}
 			if sess.Values[SessionUserIDKey] != nil {
 				userID, ok := sess.Values[SessionUserIDKey].(uint)
 				if !ok {
@@ -217,7 +241,7 @@ func UserMiddleware(db *gorm.DB, cache *UserCache) echo.MiddlewareFunc {
 				user, found := cache.Get(userID)
 				if !found {
 					var err error
-					user, err = getUserByID(db.WithContext(c.Request().Context()), userID)
+					user, err = getUserByID(db, userID)
 					if err != nil {
 						if errors.Is(err, gorm.ErrRecordNotFound) {
 							delete(sess.Values, SessionUserIDKey)
@@ -231,19 +255,13 @@ func UserMiddleware(db *gorm.DB, cache *UserCache) echo.MiddlewareFunc {
 
 				c.Set(UserKey, user)
 
-				// Only save session if user ID changed or options need setting
-				if val, ok := sess.Values[SessionUserIDKey]; !ok || val != user.ID {
-					sess.Options = &sessions.Options{
-						Path:     "/",
-						MaxAge:   3600 * 24 * 365,
-						HttpOnly: true,
-					}
-					sess.Values[SessionUserIDKey] = user.ID
+				sess.Options = getSecureSessionOptions()
 
-					err := sess.Save(c.Request(), c.Response())
-					if err != nil {
-						return errors.Wrap(err, "saving session")
-					}
+				sess.Values[SessionUserIDKey] = user.ID
+
+				err := sess.Save(c.Request(), c.Response())
+				if err != nil {
+					return errors.Wrap(err, "saving session")
 				}
 			}
 			return next(c)
@@ -258,7 +276,7 @@ func GetSessionUser(c echo.Context) (types.User, bool) {
 		if !ok {
 			return types.User{}, false
 		}
-		logrus.Debugf("Found session user %s", user.Email)
+		logrus.Debugf("Found session user ID=%d", user.ID)
 		return user, true
 	}
 	return types.User{}, false

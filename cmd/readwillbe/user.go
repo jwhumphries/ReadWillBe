@@ -6,7 +6,6 @@ import (
 	"net/mail"
 	"time"
 
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -16,6 +15,15 @@ import (
 	"readwillbe/views"
 )
 
+const (
+	MaxNameLength     = 255
+	MaxEmailLength    = 254
+	MinPasswordLength = 12
+	MaxPasswordLength = 128
+)
+
+var dummyHash = []byte("$2a$10$dummyhashforenumerationprevention")
+
 func getUserByID(db *gorm.DB, id uint) (types.User, error) {
 	var user types.User
 	err := db.Preload("Plans").First(&user, "id = ?", id).Error
@@ -23,7 +31,7 @@ func getUserByID(db *gorm.DB, id uint) (types.User, error) {
 	return user, errors.Wrap(err, "Finding user")
 }
 
-func userExists(db *gorm.DB, email string) bool {
+func userExists(email string, db *gorm.DB) bool {
 	var user types.User
 	err := db.First(&user, "email = ?", email).Error
 
@@ -42,13 +50,25 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 		email := c.FormValue("email")
 		password := c.FormValue("password")
 
+		if len(name) == 0 || len(name) > MaxNameLength {
+			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("name must be between 1 and %d characters", MaxNameLength)))
+		}
+
+		if len(email) > MaxEmailLength {
+			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("email must be less than %d characters", MaxEmailLength)))
+		}
+
 		parsedEmail, err := mail.ParseAddress(email)
 		if err != nil {
 			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("invalid email address")))
 		}
 		email = parsedEmail.Address
 
-		if userExists(db.WithContext(c.Request().Context()), email) {
+		if len(password) < MinPasswordLength || len(password) > MaxPasswordLength {
+			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("password must be between %d and %d characters", MinPasswordLength, MaxPasswordLength)))
+		}
+
+		if userExists(email, db) {
 			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("email already registered")))
 		}
 
@@ -64,17 +84,16 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 			CreatedAt: time.Now(),
 		}
 
-		if dbErr := db.WithContext(c.Request().Context()).Create(&user).Error; dbErr != nil {
+		if dbErr := db.Create(&user).Error; dbErr != nil {
 			wrappedErr := errors.Wrap(dbErr, "Create user error")
 			return render(c, 422, views.SignUpPage(cfg, wrappedErr))
 		}
 
-		sess, _ := session.Get(SessionKey, c)
-		sess.Options = &sessions.Options{
-			Path:     "/",
-			MaxAge:   3600 * 24 * 365,
-			HttpOnly: true,
+		sess, err := session.Get(SessionKey, c)
+		if err != nil {
+			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("internal server error")))
 		}
+		sess.Options = getSecureSessionOptions()
 
 		sess.Values[SessionUserIDKey] = user.ID
 
@@ -100,21 +119,30 @@ func signInWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 
 		_, err := mail.ParseAddress(email)
 		if err != nil {
-			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email")))
+			_ = bcrypt.CompareHashAndPassword(dummyHash, []byte(password))
+			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email or password")))
 		}
 
 		var user types.User
-		db.WithContext(c.Request().Context()).First(&user, "email = ?", email)
+		if dbErr := db.First(&user, "email = ?", email).Error; dbErr != nil {
+			_ = bcrypt.CompareHashAndPassword(dummyHash, []byte(password))
+			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email or password")))
+		}
+
+		if user.Password == "" {
+			_ = bcrypt.CompareHashAndPassword(dummyHash, []byte(password))
+			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email or password")))
+		}
+
 		if compareErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); compareErr != nil {
 			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email or password")))
 		}
 
-		sess, _ := session.Get(SessionKey, c)
-		sess.Options = &sessions.Options{
-			Path:     "/",
-			MaxAge:   3600 * 24 * 365,
-			HttpOnly: true,
+		sess, err := session.Get(SessionKey, c)
+		if err != nil {
+			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("internal server error")))
 		}
+		sess.Options = getSecureSessionOptions()
 
 		sess.Values[SessionUserIDKey] = user.ID
 
