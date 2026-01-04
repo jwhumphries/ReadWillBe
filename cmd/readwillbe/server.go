@@ -256,13 +256,15 @@ func UserMiddleware(db *gorm.DB, cache *UserCache) echo.MiddlewareFunc {
 
 				c.Set(UserKey, user)
 
-				sess.Options = getSecureSessionOptions()
+				// Only save session if the user ID has changed to avoid unnecessary Set-Cookie headers
+				if sess.Values[SessionUserIDKey] != user.ID {
+					sess.Options = getSecureSessionOptions()
+					sess.Values[SessionUserIDKey] = user.ID
 
-				sess.Values[SessionUserIDKey] = user.ID
-
-				err := sess.Save(c.Request(), c.Response())
-				if err != nil {
-					return errors.Wrap(err, "saving session")
+					err := sess.Save(c.Request(), c.Response())
+					if err != nil {
+						return errors.Wrap(err, "saving session")
+					}
 				}
 			}
 			return next(c)
