@@ -150,6 +150,78 @@ templ Layout(cfg types.Config, user *types.User, title string) {
 
 				});
 			</script>
+		<script type="text/javascript">
+		// CSRF token helper
+		function getCsrfToken() {
+			const match = document.cookie.match(/(?:^|; )_csrf=([^;]*)/);
+			return match ? decodeURIComponent(match[1]) : '';
+		}
+
+		// Manual plan functions
+		function deleteDraftAndGoBack() {
+			fetch('/plans/draft', {
+				method: 'DELETE',
+				headers: {
+					'X-CSRF-Token': getCsrfToken()
+				}
+			})
+			.finally(function() {
+				window.location.href = '/plans';
+			});
+		}
+
+		function handleDateSelect(event) {
+			const date = new Date(event.target.value);
+			document.getElementById('date-input').value = event.target.value;
+			document.getElementById('date-display').textContent = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+			document.getElementById('calendar-dropdown').classList.add('hidden');
+		}
+
+		function toggleCalendar() {
+			const dropdown = document.getElementById('calendar-dropdown');
+			const button = document.getElementById('date-display');
+			if (!dropdown || !button) return;
+
+			const rect = button.getBoundingClientRect();
+			dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+			dropdown.style.left = rect.left + 'px';
+			dropdown.classList.toggle('hidden');
+		}
+
+		// Close calendar on outside click
+		document.addEventListener('click', function(e) {
+			const dropdown = document.getElementById('calendar-dropdown');
+			const button = document.getElementById('date-display');
+			if (dropdown && button && !dropdown.contains(e.target) && e.target !== button) {
+				dropdown.classList.add('hidden');
+			}
+		});
+
+		// Modal triggers
+		document.body.addEventListener("click", function(evt) {
+			const trigger = evt.target.closest('.modal-trigger');
+			if (trigger) {
+				const modalId = trigger.getAttribute('data-modal-id');
+				if (modalId) {
+					const modal = document.getElementById(modalId);
+					if (modal) {
+						modal.showModal();
+					}
+				}
+			}
+
+			const closer = evt.target.closest('.modal-close');
+			if (closer) {
+				const modalId = closer.getAttribute('data-modal-id');
+				if (modalId) {
+					const modal = document.getElementById(modalId);
+					if (modal) {
+						modal.close();
+					}
+				}
+			}
+		});
+		</script>
 		</body>
 	</html>
 }

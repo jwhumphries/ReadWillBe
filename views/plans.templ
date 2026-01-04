@@ -77,13 +77,6 @@ templ PlansList(cfg types.Config, user *types.User, plans []types.Plan) {
 	}
 }
 
-script showModal(id string) {
-	document.getElementById(id).showModal()
-}
-
-script closeModal(id string) {
-	document.getElementById(id).close()
-}
 
 templ PlanCard(plan types.Plan) {
 	<div class="card bg-base-200 shadow-xl" id={ fmt.Sprintf("plan-%d", plan.ID) }>
@@ -113,8 +106,8 @@ templ PlanCard(plan types.Plan) {
 					}
 					<button
 						type="button"
-						onclick={ showModal(fmt.Sprintf("delete_plan_modal_%d", plan.ID)) }
-						class="btn btn-error btn-sm gap-2"
+						class="btn btn-error btn-sm gap-2 modal-trigger"
+						data-modal-id={ fmt.Sprintf("delete_plan_modal_%d", plan.ID) }
 					>
 						@TrashIcon("h-4 w-4")
 						Delete
@@ -159,8 +152,8 @@ templ PlanCard(plan types.Plan) {
 					<button
 						hx-delete={ fmt.Sprintf("/plans/%d", plan.ID) }
 						hx-target="body"
-						onclick={ closeModal(fmt.Sprintf("delete_plan_modal_%d", plan.ID)) }
-						class="btn btn-error"
+						class="btn btn-error modal-close"
+						data-modal-id={ fmt.Sprintf("delete_plan_modal_%d", plan.ID) }
 					>
 						Delete
 					</button>
@@ -370,8 +363,8 @@ templ EditableReadingItem(reading types.Reading, planID uint) {
 					</div>
 					<button
 						type="button"
-						onclick={ showModal(fmt.Sprintf("delete_modal_%d", reading.ID)) }
-						class="btn btn-error btn-xs gap-1"
+						class="btn btn-error btn-xs gap-1 modal-trigger"
+						data-modal-id={ fmt.Sprintf("delete_modal_%d", reading.ID) }
 					>
 						@TrashIcon("h-3 w-3")
 						Delete
@@ -391,8 +384,8 @@ templ EditableReadingItem(reading types.Reading, planID uint) {
 						hx-delete={ fmt.Sprintf("/plans/%d/readings/%d", planID, reading.ID) }
 						hx-target="closest .card"
 						hx-swap="outerHTML swap:1s"
-						onclick={ closeModal(fmt.Sprintf("delete_modal_%d", reading.ID)) }
-						class="btn btn-error"
+						class="btn btn-error modal-close"
+						data-modal-id={ fmt.Sprintf("delete_modal_%d", reading.ID) }
 					>
 						Delete
 					</button>
@@ -409,10 +402,10 @@ templ ManualPlanCreate(cfg types.Config, user *types.User, title string, reading
 	@Layout(cfg, user, "Create Plan Manually - ReadWillBe") {
 		<div class="max-w-4xl mx-auto">
 			<div class="flex items-center gap-4 mb-6">
-				<a href="/plans" hx-delete="/plans/draft" hx-swap="none" class="btn btn-ghost btn-sm gap-2">
+				<button type="button" onclick="deleteDraftAndGoBack()" class="btn btn-ghost btn-sm gap-2">
 					@BackIcon()
 					Back to Plans
-				</a>
+				</button>
 				<h1 class="text-3xl font-bold">Create Reading Plan</h1>
 			</div>
 			<div role="tablist" class="tabs tabs-box mb-6">
@@ -444,7 +437,7 @@ templ ManualPlanForm(title string, readings []ManualReading, err error) {
 			</form>
 			<div class="divider my-2">Readings</div>
 			<div class="overflow-x-auto overflow-y-visible">
-				<table class="table">
+				<table class="table overflow-visible">
 					<thead>
 						<tr>
 							<th class="w-48">Date</th>
@@ -455,45 +448,40 @@ templ ManualPlanForm(title string, readings []ManualReading, err error) {
 					<tbody id="readings-table">
 						<tr class="bg-base-300">
 							<td>
-								<button
-									type="button"
-									onclick="document.getElementById('date-picker-modal').showModal()"
-									class="input input-bordered input-sm w-full text-left"
-									id="date-display"
-								>
-									Select date
-								</button>
-								<input
-									type="hidden"
-									name="date"
-									id="date-input"
-									form="add-reading-form"
-								/>
-								<dialog id="date-picker-modal" class="modal">
-									<div class="modal-box p-4">
-										<calendar-date
-											class="cally"
-											id="date-calendar"
-											hx-on:change="
-												const date = new Date(event.target.value);
-												document.getElementById('date-input').value = event.target.value;
-												document.getElementById('date-display').textContent = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-												document.getElementById('date-picker-modal').close();
-											"
-										>
-											<span slot="previous" aria-label="Previous">
-												@ChevronLeftIcon()
-											</span>
-											<span slot="next" aria-label="Next">
-												@ChevronRightIcon()
-											</span>
-											<calendar-month></calendar-month>
-										</calendar-date>
+								<div class="relative">
+									<button
+										type="button"
+										onclick="toggleCalendar()"
+										class="input input-bordered input-sm w-full text-left"
+										id="date-display"
+									>
+										Select date
+									</button>
+									<div id="calendar-dropdown" class="hidden fixed z-[9999] card card-compact bg-base-100 shadow-xl" style="margin-top: 0.25rem;">
+										<div class="card-body p-4">
+											<calendar-date
+												class="cally"
+												id="date-calendar"
+												onchange="handleDateSelect(event)"
+											>
+												<span slot="previous" aria-label="Previous">
+													@ChevronLeftIcon()
+												</span>
+												<span slot="next" aria-label="Next">
+													@ChevronRightIcon()
+												</span>
+												<calendar-month></calendar-month>
+											</calendar-date>
+										</div>
 									</div>
-									<form method="dialog" class="modal-backdrop">
-										<button>close</button>
-									</form>
-								</dialog>
+									<input
+										type="hidden"
+										name="date"
+										id="date-input"
+										required
+										form="add-reading-form"
+									/>
+								</div>
 							</td>
 							<td>
 								<input
