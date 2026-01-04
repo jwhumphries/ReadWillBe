@@ -67,7 +67,7 @@ templ ReadingCard(reading types.Reading, isOverdue bool) {
 					<span>{ reading.Date.Format("January 2, 2006") }</span>
 				</div>
 				<form hx-post={ fmt.Sprintf("/reading/%d/complete", reading.ID) } hx-target="body">
-					<button type="submit" class="btn btn-primary btn-sm">
+					<button type="submit" class="btn btn-primary btn-sm" hx-disabled-elt="this">
 						@CheckIcon("h-5 w-5")
 						Complete
 					</button>

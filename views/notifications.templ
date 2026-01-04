@@ -5,9 +5,9 @@ import "fmt"
 
 templ NotificationBell(count int) {
 	<div class="dropdown dropdown-end">
-		<div
+		<button
+			type="button"
 			tabindex="0"
-			role="button"
 			class="btn btn-ghost btn-circle"
 			aria-label="Notifications"
 			hx-get="/notifications/dropdown"
@@ -21,7 +21,7 @@ templ NotificationBell(count int) {
 					<span class="badge badge-sm badge-primary indicator-item">{ fmt.Sprintf("%d", count) }</span>
 				}
 			</div>
-		</div>
+		</button>
 		<div
 			id="notification-dropdown"
 			tabindex="0"
@@ -43,18 +43,18 @@ templ NotificationDropdown(readings []types.Reading) {
 			<ul class="space-y-1">
 				for _, reading := range readings {
 					<li>
-						<a href="/" class="flex items-start gap-2 p-2 hover:bg-base-300 rounded">
+						<a href="/dashboard" class="flex items-start gap-2 p-2 hover:bg-base-300 rounded">
 							@BookIcon("h-5 w-5 shrink-0 opacity-75")
 							<div class="flex-1 min-w-0">
-								<div class="font-medium truncate">{ reading.Plan.Title }</div>
-								<div class="text-sm opacity-70 truncate">{ reading.Content }</div>
+								<div class="font-medium truncate" title={ reading.Plan.Title }>{ reading.Plan.Title }</div>
+								<div class="text-sm opacity-70 truncate" title={ reading.Content }>{ reading.Content }</div>
 							</div>
 						</a>
 					</li>
 				}
 			</ul>
 			<div class="divider my-2"></div>
-			<a href="/" class="btn btn-sm btn-block btn-ghost">View Dashboard</a>
+			<a href="/dashboard" class="btn btn-sm btn-block btn-ghost">View Dashboard</a>
 		</div>
 	}
 }

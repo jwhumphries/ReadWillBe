@@ -32,9 +32,11 @@ templ Account(cfg types.Config, user *types.User) {
 					<div class="card-body space-y-4">
 						<h2 class="card-title">Notification Settings</h2>
 						<div class="form-control">
-							<label class="label cursor-pointer justify-start gap-4">
+							<label class="label cursor-pointer justify-start gap-4" for="notifications_enabled">
 								<input
 									type="checkbox"
+									id="notifications_enabled"
+									id="notifications_enabled"
 									name="notifications_enabled"
 									checked?={ user.NotificationsEnabled }
 									class="toggle toggle-primary"

@@ -11,13 +11,13 @@ templ PlansList(cfg types.Config, user *types.User, plans []types.Plan) {
 			<div class="flex justify-between items-center mb-6">
 				<h1 class="text-3xl font-bold">Reading Plans</h1>
 				<div class="dropdown dropdown-end">
-					<div tabindex="0" role="button" class="btn btn-primary gap-2">
+					<button type="button" tabindex="0" class="btn btn-primary gap-2" aria-label="Create new reading plan">
 						@PlusIcon("h-5 w-5")
 						Create New Plan
 						<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
 							<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
 						</svg>
-					</div>
+					</button>
 					<ul tabindex="0" class="dropdown-content menu bg-base-200 rounded-box z-10 w-52 p-2 shadow-lg mt-1">
 						<li>
 							<a href="/plans/create" class="gap-2">
@@ -127,7 +127,7 @@ templ PlanCard(plan types.Plan) {
 					<span>{ plan.ErrorMessage }</span>
 				</div>
 			} else if plan.Status == "processing" {
-				<div class="mt-4" hx-get="/plans" hx-trigger="every 2s" hx-select="#plans-list" hx-target="#plans-list" hx-swap="outerHTML">
+				<div class="mt-4" hx-get="/plans" hx-trigger="every 5s" hx-select="#plans-list" hx-target="#plans-list" hx-swap="outerHTML">
 					<progress class="progress progress-primary w-full"></progress>
 					<div class="text-sm opacity-70 mt-1 text-center">Importing readings...</div>
 				</div>
