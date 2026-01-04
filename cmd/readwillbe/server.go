@@ -65,9 +65,9 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 	e.StaticFS("/static", static.FS)
 	e.GET("/serviceWorker.js", func(c echo.Context) error {
-		data, err := fs.ReadFile(static.FS, "serviceWorker.js")
-		if err != nil {
-			return err
+		data, readErr := fs.ReadFile(static.FS, "serviceWorker.js")
+		if readErr != nil {
+			return readErr
 		}
 		return c.Blob(http.StatusOK, "application/javascript", data)
 	})

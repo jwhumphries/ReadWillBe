@@ -109,7 +109,7 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 
 func signIn(cfg types.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		csrf := c.Get("csrf").(string)
+		csrf, _ := c.Get("csrf").(string)
 		return render(c, 200, views.SignInPage(cfg, csrf, nil))
 	}
 }
@@ -119,7 +119,7 @@ func signInWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 		email := c.FormValue("email")
 		password := c.FormValue("password")
 
-		csrf := c.Get("csrf").(string)
+		csrf, _ := c.Get("csrf").(string)
 
 		_, err := mail.ParseAddress(email)
 		if err != nil {
