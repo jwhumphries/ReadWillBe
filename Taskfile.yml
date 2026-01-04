@@ -49,7 +49,7 @@ tasks:
     internal: true
     desc: Clean compiled css
     cmds:
-      - rm -f ./static/css/style.css
+      - rm -f ./static/css/main.css
 
   clean:
     desc: Remove generated files and Docker images
@@ -69,7 +69,7 @@ tasks:
 
   dev-start:
     desc: Start development environment with hot reload
-    deps: [build:dev]
+    deps: [build-dev]
     cmds:
       - docker compose -f docker-compose.dev.yml up -d
     silent: true

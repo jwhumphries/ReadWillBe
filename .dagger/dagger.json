@@ -10,6 +10,5 @@
       "source": "github.com/sagikazarmark/daggerverse/golangci-lint@golangci-lint/v0.3.0",
       "pin": "4341f097b207ddcb180817a6a3fe974947a47490"
     }
-  ],
-  "disableDefaultFunctionCaching": true
+  ]
 }

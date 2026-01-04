@@ -16,17 +16,17 @@ func (m *Readwillbe) Build(
 	// +default="dev"
 	version string,
 ) (*dagger.Container, error) {
-	if _, err := m.Lint(ctx, source); err != nil {
+	templSource := m.TemplGenerate(source)
+
+	if _, err := m.lintSource(ctx, templSource); err != nil {
 		return nil, fmt.Errorf("lint failed: %w", err)
 	}
 
-	if _, err := m.Test(ctx, source); err != nil {
+	if _, err := m.testSource(ctx, templSource); err != nil {
 		return nil, fmt.Errorf("test failed: %w", err)
 	}
 
-	templSource := m.TemplGenerate(source)
 	cssDir := m.BuildCss(source)
-
 	buildSource := templSource.WithDirectory("static/css", cssDir)
 
 	return m.BuildBinary(buildSource, version), nil
@@ -34,22 +34,30 @@ func (m *Readwillbe) Build(
 
 func (m *Readwillbe) Lint(ctx context.Context, source *dagger.Directory) (string, error) {
 	templSource := m.TemplGenerate(source)
+	return m.lintSource(ctx, templSource)
+}
+
+func (m *Readwillbe) lintSource(ctx context.Context, source *dagger.Directory) (string, error) {
 	return dag.GolangciLint().
 		WithModuleCache(dag.CacheVolume("go-mod-cache")).
 		WithLinterCache(dag.CacheVolume("golangci-lint-cache")).
-		Run(templSource).
+		Run(source).
 		Stdout(ctx)
 }
 
 func (m *Readwillbe) Test(ctx context.Context, source *dagger.Directory) (string, error) {
 	templSource := m.TemplGenerate(source)
+	return m.testSource(ctx, templSource)
+}
+
+func (m *Readwillbe) testSource(ctx context.Context, source *dagger.Directory) (string, error) {
 	return dag.Container().
 		From("golang:1.25-alpine").
 		WithEnvVariable("GOCACHE", "/go-build-cache").
 		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
 		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
 		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
-		WithDirectory("/app", templSource).
+		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithExec([]string{"go", "test", "-v", "./..."}).
 		Stdout(ctx)

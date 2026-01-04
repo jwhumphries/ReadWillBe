@@ -12,9 +12,12 @@ ENV GOLANGCI_LINT_CACHE=${GOMODCACHE}
 ENV APP_NAME=${APP_NAME}
 WORKDIR /app
 RUN apk add --no-cache git ca-certificates
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
+  go mod download
 RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
   go install github.com/air-verse/air@latest
-RUN --mount=type=cache,target=/${GOBUILDCACHE} --mount=type=cache,target=/${GOMODCACHE} \
+RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
   go install github.com/a-h/templ/cmd/templ@latest
 
 FROM gobase AS init
@@ -29,29 +32,29 @@ WORKDIR /app
 COPY --from=lintbase /bin/golangci-lint /bin/golangci-lint
 COPY ./go.mod ./go.sum ./.golangci.yml /app/
 RUN apk add --no-cache git ca-certificates
-RUN --mount=type=cache,target=/${GOBUILDCACHE} --mount=type=cache,target=/${GOMODCACHE} \
+RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
   go mod download
-RUN --mount=type=cache,target=/${GOBUILDCACHE} --mount=type=cache,target=/${GOMODCACHE} \
+RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
   go install github.com/a-h/templ/cmd/templ@latest
 COPY cmd/ ./cmd/
 COPY static/ ./static/
 COPY types/ ./types/
 COPY version/ ./version/
 COPY views/ ./views/
-RUN --mount=type=cache,target=/${GOBUILDCACHE} --mount=type=cache,target=/${GOMODCACHE} \
+RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
   go mod vendor
 
 FROM init AS lint
 SHELL ["/bin/sh", "-eo", "pipefail", "-c"]
-RUN --mount=type=cache,target=/${GOBUILDCACHE} --mount=type=cache,target=/${GOMODCACHE} \
+RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
   [[ $( gofmt -s -l . | grep -v "^vendor/" | tee /dev/stderr | wc -l ) -eq 0 ]]
-RUN --mount=type=cache,target=/${GOBUILDCACHE} --mount=type=cache,target=/${GOMODCACHE} \
+RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
   golangci-lint config verify && \
   golangci-lint run --color=always --issues-exit-code=1 --timeout=5m
 
 FROM init AS test
 SHELL ["/bin/sh", "-eo", "pipefail", "-c"]
-RUN --mount=type=cache,target=/${GOBUILDCACHE} --mount=type=cache,target=/${GOMODCACHE} \
+RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-cache \
   go vet  ./... && \
   go test ./...
 
@@ -63,14 +66,12 @@ COPY --from=gobase /usr/local/go /usr/local/go
 ENV PATH="/usr/local/go/bin:${PATH}"
 ENV GOPATH="/go"
 ENV PATH="${GOPATH}/bin:${PATH}"
-RUN apk add --no-cache git
+RUN apk add --no-cache git ca-certificates
 RUN go install github.com/air-verse/air@latest
 RUN go install github.com/a-h/templ/cmd/templ@latest
 COPY --chmod=755 scripts/develop.sh /develop.sh
 EXPOSE 8080
 ENTRYPOINT ["/develop.sh"]
-RUN go install github.com/air-verse/air@latest
-RUN go install github.com/a-h/templ/cmd/templ@latest
 
 FROM frontend AS uinit
 WORKDIR /app

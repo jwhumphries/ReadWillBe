@@ -4,8 +4,8 @@
 
 ```bash
 # Development (Docker + hot reload) - recommended
-task dev:start          # Start dev environment on port 7331 (proxied)
-task dev:stop           # Stop dev environment
+task dev-start          # Start dev environment on port 7331 (proxied)
+task dev-stop           # Stop dev environment
 
 # Testing & Linting
 task test               # Run tests in Docker

@@ -34,7 +34,7 @@ services:
     image: readwillbe:dev
     working_dir: /app
     volumes:
-      - ./static/css:/app/static/css:ro
+      - ./static/css:/app/static/css
     environment:
       - TEMPL_EXPERIMENT=rawgo
     command: >
@@ -72,6 +72,12 @@ services:
     command: sh -c "go mod download && mkdir -p tmp data && air"
     expose:
       - "8080"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     networks:
       - devnet
 
