@@ -16,7 +16,7 @@ templ NotificationBell(count int) {
 			hx-swap="innerHTML"
 		>
 			<div class="indicator">
-				@BellIcon()
+				@BellIcon("h-5 w-5")
 				if count > 0 {
 					<span class="badge badge-sm badge-primary indicator-item">{ fmt.Sprintf("%d", count) }</span>
 				}
@@ -33,7 +33,11 @@ templ NotificationBell(count int) {
 templ NotificationDropdown(readings []types.Reading) {
 	if len(readings) == 0 {
 		<div class="p-4 text-center">
-			<div class="text-sm opacity-70">No readings due today</div>
+			<div class="mx-auto w-12 h-12 mb-2 opacity-10">
+				@BellIcon("w-full h-full")
+			</div>
+			<div class="text-sm font-bold">All caught up!</div>
+			<div class="text-xs opacity-70">No readings due today</div>
 		</div>
 	} else {
 		<div class="p-2">
