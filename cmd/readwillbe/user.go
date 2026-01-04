@@ -20,6 +20,7 @@ const (
 	MaxEmailLength    = 254
 	MinPasswordLength = 12
 	MaxPasswordLength = 128
+	BcryptCost        = 10
 )
 
 var dummyHash = []byte("$2a$10$dummyhashforenumerationprevention")
@@ -72,7 +73,7 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("email already registered")))
 		}
 
-		hash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+		hash, err := bcrypt.GenerateFromPassword([]byte(password), BcryptCost)
 		if err != nil {
 			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("internal server error")))
 		}

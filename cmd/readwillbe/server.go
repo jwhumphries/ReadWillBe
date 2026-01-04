@@ -31,6 +31,7 @@ func render(ctx echo.Context, status int, t templ.Component) error {
 
 	err := t.Render(ctx.Request().Context(), ctx.Response().Writer)
 	if err != nil {
+		logrus.Errorf("Failed to render template: %v", err)
 		return ctx.String(http.StatusInternalServerError, "failed to render response template")
 	}
 
@@ -139,7 +140,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	startNotificationWorker(cfg, db)
+	_ = startNotificationWorker(cfg, db)
 
 	store := sessions.NewCookieStore(cfg.CookieSecret)
 	e.Use(session.Middleware(store))

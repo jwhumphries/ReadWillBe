@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -52,8 +51,4 @@ func ConfigFromViper() (Config, error) {
 		VAPIDPrivateKey: viper.GetString("vapid_private_key"),
 		Hostname:        viper.GetString("hostname"),
 	}, nil
-}
-
-func ConfigFromEnv() (Config, error) {
-	return Config{}, fmt.Errorf("ConfigFromEnv is deprecated, use ConfigFromViper instead")
 }

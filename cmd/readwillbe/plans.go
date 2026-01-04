@@ -28,7 +28,7 @@ func plansListHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plans []types.Plan
-		db.WithContext(c.Request().Context()).Preload("Readings").Where("user_id = ?", user.ID).Find(&plans)
+		db.Preload("Readings").Where("user_id = ?", user.ID).Find(&plans)
 
 		return render(c, 200, views.PlansList(cfg, &user, plans))
 	}
@@ -48,25 +48,37 @@ func createPlanForm(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 const DraftTitleKey = "draft-plan-title"
 const DraftReadingsKey = "draft-plan-readings"
 
-func getDraftData(c echo.Context) (string, []views.ManualReading) {
-	sess, _ := session.Get(SessionKey, c)
-	title, _ := sess.Values[DraftTitleKey].(string)
-	readings, _ := sess.Values[DraftReadingsKey].([]views.ManualReading)
-	if readings == nil {
+func getDraftData(c echo.Context) (string, []views.ManualReading, error) {
+	sess, err := session.Get(SessionKey, c)
+	if err != nil {
+		return "", nil, err
+	}
+	title, ok := sess.Values[DraftTitleKey].(string)
+	if !ok {
+		title = ""
+	}
+	readings, ok := sess.Values[DraftReadingsKey].([]views.ManualReading)
+	if !ok || readings == nil {
 		readings = []views.ManualReading{}
 	}
-	return title, readings
+	return title, readings, nil
 }
 
 func saveDraftData(c echo.Context, title string, readings []views.ManualReading) error {
-	sess, _ := session.Get(SessionKey, c)
+	sess, err := session.Get(SessionKey, c)
+	if err != nil {
+		return err
+	}
 	sess.Values[DraftTitleKey] = title
 	sess.Values[DraftReadingsKey] = readings
 	return sess.Save(c.Request(), c.Response())
 }
 
 func clearDraftData(c echo.Context) error {
-	sess, _ := session.Get(SessionKey, c)
+	sess, err := session.Get(SessionKey, c)
+	if err != nil {
+		return err
+	}
 	delete(sess.Values, DraftTitleKey)
 	delete(sess.Values, DraftReadingsKey)
 	return sess.Save(c.Request(), c.Response())
@@ -79,7 +91,10 @@ func manualPlanForm(cfg types.Config) echo.HandlerFunc {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
 
-		title, readings := getDraftData(c)
+		title, readings, err := getDraftData(c)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
 		return render(c, 200, views.ManualPlanCreate(cfg, &user, title, readings, nil))
 	}
 }
@@ -92,7 +107,10 @@ func updateDraftTitle() echo.HandlerFunc {
 		}
 
 		title := c.FormValue("title")
-		_, readings := getDraftData(c)
+		_, readings, err := getDraftData(c)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
 		if err := saveDraftData(c, title, readings); err != nil {
 			return c.NoContent(http.StatusInternalServerError)
 		}
@@ -114,7 +132,10 @@ func addDraftReading() echo.HandlerFunc {
 			return c.NoContent(http.StatusBadRequest)
 		}
 
-		title, readings := getDraftData(c)
+		title, readings, err := getDraftData(c)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
 		newReading := views.ManualReading{
 			ID:      fmt.Sprintf("%d", len(readings)+1),
 			Date:    date,
@@ -138,7 +159,10 @@ func getDraftReading() echo.HandlerFunc {
 		}
 
 		id := c.Param("id")
-		_, readings := getDraftData(c)
+		_, readings, err := getDraftData(c)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
 
 		for _, r := range readings {
 			if r.ID == id {
@@ -157,7 +181,10 @@ func getDraftReadingEdit() echo.HandlerFunc {
 		}
 
 		id := c.Param("id")
-		_, readings := getDraftData(c)
+		_, readings, err := getDraftData(c)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
 
 		for _, r := range readings {
 			if r.ID == id {
@@ -183,7 +210,10 @@ func updateDraftReading() echo.HandlerFunc {
 			return c.NoContent(http.StatusBadRequest)
 		}
 
-		title, readings := getDraftData(c)
+		title, readings, err := getDraftData(c)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
 		var updated views.ManualReading
 		for i, r := range readings {
 			if r.ID == id {
@@ -210,7 +240,10 @@ func deleteDraftReading() echo.HandlerFunc {
 		}
 
 		id := c.Param("id")
-		title, readings := getDraftData(c)
+		title, readings, err := getDraftData(c)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
 
 		newReadings := make([]views.ManualReading, 0, len(readings))
 		for _, r := range readings {
@@ -248,7 +281,10 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
 
-		title, draftReadings := getDraftData(c)
+		title, draftReadings, err := getDraftData(c)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
 
 		if title == "" {
 			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("plan title is required")))
@@ -260,9 +296,9 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 
 		readings := make([]types.Reading, 0, len(draftReadings))
 		for _, mr := range draftReadings {
-			parsedDate, dateType, err := parseDate(mr.Date)
+			parsedDate, dateType, parseErr := parseDate(mr.Date)
 			if err != nil {
-				return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, errors.Wrap(err, fmt.Sprintf("invalid date: %s", mr.Date))))
+				return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, errors.Wrap(parseErr, fmt.Sprintf("invalid date: %s", mr.Date))))
 			}
 			readings = append(readings, types.Reading{
 				Date:     parsedDate,
@@ -278,8 +314,8 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			Status: "active",
 		}
 
-		err := db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
-			if err := tx.Create(&plan).Error; err != nil {
+		err = db.Transaction(func(tx *gorm.DB) error {
+			if txErr := tx.Create(&plan).Error; txErr != nil {
 				return err
 			}
 
@@ -287,7 +323,7 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 				readings[i].PlanID = plan.ID
 			}
 
-			if err := tx.Create(&readings).Error; err != nil {
+			if txErr := tx.Create(&readings).Error; txErr != nil {
 				return err
 			}
 
@@ -339,7 +375,7 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 			Status: "processing",
 		}
 
-		if err := db.WithContext(c.Request().Context()).Create(&plan).Error; err != nil {
+		if err := db.Create(&plan).Error; err != nil {
 			_ = src.Close()
 			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to create plan record")))
 		}
@@ -401,7 +437,7 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plan types.Plan
-		if err := db.WithContext(c.Request().Context()).First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
+		if err := db.First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
@@ -414,7 +450,7 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		plan.Title = newTitle
-		if err := db.WithContext(c.Request().Context()).Save(&plan).Error; err != nil {
+		if err := db.Save(&plan).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to update plan")
 		}
 
@@ -435,11 +471,11 @@ func deletePlan(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plan types.Plan
-		if err := db.WithContext(c.Request().Context()).First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
+		if err := db.First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
-		if err := db.WithContext(c.Request().Context()).Delete(&plan).Error; err != nil {
+		if err := db.Delete(&plan).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to delete plan")
 		}
 
@@ -460,7 +496,7 @@ func editPlanForm(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plan types.Plan
-		if err := db.WithContext(c.Request().Context()).Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
+		if err := db.Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
@@ -481,7 +517,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plan types.Plan
-		if dbErr := db.WithContext(c.Request().Context()).Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; dbErr != nil {
+		if dbErr := db.Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; dbErr != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
@@ -497,7 +533,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("failed to parse form data")))
 		}
 
-		err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
+		err = db.Transaction(func(tx *gorm.DB) error {
 			if txErr := tx.Save(&plan).Error; txErr != nil {
 				return txErr
 			}
@@ -553,16 +589,16 @@ func deleteReading(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plan types.Plan
-		if err := db.WithContext(c.Request().Context()).First(&plan, "id = ? AND user_id = ?", planID, user.ID).Error; err != nil {
+		if err := db.First(&plan, "id = ? AND user_id = ?", planID, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
 		var reading types.Reading
-		if err := db.WithContext(c.Request().Context()).First(&reading, "id = ? AND plan_id = ?", readingID, planID).Error; err != nil {
+		if err := db.First(&reading, "id = ? AND plan_id = ?", readingID, planID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Reading not found")
 		}
 
-		if err := db.WithContext(c.Request().Context()).Delete(&reading).Error; err != nil {
+		if err := db.Delete(&reading).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to delete reading")
 		}
 

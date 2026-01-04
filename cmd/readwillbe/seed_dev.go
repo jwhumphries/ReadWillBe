@@ -31,7 +31,7 @@ func seedDatabase(db *gorm.DB, fs afero.Fs) error {
 		logrus.Info("Test user already exists, using existing user")
 	} else {
 		logrus.Info("Creating test user...")
-		hash, err := bcrypt.GenerateFromPassword([]byte("password123"), 10)
+		hash, err := bcrypt.GenerateFromPassword([]byte("password123"), BcryptCost)
 		if err != nil {
 			return errors.Wrap(err, "generating password hash")
 		}

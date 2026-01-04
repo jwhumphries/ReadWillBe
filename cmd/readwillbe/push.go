@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -8,9 +9,12 @@ import (
 
 	webpush "github.com/SherClockHolmes/webpush-go"
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"readwillbe/types"
 )
+
+const NotificationCheckInterval = 1 * time.Minute
 
 type PushSubscriptionRequest struct {
 	Endpoint string `json:"endpoint"`
@@ -87,53 +91,67 @@ func removeAllSubscriptions(db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-func startNotificationWorker(cfg types.Config, db *gorm.DB) {
+func startNotificationWorker(cfg types.Config, db *gorm.DB) context.CancelFunc {
 	if cfg.VAPIDPublicKey == "" || cfg.VAPIDPrivateKey == "" {
-		fmt.Println("VAPID keys not configured, notification worker not started")
-		return
+		logrus.Info("VAPID keys not configured, notification worker not started")
+		return func() {}
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	go func() {
-		ticker := time.NewTicker(1 * time.Minute)
+		ticker := time.NewTicker(NotificationCheckInterval)
 		defer ticker.Stop()
 
-		for range ticker.C {
-			now := time.Now()
-			currentTime := now.Format("15:04")
+		for {
+			select {
+			case <-ctx.Done():
+				logrus.Info("Notification worker stopped")
+				return
+			case <-ticker.C:
+				now := time.Now()
+				currentTime := now.Format("15:04")
 
-			var users []types.User
-			err := db.Preload("PushSubscriptions").
-				Where("notifications_enabled = ?", true).
-				Where("notification_time = ?", currentTime).
-				Find(&users).Error
+				var users []types.User
+				err := db.Preload("PushSubscriptions").
+					Where("notifications_enabled = ?", true).
+					Where("notification_time = ?", currentTime).
+					Find(&users).Error
 
-			if err != nil {
-				fmt.Printf("Error fetching users for notifications: %v\n", err)
-				continue
-			}
-
-			for _, user := range users {
-				var readings []types.Reading
-				db.Where("plan_id IN (?)",
-					db.Table("plans").Select("id").Where("user_id = ?", user.ID),
-				).Find(&readings)
-
-				hasReadingsToday := false
-				for _, reading := range readings {
-					if reading.Status != types.StatusCompleted && reading.IsActiveToday() {
-						hasReadingsToday = true
-						break
-					}
+				if err != nil {
+					logrus.Errorf("Error fetching users for notifications: %v", err)
+					continue
 				}
 
-				if hasReadingsToday {
-					sendNotification(cfg, db, user)
+				for _, user := range users {
+					var readings []types.Reading
+					err := db.Where("plan_id IN (?)",
+						db.Table("plans").Select("id").Where("user_id = ?", user.ID),
+					).Find(&readings).Error
+
+					if err != nil {
+						logrus.Errorf("Error fetching readings for user %d: %v", user.ID, err)
+						continue
+					}
+
+					hasReadingsToday := false
+					for _, reading := range readings {
+						if reading.Status != types.StatusCompleted && reading.IsActiveToday() {
+							hasReadingsToday = true
+							break
+						}
+					}
+
+					if hasReadingsToday {
+						sendNotification(cfg, db, user)
+					}
 				}
 			}
 		}
 	}()
 
-	fmt.Println("Notification worker started")
+	logrus.Info("Notification worker started")
+	return cancel
 }
 
 func sendNotification(cfg types.Config, db *gorm.DB, user types.User) {
@@ -149,7 +167,7 @@ func sendNotification(cfg types.Config, db *gorm.DB, user types.User) {
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Printf("Error marshaling payload: %v\n", err)
+		logrus.Errorf("Error marshaling payload: %v", err)
 		return
 	}
 
@@ -172,14 +190,17 @@ func sendNotification(cfg types.Config, db *gorm.DB, user types.User) {
 		})
 
 		if err != nil {
-			fmt.Printf("Error sending notification: %v\n", err)
+			logrus.Errorf("Error sending notification: %v", err)
 			continue
 		}
 		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode == 410 {
-			db.Delete(&subscription)
-			fmt.Printf("Deleted stale subscription: %s\n", subscription.Endpoint)
+			if err := db.Delete(&subscription).Error; err != nil {
+				logrus.Errorf("Error deleting stale subscription: %v", err)
+			} else {
+				logrus.Infof("Deleted stale subscription: %s", subscription.Endpoint)
+			}
 		}
 	}
 }

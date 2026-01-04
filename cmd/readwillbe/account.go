@@ -1,13 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 	"readwillbe/types"
 	"readwillbe/views"
 )
+
+var timeFormatRegex = regexp.MustCompile(`^([01][0-9]|2[0-3]):[0-5][0-9]$`)
 
 func accountHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -29,6 +33,10 @@ func updateSettings(db *gorm.DB) echo.HandlerFunc {
 
 		notificationsEnabled := c.FormValue("notifications_enabled") == "on"
 		notificationTime := c.FormValue("notification_time")
+
+		if notificationTime != "" && !timeFormatRegex.MatchString(notificationTime) {
+			return c.String(http.StatusBadRequest, fmt.Sprintf("Invalid time format: %s (expected HH:MM)", notificationTime))
+		}
 
 		user.NotificationsEnabled = notificationsEnabled
 		user.NotificationTime = notificationTime
