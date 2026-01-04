@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/fs"
 	"net/http"
 	"strings"
 	"time"
@@ -63,6 +64,13 @@ func runServer(cmd *cobra.Command, args []string) error {
 	e := echo.New()
 
 	e.StaticFS("/static", static.FS)
+	e.GET("/serviceWorker.js", func(c echo.Context) error {
+		data, err := fs.ReadFile(static.FS, "serviceWorker.js")
+		if err != nil {
+			return err
+		}
+		return c.Blob(http.StatusOK, "application/javascript", data)
+	})
 
 	origErrHandler := e.HTTPErrorHandler
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
@@ -91,10 +99,12 @@ func runServer(cmd *cobra.Command, args []string) error {
 		ContentTypeNosniff:    "nosniff",
 		XFrameOptions:         "DENY",
 		HSTSMaxAge:            31536000,
-		ContentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'",
+		ContentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'",
 		ReferrerPolicy:        "strict-origin-when-cross-origin",
 	}))
-	e.Use(middleware.Gzip())
+	if cfg.IsProduction() {
+		e.Use(middleware.Gzip())
+	}
 
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		TokenLookup:    "form:_csrf,header:X-CSRF-Token",
@@ -145,7 +155,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	store := sessions.NewCookieStore(cfg.CookieSecret)
 	e.Use(session.Middleware(store))
 	userCache := NewUserCache(5*time.Minute, 10*time.Minute)
-	e.Use(UserMiddleware(db, userCache))
+	e.Use(UserMiddleware(db, userCache, cfg))
 
 	e.GET("/", dashboardHandler(cfg, db))
 	e.GET("/healthz", func(c echo.Context) error {
@@ -215,17 +225,17 @@ func configureLogging() {
 	}
 }
 
-func getSecureSessionOptions() *sessions.Options {
+func getSecureSessionOptions(cfg types.Config) *sessions.Options {
 	return &sessions.Options{
 		Path:     "/",
 		MaxAge:   3600 * 24, // 24 hours
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   cfg.IsProduction(),
 		SameSite: http.SameSiteStrictMode,
 	}
 }
 
-func UserMiddleware(db *gorm.DB, cache *UserCache) echo.MiddlewareFunc {
+func UserMiddleware(db *gorm.DB, cache *UserCache, cfg types.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			sess, err := session.Get(SessionKey, c)
@@ -258,7 +268,7 @@ func UserMiddleware(db *gorm.DB, cache *UserCache) echo.MiddlewareFunc {
 
 				// Only save session if the user ID has changed to avoid unnecessary Set-Cookie headers
 				if sess.Values[SessionUserIDKey] != user.ID {
-					sess.Options = getSecureSessionOptions()
+					sess.Options = getSecureSessionOptions(cfg)
 					sess.Values[SessionUserIDKey] = user.ID
 
 					err := sess.Save(c.Request(), c.Response())

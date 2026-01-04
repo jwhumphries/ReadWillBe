@@ -22,7 +22,7 @@ async function registerServiceWorker() {
   }
 
   try {
-    const registration = await navigator.serviceWorker.register('/static/serviceWorker.js', {
+    const registration = await navigator.serviceWorker.register('/serviceWorker.js', {
       scope: '/'
     });
     console.log('Service Worker registered');
@@ -42,6 +42,10 @@ async function checkSubscriptionStatus() {
   const enableBtn = document.getElementById('enable-push-btn');
   const disableBtn = document.getElementById('disable-push-btn');
   const badge = document.getElementById('subscription-badge');
+
+  if (!enableBtn || !disableBtn || !badge) {
+    return;
+  }
 
   if (subscription) {
     badge.textContent = 'Subscribed';

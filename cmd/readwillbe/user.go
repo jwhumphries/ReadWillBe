@@ -94,7 +94,7 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 		if err != nil {
 			return render(c, 422, views.SignUpPage(cfg, fmt.Errorf("internal server error")))
 		}
-		sess.Options = getSecureSessionOptions()
+		sess.Options = getSecureSessionOptions(cfg)
 
 		sess.Values[SessionUserIDKey] = user.ID
 
@@ -109,7 +109,8 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 
 func signIn(cfg types.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return render(c, 200, views.SignInPage(cfg, nil))
+		csrf := c.Get("csrf").(string)
+		return render(c, 200, views.SignInPage(cfg, csrf, nil))
 	}
 }
 
@@ -118,38 +119,40 @@ func signInWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 		email := c.FormValue("email")
 		password := c.FormValue("password")
 
+		csrf := c.Get("csrf").(string)
+
 		_, err := mail.ParseAddress(email)
 		if err != nil {
 			_ = bcrypt.CompareHashAndPassword(dummyHash, []byte(password))
-			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email or password")))
+			return render(c, 422, views.SignInPage(cfg, csrf, fmt.Errorf("invalid email or password")))
 		}
 
 		var user types.User
 		if dbErr := db.First(&user, "email = ?", email).Error; dbErr != nil {
 			_ = bcrypt.CompareHashAndPassword(dummyHash, []byte(password))
-			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email or password")))
+			return render(c, 422, views.SignInPage(cfg, csrf, fmt.Errorf("invalid email or password")))
 		}
 
 		if user.Password == "" {
 			_ = bcrypt.CompareHashAndPassword(dummyHash, []byte(password))
-			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email or password")))
+			return render(c, 422, views.SignInPage(cfg, csrf, fmt.Errorf("invalid email or password")))
 		}
 
 		if compareErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); compareErr != nil {
-			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("invalid email or password")))
+			return render(c, 422, views.SignInPage(cfg, csrf, fmt.Errorf("invalid email or password")))
 		}
 
 		sess, err := session.Get(SessionKey, c)
 		if err != nil {
-			return render(c, 422, views.SignInPage(cfg, fmt.Errorf("internal server error")))
+			return render(c, 422, views.SignInPage(cfg, csrf, fmt.Errorf("internal server error")))
 		}
-		sess.Options = getSecureSessionOptions()
+		sess.Options = getSecureSessionOptions(cfg)
 
 		sess.Values[SessionUserIDKey] = user.ID
 
 		err = sess.Save(c.Request(), c.Response())
 		if err != nil {
-			return render(c, 422, views.SignInPage(cfg, errors.Wrap(err, "Internal server error")))
+			return render(c, 422, views.SignInPage(cfg, csrf, errors.Wrap(err, "Internal server error")))
 		}
 
 		return c.Redirect(http.StatusFound, "/")

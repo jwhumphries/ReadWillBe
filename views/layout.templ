@@ -20,7 +20,6 @@ templ Layout(cfg types.Config, user *types.User, title string) {
 			<title>{ title }</title>
 			<link href={ versionedPath("/static/css/main.css") } rel="stylesheet"/>
 			<script src="https://unpkg.com/htmx.org@2.0.6"></script>
-			<script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@v1/bundles/datastar.js"></script>
 			<script type="module" src="https://unpkg.com/cally"></script>
 			<script src={ versionedPath("/static/push-setup.js") }></script>
 		</head>
@@ -112,6 +111,22 @@ templ Layout(cfg types.Config, user *types.User, title string) {
 				</main>
 			}
 			<script type="text/javascript">
+				function togglePasswordVisibility(input) {
+					const btn = input.nextElementSibling;
+					const eye = btn.querySelector('.icon-eye');
+					const slash = btn.querySelector('.icon-eye-slash');
+
+					if (input.type === 'password') {
+						input.type = 'text';
+						eye.classList.add('hidden');
+						slash.classList.remove('hidden');
+					} else {
+						input.type = 'password';
+						eye.classList.remove('hidden');
+						slash.classList.add('hidden');
+					}
+				}
+
 				document.addEventListener("DOMContentLoaded", (event) => {
 					// CSRF token handling for HTMX
 					function getCsrfToken() {

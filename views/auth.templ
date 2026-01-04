@@ -2,17 +2,18 @@ package views
 
 import "readwillbe/types"
 
-templ SignInPage(cfg types.Config, err error) {
+templ SignInPage(cfg types.Config, csrf string, err error) {
 	@Layout(cfg, nil, "Sign In - ReadWillBe") {
-		@SignInForm(cfg, err)
+		@SignInForm(cfg, csrf, err)
 	}
 }
 
-templ SignInForm(config types.Config, err error) {
+templ SignInForm(config types.Config, csrf string, err error) {
 	<div class="flex flex-col items-center justify-center min-h-screen p-8">
 		<h1 class="text-5xl font-bold text-center mb-12">ReadWillBe</h1>
 		<div class="card w-full max-w-md bg-base-200 shadow-xl">
 			<form hx-post="/auth/sign-in" hx-target="body" hx-disabled-elt="find button" class="group">
+				<input type="hidden" name="_csrf" value={ csrf }/>
 				<div class="card-body space-y-4">
 					<h2 class="card-title text-center justify-center text-2xl">Sign In</h2>
 					<div class="form-control">
@@ -27,7 +28,7 @@ templ SignInForm(config types.Config, err error) {
 						</label>
 						<label class="input input-bordered flex items-center gap-2 pr-0">
 							<input type="password" name="password" id="signin-password" required placeholder="••••••••" class="grow"/>
-							<button type="button" class="btn btn-ghost btn-sm btn-circle" onclick={ togglePassword("signin-password") } aria-label="Toggle password visibility">
+							<button type="button" class="btn btn-ghost btn-sm btn-circle" onclick="togglePasswordVisibility(this.previousElementSibling)" aria-label="Toggle password visibility">
 								<span class="icon-eye">
 									@EyeIcon("h-5 w-5 opacity-70")
 								</span>
@@ -94,7 +95,7 @@ templ SignUpForm(err error) {
 						</label>
 						<label class="input input-bordered flex items-center gap-2 pr-0">
 							<input type="password" name="password" id="signup-password" required placeholder="••••••••" class="grow"/>
-							<button type="button" class="btn btn-ghost btn-sm btn-circle" onclick={ togglePassword("signup-password") } aria-label="Toggle password visibility">
+							<button type="button" class="btn btn-ghost btn-sm btn-circle" onclick="togglePasswordVisibility(this.previousElementSibling)" aria-label="Toggle password visibility">
 								<span class="icon-eye">
 									@EyeIcon("h-5 w-5 opacity-70")
 								</span>
@@ -128,19 +129,3 @@ templ SignUpForm(err error) {
 	</div>
 }
 
-script togglePassword(id string) {
-	const input = document.getElementById(id);
-	const btn = input.nextElementSibling;
-	const eye = btn.querySelector('.icon-eye');
-	const slash = btn.querySelector('.icon-eye-slash');
-
-	if (input.type === 'password') {
-		input.type = 'text';
-		eye.classList.add('hidden');
-		slash.classList.remove('hidden');
-	} else {
-		input.type = 'password';
-		eye.classList.remove('hidden');
-		slash.classList.add('hidden');
-	}
-}

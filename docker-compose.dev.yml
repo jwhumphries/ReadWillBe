@@ -61,7 +61,7 @@ services:
     environment:
       - READWILLBE_PORT=:8080
       - READWILLBE_DB_PATH=/app/data/readwillbe.db
-      - READWILLBE_COOKIE_SECRET=dev-secret-change-me-in-prod
+      - READWILLBE_COOKIE_SECRET=${READWILLBE_COOKIE_SECRET:-dev-only-local-secret-min-32-chars}
       - READWILLBE_SEED_DB=true
       - READWILLBE_ALLOW_SIGNUP=true
       - READWILLBE_LOG_LEVEL=debug
@@ -70,10 +70,10 @@ services:
       - READWILLBE_VAPID_PRIVATE_KEY=${READWILLBE_VAPID_PRIVATE_KEY}
       - READWILLBE_HOSTNAME=localhost:7331
     command: sh -c "go mod download && mkdir -p tmp data && air"
-    expose:
-      - "8080"
+    ports:
+      - "8080:8080"
     healthcheck:
-      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:8080/healthz"]
       interval: 10s
       timeout: 3s
       retries: 3
