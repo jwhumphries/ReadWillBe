@@ -1,13 +1,9 @@
 package main
 
 import (
-	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -57,19 +53,4 @@ func createTestReading(t *testing.T, db *gorm.DB, plan *types.Plan, content stri
 	require.NoError(t, err)
 
 	return reading
-}
-
-func createAuthenticatedContext(t *testing.T, user *types.User) echo.Context {
-	e := echo.New()
-
-	store := sessions.NewCookieStore([]byte("test-secret-key-min-32-chars-long"))
-	e.Use(session.Middleware(store))
-
-	req := httptest.NewRequest("GET", "/", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-
-	c.Set(UserKey, *user)
-
-	return c
 }
