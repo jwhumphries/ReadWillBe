@@ -14,6 +14,11 @@ import (
 func TestGzipConfiguration(t *testing.T) {
 	e := echo.New()
 
+	gzipConfig := middleware.GzipConfig{
+		Level:     5,
+		MinLength: 1400,
+		Skipper:   middleware.DefaultSkipper,
+	}
 	e.Use(middleware.GzipWithConfig(gzipConfig))
 
 	e.GET("/short", func(c echo.Context) error {

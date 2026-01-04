@@ -144,7 +144,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 	store := sessions.NewCookieStore(cfg.CookieSecret)
 	e.Use(session.Middleware(store))
-	userCache := NewUserCache(5 * time.Minute)
+	userCache := NewUserCache(5*time.Minute, 10*time.Minute)
 	e.Use(UserMiddleware(db, userCache))
 
 	e.GET("/", dashboardHandler(cfg, db))
