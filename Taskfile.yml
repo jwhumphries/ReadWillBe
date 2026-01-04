@@ -120,3 +120,8 @@ tasks:
     desc: Run tests in Docker
     cmds:
       - dagger -m .dagger call test --source=.
+
+  build-css:
+    desc: Compile css
+    cmds:
+      - dagger -m .dagger call build-css --source=. export --path=./static/css
