@@ -165,3 +165,117 @@ func TestUserCache(t *testing.T) {
 	_, found = cache.Get(1)
 	assert.False(t, found, "Should have expired")
 }
+
+func TestDeletePlan(t *testing.T) {
+	db := setupTestDB(t)
+	user := createTestUser(t, db, "test@example.com", "password123")
+	plan := createTestPlan(t, db, user, "Plan to Delete")
+
+	t.Run("successfully delete plan", func(t *testing.T) {
+		e := echo.New()
+		req := httptest.NewRequest("DELETE", fmt.Sprintf("/plans/%d", plan.ID), nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
+		c.Set(UserKey, *user)
+
+		handler := deletePlan(db)
+		err := handler(c)
+		assert.NoError(t, err)
+
+		var deletedPlan types.Plan
+		err = db.First(&deletedPlan, plan.ID).Error
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
+	})
+
+	t.Run("delete non-existent plan", func(t *testing.T) {
+		e := echo.New()
+		req := httptest.NewRequest("DELETE", "/plans/99999", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues("99999")
+		c.Set(UserKey, *user)
+
+		handler := deletePlan(db)
+		err := handler(c)
+		assert.NoError(t, err)
+		assert.Equal(t, 404, rec.Code)
+	})
+
+	t.Run("unauthenticated request", func(t *testing.T) {
+		e := echo.New()
+		req := httptest.NewRequest("DELETE", fmt.Sprintf("/plans/%d", plan.ID), nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
+
+		handler := deletePlan(db)
+		err := handler(c)
+		assert.NoError(t, err)
+		assert.Equal(t, 302, rec.Code)
+	})
+}
+
+func TestRenamePlan(t *testing.T) {
+	db := setupTestDB(t)
+	user := createTestUser(t, db, "test@example.com", "password123")
+	plan := createTestPlan(t, db, user, "Original Title")
+
+	t.Run("successfully rename plan", func(t *testing.T) {
+		e := echo.New()
+		form := fmt.Sprintf("title=%s", "New Title")
+		req := httptest.NewRequest("POST", fmt.Sprintf("/plans/%d/rename", plan.ID), strings.NewReader(form))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
+		c.Set(UserKey, *user)
+
+		handler := renamePlan(db)
+		err := handler(c)
+		assert.NoError(t, err)
+
+		var updated types.Plan
+		db.First(&updated, plan.ID)
+		assert.Equal(t, "New Title", updated.Title)
+	})
+
+	t.Run("rename with empty title", func(t *testing.T) {
+		e := echo.New()
+		form := "title="
+		req := httptest.NewRequest("POST", fmt.Sprintf("/plans/%d/rename", plan.ID), strings.NewReader(form))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
+		c.Set(UserKey, *user)
+
+		handler := renamePlan(db)
+		err := handler(c)
+		assert.NoError(t, err)
+		assert.Equal(t, 400, rec.Code)
+	})
+
+	t.Run("rename non-existent plan", func(t *testing.T) {
+		e := echo.New()
+		form := "title=New Title"
+		req := httptest.NewRequest("POST", "/plans/99999/rename", strings.NewReader(form))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues("99999")
+		c.Set(UserKey, *user)
+
+		handler := renamePlan(db)
+		err := handler(c)
+		assert.NoError(t, err)
+		assert.Equal(t, 404, rec.Code)
+	})
+}
