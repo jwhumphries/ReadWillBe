@@ -192,7 +192,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	e.DELETE("/plans/:id", deletePlan(db))
 	e.DELETE("/plans/:id/readings/:reading_id", deleteReading(db))
 	e.GET("/account", accountHandler(cfg, db))
-	e.POST("/account/settings", updateSettings(db))
+	e.POST("/account/settings", updateSettings(db, userCache))
 
 	e.GET("/notifications/count", notificationCount(db))
 	e.GET("/notifications/dropdown", notificationDropdown(db))
