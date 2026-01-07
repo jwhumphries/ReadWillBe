@@ -54,3 +54,31 @@ func TestGzipConfiguration(t *testing.T) {
 		assert.True(t, rec.Body.Len() < 1500)
 	})
 }
+
+func TestSecurityMiddlewares(t *testing.T) {
+	e := echo.New()
+	e.Use(middleware.RequestID())
+	e.Use(middleware.BodyLimit("10M"))
+
+	e.GET("/test", func(c echo.Context) error {
+		return c.String(http.StatusOK, "ok")
+	})
+
+	e.POST("/upload", func(c echo.Context) error {
+		return c.String(http.StatusOK, "ok")
+	})
+
+	t.Run("RequestID middleware adds header", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+		assert.NotEmpty(t, rec.Header().Get(echo.HeaderXRequestID))
+	})
+
+	t.Run("BodyLimit middleware allows small payloads", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/upload", strings.NewReader("small"))
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+		assert.Equal(t, http.StatusOK, rec.Code)
+	})
+}
