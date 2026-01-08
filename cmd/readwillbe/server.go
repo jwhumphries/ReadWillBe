@@ -78,6 +78,9 @@ func runServer(cmd *cobra.Command, args []string) error {
 		origErrHandler(err, c)
 	}
 
+	e.Use(middleware.RequestID())
+	e.Use(middleware.BodyLimit("10M"))
+
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 		Skipper:           middleware.DefaultSkipper,
 		StackSize:         4 << 10,
@@ -103,7 +106,10 @@ func runServer(cmd *cobra.Command, args []string) error {
 		ReferrerPolicy:        "strict-origin-when-cross-origin",
 	}))
 	if cfg.IsProduction() {
-		e.Use(middleware.Gzip())
+		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+			Level:     5,
+			MinLength: 1400,
+		}))
 	}
 
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
