@@ -103,8 +103,15 @@ func runServer(cmd *cobra.Command, args []string) error {
 		ReferrerPolicy:        "strict-origin-when-cross-origin",
 	}))
 	if cfg.IsProduction() {
-		e.Use(middleware.Gzip())
+		e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+			Level:     5,
+			MinLength: 1400,
+			Skipper:   middleware.DefaultSkipper,
+		}))
 	}
+
+	e.Use(middleware.RequestID())
+	e.Use(middleware.BodyLimit("10M"))
 
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		TokenLookup:    "form:_csrf,header:X-CSRF-Token",
