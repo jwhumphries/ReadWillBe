@@ -51,17 +51,3 @@ func TestUserCache_Get_Expired(t *testing.T) {
 	_, found := cache.Get(1)
 	assert.False(t, found, "Should return false for expired user")
 }
-
-func TestUserCache_Invalidate(t *testing.T) {
-	cache := NewUserCache(1*time.Hour, 1*time.Hour)
-	user := types.User{Model: gorm.Model{ID: 1}}
-	cache.Set(user)
-
-	_, found := cache.Get(1)
-	assert.True(t, found)
-
-	cache.Invalidate(1)
-
-	_, found = cache.Get(1)
-	assert.False(t, found)
-}

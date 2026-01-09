@@ -510,12 +510,8 @@ templ ManualPlanForm(title string, readings []ManualReading, err error) {
 			</div>
 			<form id="add-reading-form" hx-post="/plans/draft/reading" hx-target="#manual-plan-form" hx-swap="outerHTML" hx-on::after-request="if(event.detail.successful) this.reset()"></form>
 			if len(readings) == 0 {
-				<div class="text-center py-12 text-base-content/60 bg-base-100/50 rounded-lg border border-base-300 border-dashed">
-					<div class="mx-auto w-12 h-12 mb-2 opacity-20">
-						@BookIcon("w-full h-full")
-					</div>
-					<p class="font-medium">No readings added yet</p>
-					<p class="text-sm mt-1">Use the form above to add your first reading to this plan.</p>
+				<div class="text-center py-8 text-base-content/60">
+					No readings added yet. Add your first reading above.
 				</div>
 			}
 			if err != nil {
