@@ -94,6 +94,9 @@ func runServer(cmd *cobra.Command, args []string) error {
 		DisableErrorHandler: false,
 	}))
 
+	e.Use(middleware.RequestID())
+	e.Use(middleware.BodyLimit("11M"))
+
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection:         "1; mode=block",
 		ContentTypeNosniff:    "nosniff",
@@ -109,9 +112,6 @@ func runServer(cmd *cobra.Command, args []string) error {
 			Skipper:   middleware.DefaultSkipper,
 		}))
 	}
-
-	e.Use(middleware.RequestID())
-	e.Use(middleware.BodyLimit("10M"))
 
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		TokenLookup:    "form:_csrf,header:X-CSRF-Token",
@@ -199,7 +199,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	e.DELETE("/plans/:id", deletePlan(db))
 	e.DELETE("/plans/:id/readings/:reading_id", deleteReading(db))
 	e.GET("/account", accountHandler(cfg, db))
-	e.POST("/account/settings", updateSettings(db, userCache))
+	e.POST("/account/settings", updateSettings(db))
 
 	e.GET("/notifications/count", notificationCount(db))
 	e.GET("/notifications/dropdown", notificationDropdown(db))

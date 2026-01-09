@@ -24,7 +24,7 @@ func accountHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-func updateSettings(db *gorm.DB, cache *UserCache) echo.HandlerFunc {
+func updateSettings(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user, ok := GetSessionUser(c)
 		if !ok {
@@ -44,8 +44,6 @@ func updateSettings(db *gorm.DB, cache *UserCache) echo.HandlerFunc {
 		if err := db.WithContext(c.Request().Context()).Save(&user).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to update settings")
 		}
-
-		cache.Invalidate(user.ID)
 
 		return c.Redirect(http.StatusFound, "/account")
 	}
