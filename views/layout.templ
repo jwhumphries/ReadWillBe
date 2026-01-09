@@ -26,6 +26,25 @@ templ Layout(cfg types.Config, user *types.User, title string) {
 		<body class="flex flex-col min-h-screen" data-theme="booky">
 			<a href="#main-content" class="btn btn-sm btn-primary absolute top-2 left-2 z-[100] -translate-y-[200%] focus:translate-y-0 focus:ring-4 focus:ring-primary transition-transform">Skip to content</a>
 			if user != nil && user.IsSet() {
+				<button
+					id="scroll-to-top"
+					class="btn btn-circle btn-primary fixed bottom-8 right-8 z-50 shadow-lg translate-y-24 transition-all duration-300 opacity-0"
+					aria-label="Scroll to top"
+					onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+				>
+					@ArrowUpIcon()
+				</button>
+				<script>
+					window.addEventListener('scroll', () => {
+						const btn = document.getElementById('scroll-to-top');
+						if (!btn) return;
+						if (window.scrollY > 300) {
+							btn.classList.remove('translate-y-24', 'opacity-0');
+						} else {
+							btn.classList.add('translate-y-24', 'opacity-0');
+						}
+					});
+				</script>
 				<div class="drawer lg:drawer-open">
 					<input id="drawer" type="checkbox" class="drawer-toggle"/>
 					<div class="drawer-content flex flex-col">
