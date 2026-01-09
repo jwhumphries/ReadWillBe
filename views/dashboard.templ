@@ -66,9 +66,10 @@ templ ReadingCard(reading types.Reading, isOverdue bool) {
 					@CalendarIcon()
 					<span>{ reading.Date.Format("January 2, 2006") }</span>
 				</div>
-				<form hx-post={ fmt.Sprintf("/reading/%d/complete", reading.ID) } hx-target="body">
+				<form hx-post={ fmt.Sprintf("/reading/%d/complete", reading.ID) } hx-target="body" class="group">
 					<button type="submit" class="btn btn-primary btn-sm" hx-disabled-elt="this">
-						@CheckIcon("h-5 w-5")
+						<span class="loading loading-spinner loading-xs hidden group-[.htmx-request]:inline-block"></span>
+						@CheckIcon("h-5 w-5 group-[.htmx-request]:hidden")
 						Complete
 					</button>
 				</form>
