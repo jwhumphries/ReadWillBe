@@ -68,7 +68,7 @@ templ ReadingCard(reading types.Reading, isOverdue bool) {
 				</div>
 				<form hx-post={ fmt.Sprintf("/reading/%d/complete", reading.ID) } hx-target="body" class="group" hx-disabled-elt="find button">
 					<button type="submit" class="btn btn-primary btn-sm">
-						<span class="loading loading-spinner w-5 h-5 hidden group-[.htmx-request]:inline-block"></span>
+						<span class="loading loading-spinner loading-xs hidden group-[.htmx-request]:inline-block"></span>
 						@CheckIcon("h-5 w-5 group-[.htmx-request]:hidden")
 						Complete
 					</button>
