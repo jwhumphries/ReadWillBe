@@ -131,6 +131,7 @@ templ PlanCard(plan types.Plan) {
 					</div>
 				</div>
 				if len(plan.Readings) > 0 {
+					@PlanProgress(plan.Readings, plan.ID)
 					<div class="divider">Readings</div>
 					<ul class="list">
 						for _, reading := range plan.Readings {
@@ -577,6 +578,34 @@ templ ManualReadingRow(reading ManualReading) {
 			</div>
 		</td>
 	</tr>
+}
+
+templ PlanProgress(readings []types.Reading, planID uint) {
+	<div class="mt-4">
+		<div class="flex justify-between items-center mb-1">
+			<span class="text-sm font-medium opacity-70" id={ fmt.Sprintf("progress-label-%d", planID) }>Progress</span>
+			<span class="text-sm font-bold text-primary">{ fmt.Sprintf("%d%%", calculateProgress(readings)) }</span>
+		</div>
+		<progress
+			class="progress progress-primary w-full h-3"
+			value={ fmt.Sprintf("%d", calculateProgress(readings)) }
+			max="100"
+			aria-labelledby={ fmt.Sprintf("progress-label-%d", planID) }
+		></progress>
+	</div>
+}
+
+func calculateProgress(readings []types.Reading) int {
+	if len(readings) == 0 {
+		return 0
+	}
+	completed := 0
+	for _, r := range readings {
+		if r.Status == types.StatusCompleted {
+			completed++
+		}
+	}
+	return int((float64(completed) / float64(len(readings))) * 100)
 }
 
 templ ManualReadingRowEdit(reading ManualReading) {
