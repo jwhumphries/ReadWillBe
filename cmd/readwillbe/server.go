@@ -79,7 +79,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	}
 
 	e.Use(middleware.RequestID())
-	e.Use(middleware.BodyLimit("10M"))
+	e.Use(middleware.BodyLimit("11M"))
 
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 		Skipper:           middleware.DefaultSkipper,
@@ -96,9 +96,6 @@ func runServer(cmd *cobra.Command, args []string) error {
 		},
 		DisableErrorHandler: false,
 	}))
-
-	e.Use(middleware.RequestID())
-	e.Use(middleware.BodyLimit("11M"))
 
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection:         "1; mode=block",
