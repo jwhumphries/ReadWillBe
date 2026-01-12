@@ -20,7 +20,7 @@ services:
       - devnet
 
   tailwind:
-    image: ghcr.io/jwhumphries/frontend:latest
+    image: ghcr.io/jwhumphries/frontend:latest@sha256:d3720e6781c3139393de5b8e68fd23249314fe14138e1820d8ab51acdeafbb02
     working_dir: /app
     volumes:
       - .:/app
