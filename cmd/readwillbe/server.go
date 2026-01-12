@@ -79,7 +79,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	}
 
 	e.Use(middleware.RequestID())
-	e.Use(middleware.BodyLimit("10M"))
+	e.Use(middleware.BodyLimit("11M"))
 
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 		Skipper:           middleware.DefaultSkipper,
@@ -96,9 +96,6 @@ func runServer(cmd *cobra.Command, args []string) error {
 		},
 		DisableErrorHandler: false,
 	}))
-
-	e.Use(middleware.RequestID())
-	e.Use(middleware.BodyLimit("11M"))
 
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection:         "1; mode=block",
@@ -262,7 +259,7 @@ func UserMiddleware(db *gorm.DB, cache *UserCache, cfg types.Config) echo.Middle
 				user, found := cache.Get(userID)
 				if !found {
 					var err error
-					user, err = getUserByID(db, userID)
+					user, err = getUserByID(db.WithContext(c.Request().Context()), userID)
 					if err != nil {
 						if errors.Is(err, gorm.ErrRecordNotFound) {
 							delete(sess.Values, SessionUserIDKey)
