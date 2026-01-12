@@ -28,7 +28,7 @@ func plansListHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plans []types.Plan
-		db.Preload("Readings").Where("user_id = ?", user.ID).Find(&plans)
+		db.WithContext(c.Request().Context()).Preload("Readings").Where("user_id = ?", user.ID).Find(&plans)
 
 		return render(c, 200, views.PlansList(cfg, &user, plans))
 	}
@@ -314,7 +314,7 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			Status: "active",
 		}
 
-		err = db.Transaction(func(tx *gorm.DB) error {
+		err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
 			if txErr := tx.Create(&plan).Error; txErr != nil {
 				return err
 			}
@@ -375,7 +375,7 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 			Status: "processing",
 		}
 
-		if err := db.Create(&plan).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Create(&plan).Error; err != nil {
 			_ = src.Close()
 			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to create plan record")))
 		}
@@ -437,7 +437,7 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plan types.Plan
-		if err := db.First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
@@ -450,7 +450,7 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		plan.Title = newTitle
-		if err := db.Save(&plan).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Save(&plan).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to update plan")
 		}
 
@@ -471,11 +471,11 @@ func deletePlan(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plan types.Plan
-		if err := db.First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
-		if err := db.Delete(&plan).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Delete(&plan).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to delete plan")
 		}
 
@@ -496,7 +496,7 @@ func editPlanForm(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plan types.Plan
-		if err := db.Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
@@ -517,7 +517,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plan types.Plan
-		if dbErr := db.Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; dbErr != nil {
+		if dbErr := db.WithContext(c.Request().Context()).Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; dbErr != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
@@ -533,7 +533,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("failed to parse form data")))
 		}
 
-		err = db.Transaction(func(tx *gorm.DB) error {
+		err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
 			if txErr := tx.Save(&plan).Error; txErr != nil {
 				return txErr
 			}
@@ -589,16 +589,16 @@ func deleteReading(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plan types.Plan
-		if err := db.First(&plan, "id = ? AND user_id = ?", planID, user.ID).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).First(&plan, "id = ? AND user_id = ?", planID, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
 		var reading types.Reading
-		if err := db.First(&reading, "id = ? AND plan_id = ?", readingID, planID).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).First(&reading, "id = ? AND plan_id = ?", readingID, planID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Reading not found")
 		}
 
-		if err := db.Delete(&reading).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).Delete(&reading).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to delete reading")
 		}
 
