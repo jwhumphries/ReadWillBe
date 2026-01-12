@@ -214,20 +214,15 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 								</svg>
 								<input type="text" name="title" required placeholder="Plan Title" class="grow"/>
 							</label>
-							<p class="label mb-2">
-								<span class="label-text">Upload CSV File</span>
-							</p>
-							<div class="flex gap-2 items-center">
-								<label class="btn btn-neutral btn-sm">
-									@FileIcon()
-									Choose File
-									<input type="file" name="csv" accept=".csv" required class="hidden" id="csv-file" onchange="document.getElementById('file-name').textContent = this.files[0]?.name || 'No file chosen'"/>
+							<div class="form-control w-full max-w-xs">
+								<label class="label" for="csv-file">
+									<span class="label-text">Upload CSV File</span>
 								</label>
-								<span id="file-name" class="text-sm opacity-70">No file chosen</span>
+								<input type="file" name="csv" accept=".csv" required class="file-input file-input-bordered w-full max-w-xs" id="csv-file"/>
+								<label class="label">
+									<span class="label-text-alt">CSV format: date, reading content (e.g., "2025-01-15, Read Chapter 1")</span>
+								</label>
 							</div>
-							<p class="label mt-2">
-								<span class="label-text-alt">CSV format: date, reading content (e.g., "2025-01-15, Read Chapter 1")</span>
-							</p>
 						</fieldset>
 						if err != nil {
 							<div role="alert" class="alert alert-error mt-4">
