@@ -1,6 +1,6 @@
-FROM golang:1.25-alpine AS gobase
-FROM golangci/golangci-lint:v2.7.2 AS lintbase
-FROM ghcr.io/jwhumphries/frontend:latest AS frontend
+FROM golang:1.25-alpine@sha256:ac09a5f469f307e5da71e766b0bd59c9c49ea460a528cc3e6686513d64a6f1fb AS gobase
+FROM golangci/golangci-lint:v2.7.2@sha256:5d6d5c70a61f1356adfd9dd6316ce286799fefc9d743421356ff1b00842368ba AS lintbase
+FROM ghcr.io/jwhumphries/frontend:latest@sha256:d3720e6781c3139393de5b8e68fd23249314fe14138e1820d8ab51acdeafbb02 AS frontend
 
 FROM gobase AS dev
 ARG APP_NAME=readwillbe
@@ -94,7 +94,7 @@ RUN --mount=type=cache,target=/go-build-cache --mount=type=cache,target=/go-mod-
   go build -ldflags "-X readwillbe/version.Tag=$VERSION" -o /readwillbe ./cmd/readwillbe/
 RUN echo "nonroot:x:10001:10001:NonRoot User:/:/sbin/nologin" > /etc/passwd
 
-FROM alpine:3.23 AS release
+FROM alpine:3.23@sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62 AS release
 WORKDIR /app
 RUN apk add --no-cache tzdata
 COPY --from=builder /readwillbe /readwillbe
