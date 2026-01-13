@@ -7,6 +7,7 @@ import (
 )
 
 func init() {
+	gob.Register(views.ManualReading{})
 	gob.Register([]views.ManualReading{})
 }
 

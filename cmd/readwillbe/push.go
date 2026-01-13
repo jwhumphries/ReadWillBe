@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	webpush "github.com/SherClockHolmes/webpush-go"
@@ -14,7 +16,10 @@ import (
 	"readwillbe/types"
 )
 
-const NotificationCheckInterval = 1 * time.Minute
+const (
+	NotificationCheckInterval = 1 * time.Minute
+	MaxSubscriptionsPerUser   = 10
+)
 
 type PushSubscriptionRequest struct {
 	Endpoint string `json:"endpoint"`
@@ -22,6 +27,30 @@ type PushSubscriptionRequest struct {
 		P256DH string `json:"p256dh"`
 		Auth   string `json:"auth"`
 	} `json:"keys"`
+}
+
+func validatePushSubscription(req PushSubscriptionRequest) error {
+	if !strings.HasPrefix(req.Endpoint, "https://") {
+		return fmt.Errorf("endpoint must use HTTPS")
+	}
+
+	if req.Keys.P256DH == "" || req.Keys.Auth == "" {
+		return fmt.Errorf("missing encryption keys")
+	}
+
+	if _, err := base64.RawURLEncoding.DecodeString(req.Keys.P256DH); err != nil {
+		if _, err := base64.StdEncoding.DecodeString(req.Keys.P256DH); err != nil {
+			return fmt.Errorf("invalid P256DH key encoding")
+		}
+	}
+
+	if _, err := base64.RawURLEncoding.DecodeString(req.Keys.Auth); err != nil {
+		if _, err := base64.StdEncoding.DecodeString(req.Keys.Auth); err != nil {
+			return fmt.Errorf("invalid Auth key encoding")
+		}
+	}
+
+	return nil
 }
 
 func saveSubscription(db *gorm.DB) echo.HandlerFunc {
@@ -34,6 +63,16 @@ func saveSubscription(db *gorm.DB) echo.HandlerFunc {
 		var req PushSubscriptionRequest
 		if err := c.Bind(&req); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		}
+
+		if err := validatePushSubscription(req); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		}
+
+		var count int64
+		db.Model(&types.PushSubscription{}).Where("user_id = ?", user.ID).Count(&count)
+		if count >= MaxSubscriptionsPerUser {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "maximum subscriptions reached"})
 		}
 
 		subscription := types.PushSubscription{

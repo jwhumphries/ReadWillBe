@@ -117,10 +117,16 @@ func runServer(cmd *cobra.Command, args []string) error {
 		TokenLookup:    "form:_csrf,header:X-CSRF-Token",
 		CookiePath:     "/",
 		CookieSecure:   cfg.IsProduction(),
-		CookieHTTPOnly: true,
+		CookieHTTPOnly: false, // Must be false so JavaScript (HTMX) can read the token for AJAX requests
 		CookieSameSite: http.SameSiteStrictMode,
 		Skipper: func(c echo.Context) bool {
 			return c.Path() == "/healthz"
+		},
+		ErrorHandler: func(err error, c echo.Context) error {
+			if cfg.IsProduction() && c.Request().TLS == nil {
+				logrus.Error("CSRF validation failed: secure cookies are enabled (GO_ENV=production) but request is not HTTPS. Either use HTTPS or set GO_ENV to something other than 'production' or 'prod'")
+			}
+			return echo.NewHTTPError(http.StatusForbidden, "invalid csrf token")
 		},
 	}))
 
@@ -160,6 +166,13 @@ func runServer(cmd *cobra.Command, args []string) error {
 	_ = startNotificationWorker(cfg, db)
 
 	store := sessions.NewCookieStore(cfg.CookieSecret)
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   3600 * 24,
+		HttpOnly: true,
+		Secure:   cfg.IsProduction(),
+		SameSite: http.SameSiteStrictMode,
+	}
 	e.Use(session.Middleware(store))
 	userCache := NewUserCache(5*time.Minute, 10*time.Minute)
 	e.Use(UserMiddleware(db, userCache, cfg))
@@ -170,6 +183,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	})
 
 	authRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(5)))
+	generalRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(30)))
 
 	e.GET("/auth/sign-in", signIn(cfg))
 	e.POST("/auth/sign-in", signInWithEmailAndPassword(db, cfg), authRateLimiter)
@@ -177,40 +191,40 @@ func runServer(cmd *cobra.Command, args []string) error {
 		e.GET("/auth/sign-up", signUp(cfg))
 		e.POST("/auth/sign-up", signUpWithEmailAndPassword(db, cfg), authRateLimiter)
 	}
-	e.POST("/auth/sign-out", signOut())
+	e.POST("/auth/sign-out", signOut(), generalRateLimiter)
 
 	e.GET("/dashboard", dashboardHandler(cfg, db))
 	e.GET("/history", historyHandler(cfg, db))
 	e.GET("/plans", plansListHandler(cfg, db))
 	e.GET("/plans/create", createPlanForm(cfg, db))
-	e.POST("/plans/create", createPlan(db))
+	e.POST("/plans/create", createPlan(db), generalRateLimiter)
 	e.GET("/plans/create-manual", manualPlanForm(cfg))
-	e.POST("/plans/create-manual", createManualPlan(cfg, db))
-	e.POST("/plans/draft/title", updateDraftTitle())
-	e.POST("/plans/draft/reading", addDraftReading())
+	e.POST("/plans/create-manual", createManualPlan(cfg, db), generalRateLimiter)
+	e.POST("/plans/draft/title", updateDraftTitle(), generalRateLimiter)
+	e.POST("/plans/draft/reading", addDraftReading(), generalRateLimiter)
 	e.GET("/plans/draft/reading/:id", getDraftReading())
 	e.GET("/plans/draft/reading/:id/edit", getDraftReadingEdit())
-	e.PUT("/plans/draft/reading/:id", updateDraftReading())
-	e.DELETE("/plans/draft/reading/:id", deleteDraftReading())
-	e.DELETE("/plans/draft", deleteDraft())
+	e.PUT("/plans/draft/reading/:id", updateDraftReading(), generalRateLimiter)
+	e.DELETE("/plans/draft/reading/:id", deleteDraftReading(), generalRateLimiter)
+	e.DELETE("/plans/draft", deleteDraft(), generalRateLimiter)
 	e.GET("/plans/:id/edit", editPlanForm(cfg, db))
-	e.POST("/plans/:id/edit", editPlan(cfg, db))
-	e.POST("/plans/:id/rename", renamePlan(db))
-	e.DELETE("/plans/:id", deletePlan(db))
-	e.DELETE("/plans/:id/readings/:reading_id", deleteReading(db))
+	e.POST("/plans/:id/edit", editPlan(cfg, db), generalRateLimiter)
+	e.POST("/plans/:id/rename", renamePlan(db), generalRateLimiter)
+	e.DELETE("/plans/:id", deletePlan(db), generalRateLimiter)
+	e.DELETE("/plans/:id/readings/:reading_id", deleteReading(db), generalRateLimiter)
 	e.GET("/account", accountHandler(cfg, db))
-	e.POST("/account/settings", updateSettings(db))
+	e.POST("/account/settings", updateSettings(db), generalRateLimiter)
 
 	e.GET("/notifications/count", notificationCount(db))
 	e.GET("/notifications/dropdown", notificationDropdown(db))
 
-	e.POST("/push/subscribe", saveSubscription(db))
-	e.POST("/push/unsubscribe", removeSubscription(db))
-	e.POST("/push/unsubscribe-all", removeAllSubscriptions(db))
+	e.POST("/push/subscribe", saveSubscription(db), generalRateLimiter)
+	e.POST("/push/unsubscribe", removeSubscription(db), generalRateLimiter)
+	e.POST("/push/unsubscribe-all", removeAllSubscriptions(db), generalRateLimiter)
 
-	e.POST("/reading/:id/complete", completeReading(db))
-	e.POST("/reading/:id/uncomplete", uncompleteReading(db))
-	e.POST("/reading/:id/update", updateReading(db))
+	e.POST("/reading/:id/complete", completeReading(db), generalRateLimiter)
+	e.POST("/reading/:id/uncomplete", uncompleteReading(db), generalRateLimiter)
+	e.POST("/reading/:id/update", updateReading(db), generalRateLimiter)
 
 	return e.Start(cfg.Port)
 }

@@ -10,6 +10,8 @@ import (
 	"readwillbe/types"
 )
 
+const MaxReadingContentLength = 2000
+
 func completeReading(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user, ok := GetSessionUser(c)
@@ -23,12 +25,12 @@ func completeReading(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var reading types.Reading
-		if err := db.WithContext(c.Request().Context()).Preload("Plan").First(&reading, id).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).
+			Preload("Plan").
+			Joins("JOIN plans ON plans.id = readings.plan_id").
+			Where("readings.id = ? AND plans.user_id = ?", id, user.ID).
+			First(&reading).Error; err != nil {
 			return c.String(http.StatusNotFound, "Reading not found")
-		}
-
-		if reading.Plan.UserID != user.ID {
-			return c.String(http.StatusForbidden, "Forbidden")
 		}
 
 		now := time.Now()
@@ -56,12 +58,12 @@ func uncompleteReading(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var reading types.Reading
-		if err := db.WithContext(c.Request().Context()).Preload("Plan").First(&reading, id).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).
+			Preload("Plan").
+			Joins("JOIN plans ON plans.id = readings.plan_id").
+			Where("readings.id = ? AND plans.user_id = ?", id, user.ID).
+			First(&reading).Error; err != nil {
 			return c.String(http.StatusNotFound, "Reading not found")
-		}
-
-		if reading.Plan.UserID != user.ID {
-			return c.String(http.StatusForbidden, "Forbidden")
 		}
 
 		reading.Status = types.StatusPending
@@ -88,17 +90,21 @@ func updateReading(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var reading types.Reading
-		if err := db.WithContext(c.Request().Context()).Preload("Plan").First(&reading, id).Error; err != nil {
+		if err := db.WithContext(c.Request().Context()).
+			Preload("Plan").
+			Joins("JOIN plans ON plans.id = readings.plan_id").
+			Where("readings.id = ? AND plans.user_id = ?", id, user.ID).
+			First(&reading).Error; err != nil {
 			return c.String(http.StatusNotFound, "Reading not found")
-		}
-
-		if reading.Plan.UserID != user.ID {
-			return c.String(http.StatusForbidden, "Forbidden")
 		}
 
 		content := c.FormValue("content")
 		if content == "" {
 			return c.String(http.StatusBadRequest, "Content is required")
+		}
+
+		if len(content) > MaxReadingContentLength {
+			return c.String(http.StatusBadRequest, "Content exceeds maximum length")
 		}
 
 		reading.Content = content

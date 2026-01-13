@@ -11,16 +11,38 @@ import (
 	"readwillbe/types"
 )
 
+const (
+	MaxCSVRows           = 10000
+	MaxCSVContentLength  = 2000
+)
+
+// formulaInjectionPrefixes are characters that could trigger formula execution in spreadsheet applications
+var formulaInjectionPrefixes = []string{"=", "+", "-", "@", "\t", "\r"}
+
+func isFormulaInjection(s string) bool {
+	for _, prefix := range formulaInjectionPrefixes {
+		if strings.HasPrefix(s, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 func parseCSV(r io.Reader) ([]types.Reading, error) {
 	reader := csv.NewReader(r)
-	reader.LazyQuotes = true
+	reader.LazyQuotes = false
+	reader.TrimLeadingSpace = true
 	records, err := reader.ReadAll()
 	if err != nil {
-		return nil, errors.Wrap(err, "reading CSV")
+		return nil, errors.Wrap(err, "reading CSV (ensure proper quoting)")
 	}
 
 	if len(records) < 2 {
 		return nil, fmt.Errorf("CSV must have at least a header and one data row")
+	}
+
+	if len(records) > MaxCSVRows+1 {
+		return nil, fmt.Errorf("CSV exceeds maximum of %d rows", MaxCSVRows)
 	}
 
 	header := records[0]
@@ -39,6 +61,14 @@ func parseCSV(r io.Reader) ([]types.Reading, error) {
 
 		if dateStr == "" || content == "" {
 			return nil, fmt.Errorf("row %d: date and reading content are required", i+2)
+		}
+
+		if len(content) > MaxCSVContentLength {
+			return nil, fmt.Errorf("row %d: content exceeds maximum length of %d characters", i+2, MaxCSVContentLength)
+		}
+
+		if isFormulaInjection(content) {
+			return nil, fmt.Errorf("row %d: content cannot start with formula characters (=, +, -, @)", i+2)
 		}
 
 		date, dateType, err := parseDate(dateStr)

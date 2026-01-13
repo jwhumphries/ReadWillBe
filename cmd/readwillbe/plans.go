@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"readwillbe/types"
 	"readwillbe/views"
@@ -51,6 +52,7 @@ const DraftReadingsKey = "draft-plan-readings"
 func getDraftData(c echo.Context) (string, []views.ManualReading, error) {
 	sess, err := session.Get(SessionKey, c)
 	if err != nil {
+		logrus.Errorf("getDraftData: failed to get session: %v", err)
 		return "", nil, err
 	}
 	title, ok := sess.Values[DraftTitleKey].(string)
@@ -61,17 +63,24 @@ func getDraftData(c echo.Context) (string, []views.ManualReading, error) {
 	if !ok || readings == nil {
 		readings = []views.ManualReading{}
 	}
+	logrus.Debugf("getDraftData: title=%q, readings=%d", title, len(readings))
 	return title, readings, nil
 }
 
 func saveDraftData(c echo.Context, title string, readings []views.ManualReading) error {
 	sess, err := session.Get(SessionKey, c)
 	if err != nil {
+		logrus.Errorf("saveDraftData: failed to get session: %v", err)
 		return err
 	}
 	sess.Values[DraftTitleKey] = title
 	sess.Values[DraftReadingsKey] = readings
-	return sess.Save(c.Request(), c.Response())
+	if err := sess.Save(c.Request(), c.Response()); err != nil {
+		logrus.Errorf("saveDraftData: failed to save session: %v", err)
+		return err
+	}
+	logrus.Debugf("saveDraftData: saved title=%q, readings=%d", title, len(readings))
+	return nil
 }
 
 func clearDraftData(c echo.Context) error {
@@ -361,6 +370,19 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 
 		if file.Size > MaxCSVFileSize {
 			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("CSV file must be less than 10MB")))
+		}
+
+		contentType := file.Header.Get("Content-Type")
+		validCSVTypes := map[string]bool{
+			"text/csv":                    true,
+			"application/csv":            true,
+			"text/plain":                 true,
+			"application/vnd.ms-excel":   true,
+			"application/octet-stream":   true,
+			"":                           true, // Allow empty content-type from multipart forms
+		}
+		if !validCSVTypes[contentType] {
+			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("invalid file type: must be a CSV file")))
 		}
 
 		src, err := file.Open()

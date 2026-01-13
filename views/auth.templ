@@ -64,17 +64,18 @@ templ SignInForm(config types.Config, csrf string, err error) {
 	</div>
 }
 
-templ SignUpPage(cfg types.Config, err error) {
+templ SignUpPage(cfg types.Config, csrf string, err error) {
 	@Layout(cfg, nil, "Sign Up - ReadWillBe") {
-		@SignUpForm(err)
+		@SignUpForm(csrf, err)
 	}
 }
 
-templ SignUpForm(err error) {
+templ SignUpForm(csrf string, err error) {
 	<div class="flex flex-col items-center justify-center min-h-screen p-8">
 		<h1 class="text-5xl font-bold text-center mb-12">ReadWillBe</h1>
 		<div class="card w-full max-w-md bg-base-200 shadow-xl">
 			<form hx-post="/auth/sign-up" hx-target="body" hx-disabled-elt="find button" class="group">
+				<input type="hidden" name="_csrf" value={ csrf }/>
 				<div class="card-body space-y-4">
 					<h2 class="card-title text-center justify-center text-2xl">Create Account</h2>
 					<div class="form-control">
