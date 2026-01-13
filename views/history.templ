@@ -51,8 +51,10 @@ templ CompletedReadingCard(reading types.Reading) {
 				}
 			</div>
 			<div class="card-actions justify-end mt-4">
-				<form hx-post={ fmt.Sprintf("/reading/%d/uncomplete", reading.ID) } hx-target="body">
-					<button type="submit" class="btn btn-outline btn-sm">
+				<form hx-post={ fmt.Sprintf("/reading/%d/uncomplete", reading.ID) } hx-target="body" hx-disabled-elt="find button" class="group">
+					<button type="submit" class="btn btn-outline btn-sm gap-2">
+						<span class="loading loading-spinner loading-xs hidden group-[.htmx-request]:inline-block"></span>
+						@CloseIcon("h-4 w-4 group-[.htmx-request]:hidden")
 						Mark Incomplete
 					</button>
 				</form>
