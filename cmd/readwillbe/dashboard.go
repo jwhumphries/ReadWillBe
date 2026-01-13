@@ -16,20 +16,17 @@ func dashboardHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
 
-		var readings []types.Reading
-		tx := db.WithContext(c.Request().Context())
-		tx.Preload("Plan").Where("plan_id IN (?)",
-			tx.Table("plans").Select("id").Where("user_id = ?", user.ID),
-		).Find(&readings)
+		// Fetch only relevant readings (active today or overdue, excluding future)
+		// using optimized SQL query
+		readings, err := GetDashboardReadings(db.WithContext(c.Request().Context()), user.ID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "Failed to load dashboard data")
+		}
 
 		todayReadings := []types.Reading{}
 		overdueReadings := []types.Reading{}
 
 		for _, reading := range readings {
-			if reading.Status == types.StatusCompleted {
-				continue
-			}
-
 			if reading.IsActiveToday() {
 				todayReadings = append(todayReadings, reading)
 			} else if reading.IsOverdue() {
