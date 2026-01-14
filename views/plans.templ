@@ -114,10 +114,7 @@ templ PlanCard(plan types.Plan) {
 				</div>
 			</div>
 			if plan.Status == "failed" {
-				<div role="alert" class="alert alert-error mt-2">
-					@AlertErrorIcon()
-					<span>{ plan.ErrorMessage }</span>
-				</div>
+				@Alert(plan.ErrorMessage, true)
 			} else if plan.Status == "processing" {
 				<div class="mt-4" hx-get="/plans" hx-trigger="every 5s" hx-select="#plans-list" hx-target="#plans-list" hx-swap="outerHTML">
 					<progress class="progress progress-primary w-full"></progress>
@@ -141,28 +138,15 @@ templ PlanCard(plan types.Plan) {
 				}
 			}
 		</div>
-		<dialog id={ fmt.Sprintf("delete_plan_modal_%d", plan.ID) } class="modal">
-			<div class="modal-box">
-				<h3 class="font-bold text-lg">Delete Plan</h3>
-				<p class="py-4">Are you sure you want to delete this plan? This will delete all associated readings and cannot be undone.</p>
-				<div class="modal-action">
-					<form method="dialog">
-						<button class="btn">Cancel</button>
-					</form>
-					<button
-						hx-delete={ fmt.Sprintf("/plans/%d", plan.ID) }
-						hx-target="body"
-						class="btn btn-error modal-close"
-						data-modal-id={ fmt.Sprintf("delete_plan_modal_%d", plan.ID) }
-					>
-						Delete
-					</button>
-				</div>
-			</div>
-			<form method="dialog" class="modal-backdrop">
-				<button>close</button>
-			</form>
-		</dialog>
+		@ConfirmModal(
+			fmt.Sprintf("delete_plan_modal_%d", plan.ID),
+			"Delete Plan",
+			"Are you sure you want to delete this plan? This will delete all associated readings and cannot be undone.",
+			"Delete",
+			"DELETE",
+			fmt.Sprintf("/plans/%d", plan.ID),
+			"body",
+		)
 	</div>
 }
 
@@ -221,10 +205,7 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 							</div>
 						</fieldset>
 						if err != nil {
-							<div role="alert" class="alert alert-error mt-4">
-								@AlertErrorIcon()
-								<span>{ err.Error() }</span>
-							</div>
+							@Alert(err.Error(), true)
 						}
 						<div class="card-actions justify-end gap-2 mt-6">
 							<a href="/plans" class="btn btn-ghost">
@@ -244,10 +225,7 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 }
 
 templ CreatePlanFormError(err error) {
-	<div role="alert" class="alert alert-error">
-		@AlertErrorIcon()
-		<span>{ err.Error() }</span>
-	</div>
+	@Alert(err.Error(), true)
 }
 
 templ EditPlan(cfg types.Config, user *types.User, plan types.Plan, err error) {
@@ -270,10 +248,7 @@ templ EditPlan(cfg types.Config, user *types.User, plan types.Plan, err error) {
 						</div>
 						<div class="divider my-2">Readings</div>
 						if len(plan.Readings) == 0 {
-							<div role="alert" class="alert">
-								@InfoIcon()
-								<span>No readings in this plan</span>
-							</div>
+							@Alert("No readings in this plan", false)
 						} else {
 							<div class="space-y-4 mt-4">
 								for _, reading := range plan.Readings {
@@ -282,10 +257,7 @@ templ EditPlan(cfg types.Config, user *types.User, plan types.Plan, err error) {
 							</div>
 						}
 						if err != nil {
-							<div role="alert" class="alert alert-error mt-4">
-								@AlertErrorIcon()
-								<span>{ err.Error() }</span>
-							</div>
+							@Alert(err.Error(), true)
 						}
 						<div class="card-actions justify-end gap-2 mt-6">
 							<a href="/plans" class="btn btn-ghost">
@@ -357,29 +329,15 @@ templ EditableReadingItem(reading types.Reading, planID uint) {
 				</div>
 			</div>
 		</div>
-		<dialog id={ fmt.Sprintf("delete_modal_%d", reading.ID) } class="modal">
-			<div class="modal-box">
-				<h3 class="font-bold text-lg">Delete Reading</h3>
-				<p class="py-4">Are you sure you want to delete this reading? This action cannot be undone.</p>
-				<div class="modal-action">
-					<form method="dialog">
-						<button class="btn">Cancel</button>
-					</form>
-					<button
-						hx-delete={ fmt.Sprintf("/plans/%d/readings/%d", planID, reading.ID) }
-						hx-target="closest .card"
-						hx-swap="outerHTML swap:1s"
-						class="btn btn-error modal-close"
-						data-modal-id={ fmt.Sprintf("delete_modal_%d", reading.ID) }
-					>
-						Delete
-					</button>
-				</div>
-			</div>
-			<form method="dialog" class="modal-backdrop">
-				<button>close</button>
-			</form>
-		</dialog>
+		@ConfirmModal(
+			fmt.Sprintf("delete_modal_%d", reading.ID),
+			"Delete Reading",
+			"Are you sure you want to delete this reading? This action cannot be undone.",
+			"Delete",
+			"DELETE",
+			fmt.Sprintf("/plans/%d/readings/%d", planID, reading.ID),
+			"closest .card",
+		)
 	</div>
 }
 

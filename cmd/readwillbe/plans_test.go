@@ -11,6 +11,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/ncruces/go-sqlite3/gormlite"
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 	"readwillbe/types"
@@ -75,7 +76,7 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 	c.Set(UserKey, user)
 
 	// Invoke handler
-	h := createPlan(db)
+	h := createPlan(afero.NewMemMapFs(), db)
 	err := h(c)
 	assert.NoError(t, err)
 
@@ -127,7 +128,7 @@ invalid-row`
 	c.Set(UserKey, user)
 
 	// Invoke handler
-	h := createPlan(db)
+	h := createPlan(afero.NewMemMapFs(), db)
 	err := h(c)
 	assert.NoError(t, err)
 
