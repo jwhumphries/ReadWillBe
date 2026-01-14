@@ -1,0 +1,44 @@
+name: Release Chart to GHCR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "charts/**"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.12.1
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package and Push Chart
+        run: |
+          # Package the chart
+          helm package charts/readwillbe --destination .
+          
+          # Push to OCI Registry
+          # This will create a package at ghcr.io/<owner>/readwillbe:<version>
+          # Ensure repository owner is lowercase
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          
+          for CHART in *.tgz; do
+            helm push $CHART oci://ghcr.io/$OWNER/charts
+          done
