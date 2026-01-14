@@ -147,8 +147,8 @@ func runServer(cmd *cobra.Command, args []string) error {
 		return errors.Wrap(err, "failed to get underlying sql.DB")
 	}
 
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetMaxIdleConns(1)
+	sqlDB.SetMaxOpenConns(1)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	err = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{}, &types.PushSubscription{})
@@ -171,6 +171,8 @@ func runServer(cmd *cobra.Command, args []string) error {
 	userCache := NewUserCache(5*time.Minute, 10*time.Minute)
 	e.Use(UserMiddleware(db, userCache, cfg))
 
+	appFS := afero.NewOsFs()
+
 	e.GET("/", dashboardHandler(cfg, db))
 	e.GET("/healthz", func(c echo.Context) error {
 		return c.String(http.StatusOK, "ok")
@@ -191,7 +193,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	e.GET("/history", historyHandler(cfg, db))
 	e.GET("/plans", plansListHandler(cfg, db))
 	e.GET("/plans/create", createPlanForm(cfg, db))
-	e.POST("/plans/create", createPlan(db), generalRateLimiter)
+	e.POST("/plans/create", createPlan(appFS, db), generalRateLimiter)
 	e.GET("/plans/create-manual", manualPlanForm(cfg))
 	e.POST("/plans/create-manual", createManualPlan(cfg, db), generalRateLimiter)
 	e.POST("/plans/draft/title", updateDraftTitle(), generalRateLimiter)
@@ -225,18 +227,11 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 func configureLogging() {
 	level := viper.GetString("log_level")
-
-	switch strings.ToLower(level) {
-	case "debug":
-		logrus.SetLevel(logrus.DebugLevel)
-	case "info":
+	parsedLevel, err := logrus.ParseLevel(level)
+	if err != nil {
 		logrus.SetLevel(logrus.InfoLevel)
-	case "warn", "warning":
-		logrus.SetLevel(logrus.WarnLevel)
-	case "error":
-		logrus.SetLevel(logrus.ErrorLevel)
-	default:
-		logrus.SetLevel(logrus.InfoLevel)
+	} else {
+		logrus.SetLevel(parsedLevel)
 	}
 }
 

@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"mime/multipart"
+	"io"
 	"net/http"
 	"strconv"
+
+	"github.com/spf13/afero"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -372,7 +374,7 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-func createPlan(db *gorm.DB) echo.HandlerFunc {
+func createPlan(fs afero.Fs, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user, ok := GetSessionUser(c)
 		if !ok {
@@ -401,12 +403,12 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 
 		contentType := file.Header.Get("Content-Type")
 		validCSVTypes := map[string]bool{
-			"text/csv":                    true,
-			"application/csv":            true,
-			"text/plain":                 true,
-			"application/vnd.ms-excel":   true,
-			"application/octet-stream":   true,
-			"":                           true, // Allow empty content-type from multipart forms
+			"text/csv":                 true,
+			"application/csv":          true,
+			"text/plain":               true,
+			"application/vnd.ms-excel": true,
+			"application/octet-stream": true,
+			"":                         true, // Allow empty content-type from multipart forms
 		}
 		if !validCSVTypes[contentType] {
 			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("invalid file type: must be a CSV file")))
@@ -416,6 +418,23 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 		if err != nil {
 			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to open file")))
 		}
+		defer func() { _ = src.Close() }()
+
+		// Create a temp file to store the CSV
+		tempFile, err := afero.TempFile(fs, "", "plan-upload-*.csv")
+		if err != nil {
+			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to create temp file")))
+		}
+		tempPath := tempFile.Name()
+		// We don't defer fs.Remove here because the goroutine needs it.
+		// The goroutine is responsible for cleanup.
+
+		if _, err := io.Copy(tempFile, src); err != nil {
+			_ = tempFile.Close()
+			_ = fs.Remove(tempPath)
+			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to save CSV")))
+		}
+		_ = tempFile.Close()
 
 		// Create plan immediately in processing state
 		plan := types.Plan{
@@ -425,20 +444,29 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		if err := db.WithContext(c.Request().Context()).Create(&plan).Error; err != nil {
-			_ = src.Close()
+			_ = fs.Remove(tempPath)
 			return render(c, 422, views.CreatePlanFormError(errors.Wrap(err, "Failed to create plan record")))
 		}
 
 		// Process CSV in background
-		go func(p types.Plan, f multipart.File, d *gorm.DB) {
+		go func(p types.Plan, filePath string, fileSys afero.Fs, d *gorm.DB) {
 			defer func() {
 				if r := recover(); r != nil {
 					p.Status = "failed"
 					p.ErrorMessage = fmt.Sprintf("Panic during processing: %v", r)
 					d.Save(&p)
 				}
-				_ = f.Close()
+				_ = fileSys.Remove(filePath)
 			}()
+
+			f, err := fileSys.Open(filePath)
+			if err != nil {
+				p.Status = "failed"
+				p.ErrorMessage = fmt.Sprintf("Failed to open CSV file: %v", err)
+				d.Save(&p)
+				return
+			}
+			defer func() { _ = f.Close() }()
 
 			readings, err := parseCSV(f)
 			if err != nil {
@@ -467,7 +495,7 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 				p.ErrorMessage = fmt.Sprintf("Failed to save readings: %v", err)
 				d.Save(&p)
 			}
-		}(plan, src, db)
+		}(plan, tempPath, fs, db)
 
 		return htmxRedirect(c, "/plans")
 	}
