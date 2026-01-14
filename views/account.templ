@@ -28,7 +28,7 @@ templ Account(cfg types.Config, user *types.User) {
 				</div>
 			</div>
 			<div class="card bg-base-200 shadow-xl">
-				<form hx-post="/account/settings" hx-target="body">
+				<form hx-post="/account/settings" hx-target="body" hx-disabled-elt="find button" class="group">
 					<div class="card-body space-y-4">
 						<h2 class="card-title">Notification Settings</h2>
 						<label class="flex items-start gap-4 cursor-pointer" for="notifications_enabled">
@@ -59,7 +59,8 @@ templ Account(cfg types.Config, user *types.User) {
 						</div>
 						<div class="card-actions justify-end">
 							<button type="submit" class="btn btn-primary gap-2">
-								@SaveIcon("h-5 w-5")
+								<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
+								@SaveIcon("h-5 w-5 group-[.htmx-request]:hidden")
 								Save Settings
 							</button>
 						</div>
