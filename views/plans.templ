@@ -214,14 +214,10 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 								</svg>
 								<input type="text" name="title" required placeholder="Plan Title" class="grow"/>
 							</label>
-							<div class="form-control w-full max-w-xs">
-								<label class="label" for="csv-file">
-									<span class="label-text">Upload CSV File</span>
-								</label>
-								<input type="file" name="csv" accept=".csv" required class="file-input file-input-bordered w-full max-w-xs" id="csv-file"/>
-								<label class="label">
-									<span class="label-text-alt">CSV format: date, reading content (e.g., "2025-01-15, Read Chapter 1")</span>
-								</label>
+							<div class="space-y-1 w-full max-w-xs">
+								<span class="text-sm font-medium">Upload CSV File</span>
+								<input type="file" name="csv" accept=".csv" required class="file-input file-input-bordered w-full" id="csv-file"/>
+								<p class="text-xs opacity-70">CSV format: date, reading content (e.g., "2025-01-15, Read Chapter 1")</p>
 							</div>
 						</fieldset>
 						if err != nil {
@@ -268,11 +264,9 @@ templ EditPlan(cfg types.Config, user *types.User, plan types.Plan, err error) {
 				<form hx-post={ fmt.Sprintf("/plans/%d/edit", plan.ID) } hx-target="body" hx-disabled-elt="find button" class="group">
 					<div class="card-body">
 						<h2 class="card-title mb-4">Plan Details</h2>
-						<div class="form-control mb-6">
-							<label class="label">
-								<span class="label-text">Plan Title</span>
-							</label>
-							<input type="text" name="title" value={ plan.Title } required placeholder="Enter plan title" class="input input-bordered"/>
+						<div class="space-y-1 mb-6">
+							<span class="text-sm font-medium">Plan Title</span>
+							<input type="text" name="title" value={ plan.Title } required placeholder="Enter plan title" class="input input-bordered w-full"/>
 						</div>
 						<div class="divider my-2">Readings</div>
 						if len(plan.Readings) == 0 {
@@ -315,28 +309,24 @@ templ EditableReadingItem(reading types.Reading, planID uint) {
 		<div class="card-body">
 			<div class="flex gap-4 items-start">
 				<div class="flex-1 space-y-4">
-					<div class="form-control">
-						<label class="label">
-							<span class="label-text">Date</span>
-						</label>
+					<div class="space-y-1">
+						<span class="text-sm font-medium">Date</span>
 						<input
 							type="date"
 							name={ fmt.Sprintf("readings[%d][date]", reading.ID) }
 							value={ reading.Date.Format("2006-01-02") }
 							required
-							class="input input-bordered input-sm"
+							class="input input-bordered input-sm w-full"
 						/>
 					</div>
-					<div class="form-control">
-						<label class="label">
-							<span class="label-text">Reading Content</span>
-						</label>
+					<div class="space-y-1">
+						<span class="text-sm font-medium">Reading Content</span>
 						<input
 							type="text"
 							name={ fmt.Sprintf("readings[%d][content]", reading.ID) }
 							value={ reading.Content }
 							required
-							class="input input-bordered input-sm"
+							class="input input-bordered input-sm w-full"
 						/>
 					</div>
 					<input type="hidden" name={ fmt.Sprintf("readings[%d][id]", reading.ID) } value={ fmt.Sprintf("%d", reading.ID) }/>
@@ -416,17 +406,15 @@ templ ManualPlanForm(title string, readings []ManualReading, err error) {
 	<div class="card bg-base-200 shadow-xl" id="manual-plan-form">
 		<div class="card-body">
 			<form hx-post="/plans/draft/title" hx-trigger="change from:#plan-title" hx-swap="none">
-				<div class="form-control mb-6">
-					<label class="label">
-						<span class="label-text font-bold">Plan Title</span>
-					</label>
+				<div class="space-y-1 mb-6">
+					<span class="text-sm font-bold">Plan Title</span>
 					<input
 						type="text"
 						id="plan-title"
 						name="title"
 						value={ title }
 						placeholder="Enter plan title"
-						class="input input-bordered"
+						class="input input-bordered w-full"
 					/>
 				</div>
 			</form>

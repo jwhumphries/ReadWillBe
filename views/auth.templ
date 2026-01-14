@@ -16,17 +16,13 @@ templ SignInForm(config types.Config, csrf string, err error) {
 				<input type="hidden" name="_csrf" value={ csrf }/>
 				<div class="card-body space-y-4">
 					<h2 class="card-title text-center justify-center text-2xl">Sign In</h2>
-					<div class="form-control">
-						<label class="label">
-							<span class="label-text">Email</span>
-						</label>
-						<input type="email" name="email" autocomplete="email" required placeholder="email@example.com" class="input input-bordered"/>
+					<div class="space-y-1">
+						<span class="text-sm font-medium">Email</span>
+						<input type="email" name="email" autocomplete="email" required placeholder="email@example.com" class="input input-bordered w-full"/>
 					</div>
-					<div class="form-control">
-						<label class="label">
-							<span class="label-text">Password</span>
-						</label>
-						<label class="input input-bordered flex items-center gap-2 pr-0">
+					<div class="space-y-1">
+						<span class="text-sm font-medium">Password</span>
+						<label class="input input-bordered flex items-center gap-2 pr-0 w-full">
 							<input type="password" name="password" id="signin-password" required placeholder="••••••••" class="grow"/>
 							<button type="button" class="btn btn-ghost btn-sm btn-circle" onclick="togglePasswordVisibility(this.previousElementSibling)" aria-label="Toggle password visibility">
 								<span class="icon-eye">
@@ -78,23 +74,17 @@ templ SignUpForm(csrf string, err error) {
 				<input type="hidden" name="_csrf" value={ csrf }/>
 				<div class="card-body space-y-4">
 					<h2 class="card-title text-center justify-center text-2xl">Create Account</h2>
-					<div class="form-control">
-						<label class="label">
-							<span class="label-text">Name</span>
-						</label>
-						<input type="text" name="name" autocomplete="name" required placeholder="Jane Doe" class="input input-bordered"/>
+					<div class="space-y-1">
+						<span class="text-sm font-medium">Name</span>
+						<input type="text" name="name" autocomplete="name" required placeholder="Jane Doe" class="input input-bordered w-full"/>
 					</div>
-					<div class="form-control">
-						<label class="label">
-							<span class="label-text">Email</span>
-						</label>
-						<input type="email" name="email" autocomplete="email" required placeholder="email@example.com" class="input input-bordered"/>
+					<div class="space-y-1">
+						<span class="text-sm font-medium">Email</span>
+						<input type="email" name="email" autocomplete="email" required placeholder="email@example.com" class="input input-bordered w-full"/>
 					</div>
-					<div class="form-control">
-						<label class="label">
-							<span class="label-text">Password</span>
-						</label>
-						<label class="input input-bordered flex items-center gap-2 pr-0">
+					<div class="space-y-1">
+						<span class="text-sm font-medium">Password</span>
+						<label class="input input-bordered flex items-center gap-2 pr-0 w-full">
 							<input type="password" name="password" id="signup-password" required placeholder="••••••••" class="grow"/>
 							<button type="button" class="btn btn-ghost btn-sm btn-circle" onclick="togglePasswordVisibility(this.previousElementSibling)" aria-label="Toggle password visibility">
 								<span class="icon-eye">

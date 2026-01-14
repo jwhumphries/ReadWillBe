@@ -31,33 +31,30 @@ templ Account(cfg types.Config, user *types.User) {
 				<form hx-post="/account/settings" hx-target="body">
 					<div class="card-body space-y-4">
 						<h2 class="card-title">Notification Settings</h2>
-						<div class="form-control">
-							<label class="label cursor-pointer justify-start gap-4" for="notifications_enabled">
-								<input
-									type="checkbox"
-									id="notifications_enabled"
-									id="notifications_enabled"
-									name="notifications_enabled"
-									checked?={ user.NotificationsEnabled }
-									class="toggle toggle-primary"
-								/>
-								<div>
-									<span class="label-text font-bold">Enable daily reading notifications</span>
-									<p class="text-sm opacity-70">Receive reminders for your daily readings</p>
-								</div>
-							</label>
-						</div>
+						<label class="flex items-start gap-4 cursor-pointer" for="notifications_enabled">
+							<input
+								type="checkbox"
+								id="notifications_enabled"
+								name="notifications_enabled"
+								checked?={ user.NotificationsEnabled }
+								class="toggle toggle-primary mt-1"
+							/>
+							<div>
+								<span class="font-bold">Enable daily reading notifications</span>
+								<p class="text-sm opacity-70">Receive reminders for your daily readings</p>
+							</div>
+						</label>
 						<div class="divider"></div>
-						<div class="form-control">
-							<label class="label">
-								<span class="label-text">Notification Time</span>
-								<span class="label-text-alt">When should we remind you?</span>
-							</label>
+						<div class="space-y-1">
+							<div class="flex justify-between items-center">
+								<span class="text-sm font-medium">Notification Time</span>
+								<span class="text-xs opacity-70">When should we remind you?</span>
+							</div>
 							<input
 								type="time"
 								name="notification_time"
 								value={ user.NotificationTime }
-								class="input input-bordered"
+								class="input input-bordered w-full"
 							/>
 						</div>
 						<div class="card-actions justify-end">
