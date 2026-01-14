@@ -276,13 +276,23 @@ func UserMiddleware(db *gorm.DB, cache *UserCache, cfg types.Config) echo.Middle
 
 				c.Set(UserKey, user)
 
-				// Only save session if the user ID has changed to avoid unnecessary Set-Cookie headers
-				if sess.Values[SessionUserIDKey] != user.ID {
-					sess.Options = getSecureSessionOptions(cfg)
-					sess.Values[SessionUserIDKey] = user.ID
+				shouldSave := false
 
-					err := sess.Save(c.Request(), c.Response())
-					if err != nil {
+				if sess.Values[SessionUserIDKey] != user.ID {
+					sess.Values[SessionUserIDKey] = user.ID
+					shouldSave = true
+				}
+
+				lastSeen, ok := sess.Values[SessionLastSeenKey].(int64)
+				now := time.Now().Unix()
+				if !ok || now-lastSeen > SessionRefreshInterval {
+					sess.Values[SessionLastSeenKey] = now
+					shouldSave = true
+				}
+
+				if shouldSave {
+					sess.Options = getSecureSessionOptions(cfg)
+					if err := sess.Save(c.Request(), c.Response()); err != nil {
 						return errors.Wrap(err, "saving session")
 					}
 				}
