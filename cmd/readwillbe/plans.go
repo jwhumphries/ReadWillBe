@@ -116,6 +116,13 @@ func updateDraftTitle() echo.HandlerFunc {
 		}
 
 		title := c.FormValue("title")
+		if len(title) > MaxTitleLength {
+			return c.String(http.StatusBadRequest, fmt.Sprintf("Title exceeds maximum length of %d characters", MaxTitleLength))
+		}
+		if title != "" && isFormulaInjection(title) {
+			return c.String(http.StatusBadRequest, "Title cannot start with formula characters (=, +, -, @)")
+		}
+
 		_, readings, err := getDraftData(c)
 		if err != nil {
 			return c.NoContent(http.StatusInternalServerError)
@@ -139,6 +146,10 @@ func addDraftReading() echo.HandlerFunc {
 
 		if date == "" || content == "" {
 			return c.NoContent(http.StatusBadRequest)
+		}
+
+		if len(content) > MaxContentLength {
+			return c.String(http.StatusBadRequest, fmt.Sprintf("Content exceeds maximum length of %d characters", MaxContentLength))
 		}
 
 		title, readings, err := getDraftData(c)
@@ -219,25 +230,34 @@ func updateDraftReading() echo.HandlerFunc {
 			return c.NoContent(http.StatusBadRequest)
 		}
 
+		if len(content) > MaxContentLength {
+			return c.String(http.StatusBadRequest, fmt.Sprintf("Content exceeds maximum length of %d characters", MaxContentLength))
+		}
+
 		title, readings, err := getDraftData(c)
 		if err != nil {
 			return c.NoContent(http.StatusInternalServerError)
 		}
-		var updated views.ManualReading
+
+		var updated *views.ManualReading
 		for i, r := range readings {
 			if r.ID == id {
 				readings[i].Date = date
 				readings[i].Content = content
-				updated = readings[i]
+				updated = &readings[i]
 				break
 			}
+		}
+
+		if updated == nil {
+			return c.NoContent(http.StatusNotFound)
 		}
 
 		if err := saveDraftData(c, title, readings); err != nil {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 
-		return render(c, 200, views.ManualReadingRow(updated))
+		return render(c, 200, views.ManualReadingRow(*updated))
 	}
 }
 
@@ -297,6 +317,10 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 
 		if title == "" {
 			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("plan title is required")))
+		}
+
+		if isFormulaInjection(title) {
+			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("title cannot start with formula characters (=, +, -, @)")))
 		}
 
 		if len(draftReadings) == 0 {
@@ -361,6 +385,9 @@ func createPlan(db *gorm.DB) echo.HandlerFunc {
 		}
 		if len(title) > MaxTitleLength {
 			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("plan title must be less than %d characters", MaxTitleLength)))
+		}
+		if isFormulaInjection(title) {
+			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("title cannot start with formula characters (=, +, -, @)")))
 		}
 
 		file, err := c.FormFile("csv")
@@ -470,6 +497,9 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 		if len(newTitle) > MaxTitleLength {
 			return c.String(http.StatusBadRequest, fmt.Sprintf("Title must be less than %d characters", MaxTitleLength))
 		}
+		if isFormulaInjection(newTitle) {
+			return c.String(http.StatusBadRequest, "Title cannot start with formula characters (=, +, -, @)")
+		}
 
 		plan.Title = newTitle
 		if err := db.WithContext(c.Request().Context()).Save(&plan).Error; err != nil {
@@ -546,6 +576,9 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		title := c.FormValue("title")
 		if title == "" {
 			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("plan title is required")))
+		}
+		if isFormulaInjection(title) {
+			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("title cannot start with formula characters (=, +, -, @)")))
 		}
 
 		plan.Title = title

@@ -166,13 +166,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	_ = startNotificationWorker(cfg, db)
 
 	store := sessions.NewCookieStore(cfg.CookieSecret)
-	store.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600 * 24,
-		HttpOnly: true,
-		Secure:   cfg.IsProduction(),
-		SameSite: http.SameSiteStrictMode,
-	}
+	store.Options = getSecureSessionOptions(cfg)
 	e.Use(session.Middleware(store))
 	userCache := NewUserCache(5*time.Minute, 10*time.Minute)
 	e.Use(UserMiddleware(db, userCache, cfg))

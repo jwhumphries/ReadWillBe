@@ -146,20 +146,15 @@ func signInWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 			return render(c, 422, views.SignInPage(cfg, csrf, fmt.Errorf("invalid email or password")))
 		}
 
-		// Invalidate any existing session to prevent session fixation
-		oldSess, _ := session.Get(SessionKey, c)
-		if oldSess != nil {
-			oldSess.Options.MaxAge = -1
-			_ = oldSess.Save(c.Request(), c.Response())
-		}
-
-		// Create new session
+		// Clear existing session values to prevent session fixation
 		sess, err := session.Get(SessionKey, c)
 		if err != nil {
 			return render(c, 422, views.SignInPage(cfg, csrf, fmt.Errorf("internal server error")))
 		}
+		for key := range sess.Values {
+			delete(sess.Values, key)
+		}
 		sess.Options = getSecureSessionOptions(cfg)
-
 		sess.Values[SessionUserIDKey] = user.ID
 
 		err = sess.Save(c.Request(), c.Response())

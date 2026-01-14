@@ -82,7 +82,7 @@ func saveSubscription(db *gorm.DB) echo.HandlerFunc {
 			Auth:     req.Keys.Auth,
 		}
 
-		result := db.Where("endpoint = ?", req.Endpoint).FirstOrCreate(&subscription)
+		result := db.Where("user_id = ? AND endpoint = ?", user.ID, req.Endpoint).FirstOrCreate(&subscription)
 		if result.Error != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to save subscription"})
 		}

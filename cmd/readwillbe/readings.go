@@ -10,7 +10,7 @@ import (
 	"readwillbe/types"
 )
 
-const MaxReadingContentLength = 2000
+// MaxContentLength is defined in plans.go
 
 func completeReading(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -103,7 +103,7 @@ func updateReading(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "Content is required")
 		}
 
-		if len(content) > MaxReadingContentLength {
+		if len(content) > MaxContentLength {
 			return c.String(http.StatusBadRequest, "Content exceeds maximum length")
 		}
 

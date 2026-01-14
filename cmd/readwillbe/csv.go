@@ -11,10 +11,9 @@ import (
 	"readwillbe/types"
 )
 
-const (
-	MaxCSVRows           = 10000
-	MaxCSVContentLength  = 2000
-)
+const MaxCSVRows = 10000
+
+// MaxContentLength is defined in plans.go
 
 // formulaInjectionPrefixes are characters that could trigger formula execution in spreadsheet applications
 var formulaInjectionPrefixes = []string{"=", "+", "-", "@", "\t", "\r"}
@@ -63,8 +62,8 @@ func parseCSV(r io.Reader) ([]types.Reading, error) {
 			return nil, fmt.Errorf("row %d: date and reading content are required", i+2)
 		}
 
-		if len(content) > MaxCSVContentLength {
-			return nil, fmt.Errorf("row %d: content exceeds maximum length of %d characters", i+2, MaxCSVContentLength)
+		if len(content) > MaxContentLength {
+			return nil, fmt.Errorf("row %d: content exceeds maximum length of %d characters", i+2, MaxContentLength)
 		}
 
 		if isFormulaInjection(content) {
