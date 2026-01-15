@@ -7,7 +7,7 @@ require (
 	github.com/a-h/templ v0.3.977
 	github.com/gorilla/sessions v1.4.0
 	github.com/labstack/echo-contrib v0.17.4
-	github.com/labstack/echo/v4 v4.13.4
+	github.com/labstack/echo/v4 v4.15.0
 	github.com/labstack/gommon v0.4.2
 	github.com/ncruces/go-sqlite3 v0.30.4
 	github.com/ncruces/go-sqlite3/gormlite v0.30.2
