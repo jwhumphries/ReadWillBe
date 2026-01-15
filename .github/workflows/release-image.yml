@@ -31,7 +31,7 @@ jobs:
           echo "owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       - name: Build and Publish
-        uses: dagger/dagger-for-github@f599d88d336fdf06f01f9bd24b6339954f7ba3e2 # v6
+        uses: dagger/dagger-for-github@b81317a976cb7f7125469707321849737cd1b3bc # v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
