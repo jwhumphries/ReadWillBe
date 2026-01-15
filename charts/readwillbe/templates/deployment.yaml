@@ -43,56 +43,56 @@ spec:
               value: {{ $val | quote }}
             {{- end }}
             {{- if .Values.persistence.enabled }}
-            - name: DB_PATH
+            - name: READWILLBE_DB_PATH
               value: "{{ .Values.persistence.path }}/readwillbe.db"
             {{- end }}
-            - name: COOKIE_SECRET
+            - name: READWILLBE_COOKIE_SECRET
               valueFrom:
                 secretKeyRef:
                   name: {{ include "readwillbe.fullname" . }}
                   key: cookie-secret
-            - name: VAPID_PUBLIC_KEY
+            - name: READWILLBE_VAPID_PUBLIC_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ include "readwillbe.fullname" . }}
                   key: vapid-public-key
                   optional: true
-            - name: VAPID_PRIVATE_KEY
+            - name: READWILLBE_VAPID_PRIVATE_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ include "readwillbe.fullname" . }}
                   key: vapid-private-key
                   optional: true
             {{- if .Values.email.provider }}
-            - name: EMAIL_PROVIDER
+            - name: READWILLBE_EMAIL_PROVIDER
               value: {{ .Values.email.provider | quote }}
             {{- end }}
             {{- if eq .Values.email.provider "smtp" }}
-            - name: SMTP_HOST
+            - name: READWILLBE_SMTP_HOST
               value: {{ .Values.email.smtp.host | quote }}
-            - name: SMTP_PORT
+            - name: READWILLBE_SMTP_PORT
               value: {{ .Values.email.smtp.port | quote }}
-            - name: SMTP_USERNAME
+            - name: READWILLBE_SMTP_USERNAME
               value: {{ .Values.email.smtp.username | quote }}
-            - name: SMTP_PASSWORD
+            - name: READWILLBE_SMTP_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "readwillbe.fullname" . }}
                   key: smtp-password
                   optional: true
-            - name: SMTP_FROM
+            - name: READWILLBE_SMTP_FROM
               value: {{ .Values.email.smtp.from | quote }}
-            - name: SMTP_TLS
+            - name: READWILLBE_SMTP_TLS
               value: {{ .Values.email.smtp.tls | quote }}
             {{- end }}
             {{- if eq .Values.email.provider "resend" }}
-            - name: RESEND_API_KEY
+            - name: READWILLBE_RESEND_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ include "readwillbe.fullname" . }}
                   key: resend-api-key
                   optional: true
-            - name: RESEND_FROM
+            - name: READWILLBE_RESEND_FROM
               value: {{ .Values.email.resend.from | quote }}
             {{- end }}
           # livenessProbe:

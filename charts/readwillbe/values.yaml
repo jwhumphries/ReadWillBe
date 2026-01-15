@@ -74,13 +74,13 @@ persistence:
 
 # Application Configuration
 env:
-  PORT: ":8080"
-  LOG_LEVEL: "info"
-  # DB_PATH will be set automatically based on persistence.path if enabled
-  ALLOW_SIGNUP: "true"
-  SEED_DB: "false"
+  READWILLBE_PORT: ":8080"
+  READWILLBE_LOG_LEVEL: "info"
+  # READWILLBE_DB_PATH will be set automatically based on persistence.path if enabled
+  READWILLBE_ALLOW_SIGNUP: "true"
+  READWILLBE_SEED_DB: "false"
   TZ: "America/New_York"
-  HOSTNAME: "http://localhost:8080"
+  READWILLBE_HOSTNAME: "http://localhost:8080"
 
 # Secrets - You should provide these via --set or a separate values file in production
 secrets:

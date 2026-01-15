@@ -13,3 +13,6 @@
 ## 2025-01-01 - Input Placeholders for UX
 **Learning:** Adding placeholders to input fields provides critical visual hints for expected formats, especially for authentication forms (e.g., email, password). This is a simple but high-impact micro-UX improvement.
 **Action:** Ensure all input fields, especially in public-facing forms like Sign In/Up, have descriptive `placeholder` attributes.
+## 2026-01-15 - Semantic Labels for Forms
+**Learning:** Many form inputs were labeled with `span` elements instead of proper `<label>` tags, making them inaccessible to screen readers and preventing click-to-focus. Playwright's `get_by_label` fails on these, highlighting the issue.
+**Action:** Always use `<label for="id">` for visible labels, and ensure the corresponding input has the matching `id`. For inputs without visible labels, use `aria-label`.
