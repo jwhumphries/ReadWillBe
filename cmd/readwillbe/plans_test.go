@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -81,8 +82,8 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify redirect
-	assert.Equal(t, http.StatusOK, rec.Code) // HTMX redirect returns 200 with HX-Redirect header
-	assert.Equal(t, "/plans", rec.Header().Get("HX-Redirect"))
+	assert.Equal(t, http.StatusFound, rec.Code)
+	assert.Equal(t, "/plans", rec.Header().Get("Location"))
 
 	// Verify plan status is initially "processing" or eventually "active"
 	// Since it's a goroutine, it might be fast enough to be active immediately or still processing.
@@ -279,4 +280,104 @@ func TestRenamePlan(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 404, rec.Code)
 	})
+}
+
+func TestEditPlan(t *testing.T) {
+	db := setupTestDB(t)
+	user := createTestUser(t, db, "test_edit@example.com", "password123")
+	plan := createTestPlan(t, db, user, "Original Title")
+
+	// Create initial readings
+	readings := []types.Reading{
+		{PlanID: plan.ID, Date: timeMustParse("2025-01-01"), Content: "Reading 1", Status: types.StatusPending},
+		{PlanID: plan.ID, Date: timeMustParse("2025-01-02"), Content: "Reading 2", Status: types.StatusPending},
+	}
+	db.Create(&readings)
+
+	t.Run("successfully update plan", func(t *testing.T) {
+		e := echo.New()
+
+		// Prepare JSON payload for readings
+		// 1. Update Reading 1
+		// 2. Remove Reading 2
+		// 3. Add Reading 3
+
+		readingsJSON := fmt.Sprintf(`[
+			{"id": "%d", "date": "2025-01-01", "content": "Updated Reading 1"},
+			{"id": "new-uuid", "date": "2025-01-03", "content": "Reading 3"}
+		]`, readings[0].ID)
+
+		form := make(url.Values)
+		form.Set("title", "Updated Title")
+		form.Set("readingsJSON", readingsJSON)
+
+		req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/plans/%d/edit", plan.ID), strings.NewReader(form.Encode()))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
+		c.Set(UserKey, *user)
+
+		handler := editPlan(types.Config{}, db)
+		err := handler(c)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusFound, rec.Code)
+		assert.Equal(t, "/plans", rec.Header().Get("Location"))
+
+		// Verify updates in DB
+		var updatedPlan types.Plan
+		db.Preload("Readings").First(&updatedPlan, plan.ID)
+
+		assert.Equal(t, "Updated Title", updatedPlan.Title)
+		assert.Len(t, updatedPlan.Readings, 2)
+
+		// Verify readings
+		foundUpdated := false
+		foundNew := false
+
+		for _, r := range updatedPlan.Readings {
+			if r.ID == readings[0].ID {
+				assert.Equal(t, "Updated Reading 1", r.Content)
+				foundUpdated = true
+			} else if r.Content == "Reading 3" {
+				assert.Equal(t, "2025-01-03", r.Date.Format("2006-01-02"))
+				foundNew = true
+			} else if r.ID == readings[1].ID {
+				assert.Fail(t, "Reading 2 should have been deleted")
+			}
+		}
+
+		assert.True(t, foundUpdated, "Existing reading was not updated")
+		assert.True(t, foundNew, "New reading was not created")
+	})
+
+	t.Run("invalid readings JSON", func(t *testing.T) {
+		e := echo.New()
+		form := make(url.Values)
+		form.Set("title", "Updated Title")
+		form.Set("readingsJSON", "invalid-json")
+
+		req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/plans/%d/edit", plan.ID), strings.NewReader(form.Encode()))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
+		c.Set(UserKey, *user)
+
+		handler := editPlan(types.Config{}, db)
+		err := handler(c)
+		assert.NoError(t, err)
+		assert.Equal(t, 422, rec.Code)
+	})
+}
+
+// Helper to parse time for tests
+func timeMustParse(value string) time.Time {
+	t, err := time.Parse("2006-01-02", value)
+	if err != nil {
+		panic(err)
+	}
+	return t
 }

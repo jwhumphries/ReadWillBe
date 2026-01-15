@@ -6,6 +6,9 @@
   "baseBranchPatterns": [
     "dev"
   ],
+  "ignorePaths": [
+    ".dagger/**"
+  ],
   "minimumReleaseAge": null,
   "platformAutomerge": true,
   "packageRules": [
