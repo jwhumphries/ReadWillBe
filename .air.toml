@@ -1,0 +1,53 @@
+# .air.toml
+# Air configuration for hot reload in Docker development
+# https://github.com/air-verse/air
+
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -tags dev -o ./tmp/readwillbe ./cmd/readwillbe/"
+  bin = "./tmp/readwillbe"
+  args_bin = []
+
+  delay = 500
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "node_modules", "bin", ".git"]
+  exclude_file = []
+  exclude_regex = ["_test.go", "_templ.go"]
+  exclude_unchanged = false
+  follow_symlink = false
+  include_dir = []
+  include_ext = ["go"]
+  include_file = [".env"]
+
+  kill_delay = "1s"
+  log = "build-errors.log"
+  stop_on_error = false
+  send_interrupt = true
+
+  poll = false
+  poll_interval = 500
+
+  pre_cmd = []
+  post_cmd = ["templ generate --notify-proxy"]
+  rerun = false
+  rerun_delay = 500
+
+[color]
+  app = ""
+  build = "yellow"
+  main = "magenta"
+  runner = "green"
+  watcher = "cyan"
+
+[log]
+  main_only = false
+  time = false
+
+[misc]
+  clean_on_exit = true
+
+[screen]
+  clear_on_rebuild = false
+  keep_scroll = true

@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;0,700;1,400&display=swap');
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@source "./views/*.templ";
+
+@plugin "daisyui/theme" {
+  name: "booky";
+  default: true;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(98.5% 0.006 82);
+  --color-base-200: oklch(94.8% 0.010 80);
+  --color-base-300: oklch(89% 0.015 80);
+  --color-base-content: oklch(22% 0.015 80);
+  --color-primary: oklch(54.6% 0.148 131.589);
+  --color-primary-content: oklch(98.4% 0.012 131);
+  --color-secondary: oklch(72.6% 0.126 29.300);
+  --color-secondary-content: oklch(20% 0.025 35);
+  --color-accent: oklch(82.8% 0.045 60);
+  --color-accent-content: oklch(20% 0.01 60);
+  --color-neutral: oklch(53.6% 0.055 50);
+  --color-neutral-content: oklch(96% 0.012 50);
+  --color-info: oklch(66.7% 0.160 240);
+  --color-info-content: oklch(30% 0.012 240);
+  --color-success: oklch(74.3% 0.226 139.100);
+  --color-success-content: oklch(20% 0.025 145);
+  --color-warning: oklch(86.2% 0.143 85);
+  --color-warning-content: oklch(20% 0.025 90);
+  --color-error: oklch(57.4% 0.229 25);
+  --color-error-content: oklch(97% 0.015 25);
+  --radius-selector: 1rem;
+  --radius-field: 1rem;
+  --radius-box: 1rem;
+  --size-selector: 0.28125rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 1;
+  --noise: 0;
+}
+
+
+@plugin "daisyui/theme" {
+  name: "booky-dark";
+  default: false;
+  prefersdark: false;
+  color-scheme: "dark";
+  --color-base-100: oklch(32% 0.009 82);
+  --color-base-200: oklch(27% 0.010 82);
+  --color-base-300: oklch(23.5% 0.009 82);
+  --color-base-content: oklch(98.7% 0.03 82);
+  --color-primary: oklch(54.6% 0.148 131.589);
+  --color-primary-content: oklch(98.4% 0.012 131);
+  --color-secondary: oklch(72.6% 0.126 29.300);
+  --color-secondary-content: oklch(20% 0.025 35);
+  --color-accent: oklch(62.7% 0.045 60);
+  --color-accent-content: oklch(16.9% 0.010 60);
+  --color-neutral: oklch(82.8% 0.045 60);
+  --color-neutral-content: oklch(20% 0.01 60);
+  --color-info: oklch(66.7% 0.160 240);
+  --color-info-content: oklch(30% 0.012 240);
+  --color-success: oklch(76.2% 0.208 139.100);
+  --color-success-content: oklch(20% 0.025 145);
+  --color-warning: oklch(86.2% 0.160 85);
+  --color-warning-content: oklch(20% 0.025 90);
+  --color-error: oklch(61.7% 0.229 25);
+  --color-error-content: oklch(97% 0.015 25);
+  --radius-selector: 1rem;
+  --radius-field: 1rem;
+  --radius-box: 1rem;
+  --size-selector: 0.28125rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui" {
+  themes: booky --default, booky-dark;
+}
+
+@layer base {
+  body {
+    font-family: "Cardo", serif;
+  }
+}

@@ -1,0 +1,8 @@
+port: "3000"
+log_level: "info"
+db_path: "./tmp/readwillbe.db"
+# IMPORTANT: Set a secure random secret in production (minimum 32 characters)
+# Use: openssl rand -base64 32
+# cookie_secret: ""
+allow_signup: false
+seed_db: false

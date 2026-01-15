@@ -1,0 +1,11 @@
+tmp/
+bin/
+.env
+*.db
+*_templ.go
+build-errors.log
+static/css/main.css
+node_modules/
+.DS_Store
+.claude/
+CLAUDE.md

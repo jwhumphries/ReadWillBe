@@ -1,0 +1,127 @@
+version: '3'
+
+vars:
+  APP_NAME: readwillbe
+  GIT_COMMIT:
+    sh: git rev-parse --short HEAD
+  IMAGES:
+    - dev
+    - builder
+    - release
+  DEV_IMAGE: '{{.APP_NAME}}:dev'
+  BUILDER_IMAGE: '{{.APP_NAME}}:builder'
+  RELEASE_IMAGE: '{{.APP_NAME}}:release'
+
+tasks:
+  default:
+    desc: Show available tasks
+    silent: true
+    cmds:
+      - task --list
+
+  docker:build-target:
+    internal: true
+    cmds:
+      - docker build --target {{.DOCKER_TARGET}} -t {{.DOCKER_IMAGE}} --build-arg APP_NAME={{.APP_NAME}} --build-arg VERSION={{.GIT_COMMIT}} .
+
+  docker:clean-image:
+    internal: true
+    cmds:
+      - docker rmi {{.DOCKER_IMAGE}}
+    silent: true
+    ignore_error: true
+
+  docker:clean-images:
+    internal: true
+    cmds:
+      - for: { var: IMAGES }
+        task: docker:clean-image
+        vars: { DOCKER_IMAGE: '{{.APP_NAME}}:{{.ITEM}}' }
+
+  clean:bun:
+    internal: true
+    desc: Clean bun leftovers
+    cmds:
+      - rm -rf node_modules
+      - rm bun.lock
+
+  clean:css:
+    internal: true
+    desc: Clean compiled css
+    cmds:
+      - rm -f ./static/css/main.css
+
+  clean:
+    desc: Remove generated files and Docker images
+    deps: [clean:bun, clean:css, docker:clean-images]
+    cmds:
+      - rm -rf ./tmp ./bin
+    silent: true
+
+  build-dev:
+    internal: true
+    desc: Build development Docker image
+    cmds:
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: dev
+          DOCKER_IMAGE: '{{.DEV_IMAGE}}'
+
+  dev-start:
+    desc: Start development environment with hot reload
+    deps: [build-dev]
+    cmds:
+      - docker compose -f docker-compose.dev.yml up -d
+    silent: true
+
+  dev-stop:
+    desc: Stop development environment
+    cmds:
+      - docker compose -f docker-compose.dev.yml down
+      - task: clean:bun
+      - task: clean:css
+      - rm -rf ./tmp ./bin
+    silent: true
+
+  build-builder:
+    desc: Build builder Docker image
+    cmds:
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: builder
+          DOCKER_IMAGE: '{{.BUILDER_IMAGE}}'
+    silent: true
+
+  build:
+    desc: Build production Docker image
+    cmds:
+      - task: docker:build-target
+        vars:
+          DOCKER_TARGET: release
+          DOCKER_IMAGE: '{{.RELEASE_IMAGE}}'
+    silent: true
+
+  fmt:
+    desc: Auto-format go files
+    cmds:
+      - for file in $(gofmt -s -l . | grep -v "^vendor/"); do go fmt $file; done
+
+  templ-fmt:
+    desc: Auto-format templ files
+    cmds:
+      - for file in $(find ./views -type f -name '*.templ'); do templ fmt $file; done
+
+  lint:
+    desc: Run linter
+    cmds:
+      - dagger -m .dagger call lint --source=.
+
+  test:
+    desc: Run tests in Docker
+    cmds:
+      - dagger -m .dagger call test --source=.
+
+  build-css:
+    desc: Compile css
+    cmds:
+      - dagger -m .dagger call build-css --source=. export --path=./static/css

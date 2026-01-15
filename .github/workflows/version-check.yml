@@ -1,0 +1,43 @@
+name: Version Check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-version-bump:
+    name: Check Version Bump
+    if: github.head_ref == 'dev'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Get version from PR
+        id: pr_version
+        run: echo "version=$(cat .version)" >> $GITHUB_OUTPUT
+
+      - name: Get version from main
+        id: main_version
+        run: |
+          git fetch origin main
+          echo "version=$(git show origin/main:.version)" >> $GITHUB_OUTPUT
+
+      - name: Check version was bumped
+        run: |
+          PR_VERSION="${{ steps.pr_version.outputs.version }}"
+          MAIN_VERSION="${{ steps.main_version.outputs.version }}"
+          
+          echo "PR version: $PR_VERSION"
+          echo "Main version: $MAIN_VERSION"
+          
+          if [ "$PR_VERSION" = "$MAIN_VERSION" ]; then
+            echo "::error::Version in .version ($PR_VERSION) has not been bumped from main ($MAIN_VERSION)"
+            echo ""
+            echo "Please update .version with the new version number before merging."
+            exit 1
+          fi
+          
+          echo "Version bumped from $MAIN_VERSION to $PR_VERSION"
