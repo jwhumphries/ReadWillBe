@@ -5,12 +5,12 @@ import (
 	"readwillbe/types"
 )
 
-templ Dashboard(cfg types.Config, user *types.User, todayReadings []types.Reading, overdueReadings []types.Reading) {
+templ Dashboard(cfg types.Config, user *types.User, planGroups []types.PlanGroup) {
 	@Layout(cfg, user, "Dashboard - ReadWillBe") {
 		<div class="space-y-8">
 			<div>
 				<h2 class="text-3xl font-bold mb-6">Today's Reading</h2>
-				if len(todayReadings) == 0 {
+				if len(planGroups) == 0 {
 					<div class="hero bg-base-200 rounded-box py-12">
 						<div class="hero-content text-center">
 							<div class="max-w-md">
@@ -25,54 +25,60 @@ templ Dashboard(cfg types.Config, user *types.User, todayReadings []types.Readin
 					</div>
 				} else {
 					<div class="space-y-4">
-						for _, reading := range todayReadings {
-							@ReadingCard(reading, false)
+						for _, group := range planGroups {
+							@DashboardPlanCard(group)
 						}
 					</div>
 				}
 			</div>
-			if len(overdueReadings) > 0 {
-				<div>
-					<div role="alert" class="alert alert-warning mb-4">
-						@WarningIcon()
-						<span>You have { fmt.Sprintf("%d", len(overdueReadings)) } overdue reading(s)</span>
-					</div>
-					<div class="space-y-4">
-						for _, reading := range overdueReadings {
-							@ReadingCard(reading, true)
-						}
-					</div>
-				</div>
-			}
 		</div>
 	}
 }
 
-templ ReadingCard(reading types.Reading, isOverdue bool) {
-	<div class={ templ.Classes("card bg-base-200 shadow-xl", templ.KV("card-border border-error", isOverdue)) }>
-		<div class="card-body">
-			<div class="flex items-center gap-2 mb-2">
-				<h3 class="card-title flex-1">{ reading.Plan.Title }</h3>
-				if isOverdue {
+templ DashboardPlanCard(group types.PlanGroup) {
+	<div class={ templ.Classes("card bg-base-200 shadow-xl", templ.KV("card-border border-error", group.HasOverdue())) }>
+		<div class="card-body p-0">
+			<div class="flex items-center gap-2 p-6 pb-0">
+				<h3 class="card-title flex-1">{ group.Plan.Title }</h3>
+				if group.HasOverdue() {
 					<div class="badge badge-error gap-2">
 						@CloseIcon("inline-block h-4 w-4 stroke-current")
 						Overdue
 					</div>
 				}
 			</div>
-			<p class="leading-relaxed">{ reading.Content }</p>
-			<div class="flex items-center justify-between mt-4">
-				<div class="flex items-center gap-2 text-sm opacity-75">
-					@CalendarIcon()
-					<span>{ reading.Date.Format("January 2, 2006") }</span>
+			<div class="divide-y divide-base-300">
+				for _, reading := range group.Readings {
+					@ReadingRow(reading)
+				}
+			</div>
+		</div>
+	</div>
+}
+
+templ ReadingRow(reading types.Reading) {
+	<div class="p-6">
+		<div class="flex items-start gap-3">
+			if reading.IsOverdue() {
+				<div class="text-error mt-1" title="Overdue">
+					@WarningIcon()
 				</div>
-				<form hx-post={ fmt.Sprintf("/reading/%d/complete", reading.ID) } hx-target="body" class="group" hx-disabled-elt="find button">
-					<button type="submit" class="btn btn-primary btn-sm">
-						<span class="loading loading-spinner loading-xs hidden group-[.htmx-request]:inline-block"></span>
-						@CheckIcon("h-5 w-5 group-[.htmx-request]:hidden")
-						Complete
-					</button>
-				</form>
+			}
+			<div class="flex-1">
+				<p class="leading-relaxed">{ reading.Content }</p>
+				<div class="flex items-center justify-between mt-4">
+					<div class="flex items-center gap-2 text-sm opacity-75">
+						@CalendarIcon()
+						<span>{ reading.Date.Format("January 2, 2006") }</span>
+					</div>
+					<form hx-post={ fmt.Sprintf("/reading/%d/complete", reading.ID) } hx-target="body" class="group" hx-disabled-elt="find button">
+						<button type="submit" class="btn btn-primary btn-sm">
+							<span class="loading loading-spinner loading-xs hidden group-[.htmx-request]:inline-block"></span>
+							@CheckIcon("h-5 w-5 group-[.htmx-request]:hidden")
+							Complete
+						</button>
+					</form>
+				</div>
 			</div>
 		</div>
 	</div>

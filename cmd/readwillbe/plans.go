@@ -31,9 +31,19 @@ func plansListHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plans []types.Plan
-		db.WithContext(c.Request().Context()).Preload("Readings").Where("user_id = ?", user.ID).Find(&plans)
+		db.WithContext(c.Request().Context()).Preload("Readings").Where("user_id = ?", user.ID).Order("title ASC").Find(&plans)
 
-		return render(c, 200, views.PlansList(cfg, &user, plans))
+		// Separate into in-progress and completed plans
+		var inProgressPlans, completedPlans []types.Plan
+		for _, plan := range plans {
+			if plan.IsComplete() {
+				completedPlans = append(completedPlans, plan)
+			} else {
+				inProgressPlans = append(inProgressPlans, plan)
+			}
+		}
+
+		return render(c, 200, views.PlansList(cfg, &user, inProgressPlans, completedPlans))
 	}
 }
 
