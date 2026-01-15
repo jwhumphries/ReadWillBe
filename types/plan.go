@@ -18,3 +18,15 @@ type Plan struct {
 	UpdatedAt    *time.Time `gorm:"autoUpdateTime"`
 	DeletedAt    *time.Time
 }
+
+func (p Plan) IsComplete() bool {
+	if len(p.Readings) == 0 {
+		return false
+	}
+	for _, r := range p.Readings {
+		if r.Status != StatusCompleted {
+			return false
+		}
+	}
+	return true
+}

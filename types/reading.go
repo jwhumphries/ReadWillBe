@@ -36,6 +36,20 @@ type Reading struct {
 	DeletedAt   *time.Time
 }
 
+type PlanGroup struct {
+	Plan     Plan
+	Readings []Reading
+}
+
+func (pg PlanGroup) HasOverdue() bool {
+	for _, r := range pg.Readings {
+		if r.IsOverdue() {
+			return true
+		}
+	}
+	return false
+}
+
 func (r Reading) IsOverdue() bool {
 	now := time.Now()
 	switch r.DateType {

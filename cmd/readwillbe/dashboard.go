@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"sort"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -23,17 +24,49 @@ func dashboardHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Failed to load dashboard data")
 		}
 
-		todayReadings := []types.Reading{}
-		overdueReadings := []types.Reading{}
+		// Filter to active/overdue readings and group by plan
+		planGroups := groupReadingsByPlan(readings)
 
-		for _, reading := range readings {
-			if reading.IsActiveToday() {
-				todayReadings = append(todayReadings, reading)
-			} else if reading.IsOverdue() {
-				overdueReadings = append(overdueReadings, reading)
+		return render(c, 200, views.Dashboard(cfg, &user, planGroups))
+	}
+}
+
+func groupReadingsByPlan(readings []types.Reading) []types.PlanGroup {
+	// Filter to only active today or overdue readings
+	var activeReadings []types.Reading
+	for _, r := range readings {
+		if r.IsActiveToday() || r.IsOverdue() {
+			activeReadings = append(activeReadings, r)
+		}
+	}
+
+	// Group by PlanID
+	groupMap := make(map[uint]*types.PlanGroup)
+	for _, r := range activeReadings {
+		if group, exists := groupMap[r.PlanID]; exists {
+			group.Readings = append(group.Readings, r)
+		} else {
+			groupMap[r.PlanID] = &types.PlanGroup{
+				Plan:     r.Plan,
+				Readings: []types.Reading{r},
 			}
 		}
-
-		return render(c, 200, views.Dashboard(cfg, &user, todayReadings, overdueReadings))
 	}
+
+	// Convert map to slice
+	var groups []types.PlanGroup
+	for _, g := range groupMap {
+		// Sort readings within group by date (oldest first)
+		sort.Slice(g.Readings, func(i, j int) bool {
+			return g.Readings[i].Date.Before(g.Readings[j].Date)
+		})
+		groups = append(groups, *g)
+	}
+
+	// Sort groups by oldest reading date (most urgent first)
+	sort.Slice(groups, func(i, j int) bool {
+		return groups[i].Readings[0].Date.Before(groups[j].Readings[0].Date)
+	})
+
+	return groups
 }

@@ -24,6 +24,14 @@ jobs:
           module: .dagger
           args: lint --source=.
 
+      - name: Run Typecheck
+        uses: dagger/dagger-for-github@b81317a976cb7f7125469707321849737cd1b3bc # v7
+        with:
+          version: "latest"
+          verb: call
+          module: .dagger
+          args: typecheck --source=.
+
   test:
     name: Test
     runs-on: ubuntu-latest

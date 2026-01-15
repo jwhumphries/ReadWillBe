@@ -40,3 +40,64 @@ func notificationDropdown(db *gorm.DB) echo.HandlerFunc {
 		return render(c, 200, views.NotificationDropdown(readings))
 	}
 }
+
+// JSON API handlers for React components
+
+func apiNotificationCount(db *gorm.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user, ok := GetSessionUser(c)
+		if !ok {
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		}
+
+		count, err := GetActiveReadingsCount(db.WithContext(c.Request().Context()), user.ID)
+		if err != nil {
+			return c.JSON(http.StatusOK, map[string]int{"count": 0})
+		}
+
+		return c.JSON(http.StatusOK, map[string]int64{"count": count})
+	}
+}
+
+type apiReading struct {
+	ID      uint     `json:"id"`
+	Date    string   `json:"date"`
+	Content string   `json:"content"`
+	Plan    *apiPlan `json:"plan,omitempty"`
+}
+
+type apiPlan struct {
+	ID    uint   `json:"id"`
+	Title string `json:"title"`
+}
+
+func apiNotificationReadings(db *gorm.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user, ok := GetSessionUser(c)
+		if !ok {
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		}
+
+		readings, err := GetActiveReadings(db.WithContext(c.Request().Context()), user.ID, 10)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to fetch readings"})
+		}
+
+		apiReadings := make([]apiReading, len(readings))
+		for i, r := range readings {
+			apiReadings[i] = apiReading{
+				ID:      r.ID,
+				Date:    r.Date.Format("January 2, 2006"),
+				Content: r.Content,
+			}
+			if r.Plan.ID != 0 {
+				apiReadings[i].Plan = &apiPlan{
+					ID:    r.Plan.ID,
+					Title: r.Plan.Title,
+				}
+			}
+		}
+
+		return c.JSON(http.StatusOK, map[string][]apiReading{"readings": apiReadings})
+	}
+}

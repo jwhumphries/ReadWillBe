@@ -1,6 +1,9 @@
 package views
 
-import "readwillbe/types"
+import (
+	"readwillbe/internal/views/components"
+	"readwillbe/types"
+)
 
 templ Account(cfg types.Config, user *types.User) {
 	@Layout(cfg, user, "Account - ReadWillBe") {
@@ -28,7 +31,7 @@ templ Account(cfg types.Config, user *types.User) {
 				</div>
 			</div>
 			<div class="card bg-base-200 shadow-xl">
-				<form hx-post="/account/settings" hx-target="body" hx-disabled-elt="find button" class="group">
+				<form method="POST" action="/account/settings">
 					<div class="card-body space-y-4">
 						<h2 class="card-title">Notification Settings</h2>
 						<label class="flex items-start gap-4 cursor-pointer" for="notifications_enabled">
@@ -60,8 +63,7 @@ templ Account(cfg types.Config, user *types.User) {
 						</div>
 						<div class="card-actions justify-end">
 							<button type="submit" class="btn btn-primary gap-2">
-								<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
-								@SaveIcon("h-5 w-5 group-[.htmx-request]:hidden")
+								@SaveIcon("h-5 w-5")
 								Save Settings
 							</button>
 						</div>
@@ -71,10 +73,7 @@ templ Account(cfg types.Config, user *types.User) {
 			<div class="card bg-base-200 shadow-xl" data-vapid-key={ cfg.VAPIDPublicKey }>
 				<div class="card-body space-y-4">
 					<h2 class="card-title">Browser Push Notifications</h2>
-					<div class="alert alert-info">
-						@InfoIcon()
-						<span class="text-sm">Enable browser notifications to receive alerts even when the app is closed.</span>
-					</div>
+					@components.AlertInfo("Enable browser notifications to receive alerts even when the app is closed.")
 					<div id="push-subscription-status">
 						<div class="flex items-center gap-2">
 							<span class="badge badge-neutral" id="subscription-badge">Checking...</span>
@@ -105,11 +104,8 @@ templ Account(cfg types.Config, user *types.User) {
 				<div class="card bg-base-200 shadow-xl">
 					<div class="card-body space-y-4">
 						<h2 class="card-title">Email Notifications</h2>
-						<div class="alert alert-info">
-							@InfoIcon()
-							<span class="text-sm">Receive your daily readings via email at your scheduled notification time.</span>
-						</div>
-						<form hx-post="/account/settings" hx-target="body" hx-disabled-elt="find button" class="group space-y-4">
+						@components.AlertInfo("Receive your daily readings via email at your scheduled notification time.")
+						<form method="POST" action="/account/settings" class="space-y-4">
 							<input type="hidden" name="notifications_enabled" value={ boolToOnOff(user.NotificationsEnabled) }/>
 							<input type="hidden" name="notification_time" value={ user.NotificationTime }/>
 							<label class="flex items-start gap-4 cursor-pointer" for="email_notifications_enabled">
@@ -140,8 +136,7 @@ templ Account(cfg types.Config, user *types.User) {
 							</div>
 							<div class="card-actions justify-end">
 								<button type="submit" class="btn btn-primary gap-2">
-									<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
-									@SaveIcon("h-5 w-5 group-[.htmx-request]:hidden")
+									@SaveIcon("h-5 w-5")
 									Save Email Settings
 								</button>
 							</div>
@@ -149,7 +144,7 @@ templ Account(cfg types.Config, user *types.User) {
 						<div class="divider"></div>
 						<div>
 							<h3 class="font-bold mb-2">Test Email</h3>
-							<form hx-post="/account/test-email" hx-swap="innerHTML" hx-target="#test-email-result" class="flex gap-2 items-end">
+							<form method="POST" action="/account/test-email" class="flex gap-2 items-end">
 								<div class="flex-1 space-y-1">
 									<label for="test-email-input" class="text-sm font-medium">Send test to</label>
 									<input
@@ -164,7 +159,6 @@ templ Account(cfg types.Config, user *types.User) {
 									Send Test
 								</button>
 							</form>
-							<div id="test-email-result" class="mt-2 text-sm"></div>
 						</div>
 					</div>
 				</div>

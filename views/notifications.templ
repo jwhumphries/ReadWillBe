@@ -4,30 +4,10 @@ import "readwillbe/types"
 import "fmt"
 
 templ NotificationBell(count int) {
-	<div class="dropdown dropdown-end">
-		<button
-			type="button"
-			tabindex="0"
-			class="btn btn-ghost btn-circle"
-			aria-label="Notifications"
-			hx-get="/notifications/dropdown"
-			hx-trigger="click"
-			hx-target="#notification-dropdown"
-			hx-swap="innerHTML"
-		>
-			<div class="indicator">
-				@BellIcon("h-5 w-5")
-				if count > 0 {
-					<span class="badge badge-sm badge-primary indicator-item">{ fmt.Sprintf("%d", count) }</span>
-				}
-			</div>
-		</button>
-		<div
-			id="notification-dropdown"
-			tabindex="0"
-			class="dropdown-content menu bg-base-200 rounded-box z-[1] w-80 p-2 shadow-xl mt-3"
-		></div>
-	</div>
+	@React("NotificationBell", map[string]interface{}{
+		"initialCount": count,
+		"pollInterval": 60000,
+	})
 }
 
 templ NotificationDropdown(readings []types.Reading) {
