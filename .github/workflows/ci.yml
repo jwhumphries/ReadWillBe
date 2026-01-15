@@ -14,10 +14,10 @@ jobs:
       DAGGER_NO_NAG: "1"
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Run Lint
-        uses: dagger/dagger-for-github@f599d88d336fdf06f01f9bd24b6339954f7ba3e2 # v6
+        uses: dagger/dagger-for-github@b81317a976cb7f7125469707321849737cd1b3bc # v7
         with:
           version: "latest"
           verb: call
@@ -31,10 +31,10 @@ jobs:
       DAGGER_NO_NAG: "1"
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Run Tests
-        uses: dagger/dagger-for-github@f599d88d336fdf06f01f9bd24b6339954f7ba3e2 # v6
+        uses: dagger/dagger-for-github@b81317a976cb7f7125469707321849737cd1b3bc # v7
         with:
           version: "latest"
           verb: call
@@ -48,10 +48,10 @@ jobs:
       DAGGER_NO_NAG: "1"
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Run Build
-        uses: dagger/dagger-for-github@f599d88d336fdf06f01f9bd24b6339954f7ba3e2 # v6
+        uses: dagger/dagger-for-github@b81317a976cb7f7125469707321849737cd1b3bc # v7
         with:
           version: "latest"
           verb: call

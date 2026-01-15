@@ -131,9 +131,22 @@ func removeAllSubscriptions(db *gorm.DB) echo.HandlerFunc {
 }
 
 func startNotificationWorker(cfg types.Config, db *gorm.DB) context.CancelFunc {
-	if cfg.VAPIDPublicKey == "" || cfg.VAPIDPrivateKey == "" {
-		logrus.Info("VAPID keys not configured, notification worker not started")
+	pushEnabled := cfg.VAPIDPublicKey != "" && cfg.VAPIDPrivateKey != ""
+	emailEnabled := cfg.EmailEnabled()
+
+	if !pushEnabled && !emailEnabled {
+		logrus.Info("Neither VAPID keys nor email configured, notification worker not started")
 		return func() {}
+	}
+
+	var emailService EmailService
+	if emailEnabled {
+		emailService = NewEmailService(cfg)
+		logrus.Info("Email notifications enabled via " + cfg.EmailProvider)
+	}
+
+	if pushEnabled {
+		logrus.Info("Push notifications enabled")
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -148,43 +161,7 @@ func startNotificationWorker(cfg types.Config, db *gorm.DB) context.CancelFunc {
 				logrus.Info("Notification worker stopped")
 				return
 			case <-ticker.C:
-				now := time.Now()
-				currentTime := now.Format("15:04")
-
-				var users []types.User
-				err := db.Preload("PushSubscriptions").
-					Where("notifications_enabled = ?", true).
-					Where("notification_time = ?", currentTime).
-					Find(&users).Error
-
-				if err != nil {
-					logrus.Errorf("Error fetching users for notifications: %v", err)
-					continue
-				}
-
-				for _, user := range users {
-					var readings []types.Reading
-					err := db.Where("plan_id IN (?)",
-						db.Table("plans").Select("id").Where("user_id = ?", user.ID),
-					).Find(&readings).Error
-
-					if err != nil {
-						logrus.Errorf("Error fetching readings for user %d: %v", user.ID, err)
-						continue
-					}
-
-					hasReadingsToday := false
-					for _, reading := range readings {
-						if reading.Status != types.StatusCompleted && reading.IsActiveToday() {
-							hasReadingsToday = true
-							break
-						}
-					}
-
-					if hasReadingsToday {
-						sendNotification(cfg, db, user)
-					}
-				}
+				processNotifications(cfg, db, emailService, pushEnabled)
 			}
 		}
 	}()
@@ -193,7 +170,61 @@ func startNotificationWorker(cfg types.Config, db *gorm.DB) context.CancelFunc {
 	return cancel
 }
 
-func sendNotification(cfg types.Config, db *gorm.DB, user types.User) {
+func processNotifications(cfg types.Config, db *gorm.DB, emailService EmailService, pushEnabled bool) {
+	now := time.Now()
+	currentTime := now.Format("15:04")
+
+	var users []types.User
+	err := db.Preload("PushSubscriptions").
+		Where("notification_time = ?", currentTime).
+		Where("notifications_enabled = ? OR email_notifications_enabled = ?", true, true).
+		Find(&users).Error
+
+	if err != nil {
+		logrus.Errorf("Error fetching users for notifications: %v", err)
+		return
+	}
+
+	for _, user := range users {
+		var readings []types.Reading
+		err := db.Preload("Plan").
+			Where("plan_id IN (?)",
+				db.Table("plans").Select("id").Where("user_id = ?", user.ID),
+			).
+			Where("status != ?", types.StatusCompleted).
+			Find(&readings).Error
+
+		if err != nil {
+			logrus.Errorf("Error fetching readings for user %d: %v", user.ID, err)
+			continue
+		}
+
+		var activeReadings []types.Reading
+		for _, r := range readings {
+			if r.IsActiveToday() || r.IsOverdue() {
+				activeReadings = append(activeReadings, r)
+			}
+		}
+
+		if len(activeReadings) == 0 {
+			continue
+		}
+
+		if pushEnabled && user.NotificationsEnabled && len(user.PushSubscriptions) > 0 {
+			sendPushNotification(cfg, db, user)
+		}
+
+		if emailService != nil && user.EmailNotificationsEnabled {
+			if err := emailService.SendDailyDigest(user, activeReadings, cfg.Hostname); err != nil {
+				logrus.Errorf("Error sending email to user %d: %v", user.ID, err)
+			} else {
+				logrus.Infof("Sent daily digest email to user %d", user.ID)
+			}
+		}
+	}
+}
+
+func sendPushNotification(cfg types.Config, db *gorm.DB, user types.User) {
 	payload := map[string]interface{}{
 		"title": "ReadWillBe",
 		"body":  "You have readings due today!",

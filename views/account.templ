@@ -100,6 +100,79 @@ templ Account(cfg types.Config, user *types.User) {
 					</div>
 				</div>
 			</div>
+			if cfg.EmailEnabled() {
+				<div class="card bg-base-200 shadow-xl">
+					<div class="card-body space-y-4">
+						<h2 class="card-title">Email Notifications</h2>
+						<div class="alert alert-info">
+							@InfoIcon()
+							<span class="text-sm">Receive your daily readings via email at your scheduled notification time.</span>
+						</div>
+						<form hx-post="/account/settings" hx-target="body" hx-disabled-elt="find button" class="group space-y-4">
+							<input type="hidden" name="notifications_enabled" value={ boolToOnOff(user.NotificationsEnabled) }/>
+							<input type="hidden" name="notification_time" value={ user.NotificationTime }/>
+							<label class="flex items-start gap-4 cursor-pointer" for="email_notifications_enabled">
+								<input
+									type="checkbox"
+									id="email_notifications_enabled"
+									name="email_notifications_enabled"
+									checked?={ user.EmailNotificationsEnabled }
+									class="toggle toggle-primary mt-1"
+								/>
+								<div>
+									<span class="font-bold">Enable email notifications</span>
+									<p class="text-sm opacity-70">Get your daily readings delivered to your inbox</p>
+								</div>
+							</label>
+							<div class="divider"></div>
+							<div class="space-y-1">
+								<span class="text-sm font-medium">Notification Email</span>
+								<input
+									type="email"
+									name="notification_email"
+									value={ user.NotificationEmail }
+									placeholder={ user.Email }
+									class="input input-bordered w-full"
+								/>
+								<p class="text-xs opacity-70">Leave blank to use your account email</p>
+							</div>
+							<div class="card-actions justify-end">
+								<button type="submit" class="btn btn-primary gap-2">
+									<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
+									@SaveIcon("h-5 w-5 group-[.htmx-request]:hidden")
+									Save Email Settings
+								</button>
+							</div>
+						</form>
+						<div class="divider"></div>
+						<div>
+							<h3 class="font-bold mb-2">Test Email</h3>
+							<form hx-post="/account/test-email" hx-swap="innerHTML" hx-target="#test-email-result" class="flex gap-2 items-end">
+								<div class="flex-1 space-y-1">
+									<span class="text-sm font-medium">Send test to</span>
+									<input
+										type="email"
+										name="email"
+										value={ user.GetNotificationEmail() }
+										class="input input-bordered input-sm w-full"
+									/>
+								</div>
+								<button type="submit" class="btn btn-outline btn-sm">
+									Send Test
+								</button>
+							</form>
+							<div id="test-email-result" class="mt-2 text-sm"></div>
+						</div>
+					</div>
+				</div>
+			}
 		</div>
 	}
+}
+
+func boolToOnOff(b bool) string {
+	if b {
+		return "on"
+	}
+	return ""
 }

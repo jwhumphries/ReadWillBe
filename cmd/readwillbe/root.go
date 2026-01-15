@@ -60,6 +60,17 @@ func initConfig() {
 	viper.SetDefault("allow_signup", true)
 	viper.SetDefault("seed_db", false)
 
+	// Email configuration defaults
+	viper.SetDefault("email_provider", "")
+	viper.SetDefault("smtp_host", "")
+	viper.SetDefault("smtp_port", 587)
+	viper.SetDefault("smtp_username", "")
+	viper.SetDefault("smtp_password", "")
+	viper.SetDefault("smtp_from", "")
+	viper.SetDefault("smtp_tls", "starttls")
+	viper.SetDefault("resend_api_key", "")
+	viper.SetDefault("resend_from", "")
+
 	if err := viper.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if !errors.As(err, &configFileNotFoundError) {

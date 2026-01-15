@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/fs"
 	"net/http"
 	"strings"
@@ -130,10 +131,16 @@ func runServer(cmd *cobra.Command, args []string) error {
 		},
 	}))
 
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "method=${method}, uri=${uri}, status=${status}\n",
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogStatus: true,
+		LogURI:    true,
+		LogMethod: true,
 		Skipper: func(c echo.Context) bool {
 			return c.Request().URL.Path == "/healthz"
+		},
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			fmt.Printf("method=%s, uri=%s, status=%d\n", v.Method, v.URI, v.Status)
+			return nil
 		},
 	}))
 
@@ -210,6 +217,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	e.DELETE("/plans/:id/readings/:reading_id", deleteReading(db), generalRateLimiter)
 	e.GET("/account", accountHandler(cfg, db))
 	e.POST("/account/settings", updateSettings(db), generalRateLimiter)
+	e.POST("/account/test-email", sendTestEmailHandler(cfg), generalRateLimiter)
 
 	e.GET("/notifications/count", notificationCount(db))
 	e.GET("/notifications/dropdown", notificationDropdown(db))
