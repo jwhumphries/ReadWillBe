@@ -4,7 +4,7 @@
     "github>jwhumphries/renovate-config"
   ],
   "baseBranchPatterns": [
-    "main"
+    "dependencies"
   ],
   "minimumReleaseAge": null,
   "platformAutomerge": true,
