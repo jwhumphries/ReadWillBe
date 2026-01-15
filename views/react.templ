@@ -1,0 +1,21 @@
+package views
+
+import "encoding/json"
+
+// React renders a mount point for a React component.
+// The component will be automatically mounted by the React registry on DOMContentLoaded.
+templ React(componentName string, props interface{}) {
+	<div
+		data-react-component={ componentName }
+		data-props={ jsonProps(props) }
+	></div>
+}
+
+// jsonProps converts props to JSON, handling nil as empty object
+func jsonProps(props interface{}) string {
+	b, _ := json.Marshal(props)
+	if string(b) == "null" {
+		return "{}"
+	}
+	return string(b)
+}

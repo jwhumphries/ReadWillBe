@@ -6,13 +6,23 @@
   "scripts": {
     "init": "tailwindcss -i ./input.css -o ./static/css/main.css",
     "dev": "tailwindcss -i ./input.css -o ./static/css/main.css --watch",
-    "build": "tailwindcss -i ./input.css -o ./static/css/main.css --minify"
+    "build": "tailwindcss -i ./input.css -o ./static/css/main.css --minify",
+    "build:js": "node tools/build.js",
+    "watch:js": "node tools/build.js --watch",
+    "typecheck": "tsc --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
   "devDependencies": {
     "@tailwindcss/cli": "4.1.18",
     "@tailwindcss/typography": "0.5.19",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
     "daisyui": "5.5.14",
-    "tailwindcss": "4.1.18"
+    "esbuild": "^0.27.2",
+    "tailwindcss": "4.1.18",
+    "typescript": "^5.8.3"
   }
 }

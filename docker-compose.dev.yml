@@ -19,12 +19,12 @@ services:
     networks:
       - devnet
 
-  tailwind:
+  frontend:
     image: ghcr.io/jwhumphries/frontend:latest@sha256:682cee3e8392ecaf2e6bfdf2d4f6886e95a3fdea7efe06398d924a50e9017690
     working_dir: /app
     volumes:
       - .:/app
-    command: sh -c "bun install && bun run init && exec bun run dev"
+    command: sh -c "bun install && bun run init && bun run watch:js & exec bun run dev"
     stdin_open: true
     tty: true
     networks:
@@ -34,20 +34,20 @@ services:
     image: readwillbe:dev
     working_dir: /app
     volumes:
-      - ./static/css:/app/static/css
+      - ./static:/app/static
     environment:
       - TEMPL_EXPERIMENT=rawgo
     command: >
       air
       --build.cmd "templ generate --notify-proxy"
       --build.bin "true"
-      --build.include_ext "css"
-      --build.include_dir "static/css"
+      --build.include_ext "css,js"
+      --build.include_dir "static/css,static/js"
       --build.exclude_dir ""
       --build.delay 100
     depends_on:
       - templ
-      - tailwind
+      - frontend
     networks:
       - devnet
 

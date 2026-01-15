@@ -83,23 +83,12 @@ tasks:
       - rm -rf ./tmp ./bin
     silent: true
 
-  build-builder:
-    desc: Build builder Docker image
-    cmds:
-      - task: docker:build-target
-        vars:
-          DOCKER_TARGET: builder
-          DOCKER_IMAGE: '{{.BUILDER_IMAGE}}'
-    silent: true
-
   build:
     desc: Build production Docker image
     cmds:
-      - task: docker:build-target
-        vars:
-          DOCKER_TARGET: release
-          DOCKER_IMAGE: '{{.RELEASE_IMAGE}}'
-    silent: true
+      - defer: rm ./readwillbe-dev.tar
+      - dagger -m .dagger call release --source . --version dev export --path ./readwillbe-dev.tar
+      - docker load -i ./readwillbe-dev.tar
 
   fmt:
     desc: Auto-format go files
@@ -121,7 +110,12 @@ tasks:
     cmds:
       - dagger -m .dagger call test --source=.
 
-  build-css:
-    desc: Compile css
+  build-assets:
+    desc: Compile CSS and React/TypeScript
     cmds:
-      - dagger -m .dagger call build-css --source=. export --path=./static/css
+      - dagger -m .dagger call build-assets --source=. export --path=./static
+
+  typecheck:
+    desc: Type-check TypeScript files
+    cmds:
+      - dagger -m .dagger call typecheck --source=.
