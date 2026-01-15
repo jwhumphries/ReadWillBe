@@ -6,11 +6,7 @@ vars:
     sh: git rev-parse --short HEAD
   IMAGES:
     - dev
-    - builder
-    - release
   DEV_IMAGE: '{{.APP_NAME}}:dev'
-  BUILDER_IMAGE: '{{.APP_NAME}}:builder'
-  RELEASE_IMAGE: '{{.APP_NAME}}:release'
 
 tasks:
   default:
@@ -45,15 +41,9 @@ tasks:
       - rm -rf node_modules
       - rm bun.lock
 
-  clean:css:
-    internal: true
-    desc: Clean compiled css
-    cmds:
-      - rm -f ./static/css/main.css
-
   clean:
     desc: Remove generated files and Docker images
-    deps: [clean:bun, clean:css, docker:clean-images]
+    deps: [clean:bun, docker:clean-images]
     cmds:
       - rm -rf ./tmp ./bin
     silent: true
@@ -71,15 +61,29 @@ tasks:
     desc: Start development environment with hot reload
     deps: [build-dev]
     cmds:
-      - docker compose -f docker-compose.dev.yml up -d
+      - docker run -d --rm
+        --name {{.APP_NAME}}-dev
+        -p 8080:8080 -p 7331:7331
+        -v {{.ROOT_DIR}}:/app
+        -v go-mod-cache:/go/pkg/mod
+        -v go-build-cache:/go-build-cache
+        -e READWILLBE_PORT=:8080
+        -e READWILLBE_DB_PATH=/app/data/readwillbe.db
+        -e READWILLBE_COOKIE_SECRET=dev-only-local-secret-min-32-chars
+        -e READWILLBE_SEED_DB=true
+        -e READWILLBE_ALLOW_SIGNUP=true
+        -e READWILLBE_LOG_LEVEL=debug
+        -e TEMPL_EXPERIMENT=rawgo
+        -e READWILLBE_HOSTNAME=localhost:7331
+        {{.DEV_IMAGE}}
+        sh -c "bun install && /develop.sh"
     silent: true
 
   dev-stop:
     desc: Stop development environment
     cmds:
-      - docker compose -f docker-compose.dev.yml down
+      - docker stop {{.APP_NAME}}-dev || true
       - task: clean:bun
-      - task: clean:css
       - rm -rf ./tmp ./bin
     silent: true
 
@@ -87,7 +91,7 @@ tasks:
     desc: Build production Docker image
     cmds:
       - defer: rm ./readwillbe-dev.tar
-      - dagger -m .dagger call release --source . --version dev export --path ./readwillbe-dev.tar
+      - dagger -m .dagger call release --source . --version dev-release export --path ./readwillbe-dev.tar
       - docker load -i ./readwillbe-dev.tar
 
   fmt:

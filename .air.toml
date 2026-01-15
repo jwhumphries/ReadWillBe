@@ -1,18 +1,19 @@
 # .air.toml
 # Air configuration for hot reload in Docker development
-# https://github.com/air-verse/air
 
 root = "."
 testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
+  # Build with dev tag to use local filesystem instead of embed
   cmd = "go build -tags dev -o ./tmp/readwillbe ./cmd/readwillbe/"
   bin = "./tmp/readwillbe"
-  args_bin = []
-
-  delay = 500
-  exclude_dir = ["assets", "tmp", "vendor", "testdata", "node_modules", "bin", ".git"]
+  
+  # Reduced delay for snappier feel
+  delay = 100
+  
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "node_modules", "bin", ".git", "static"]
   exclude_file = []
   exclude_regex = ["_test.go", "_templ.go"]
   exclude_unchanged = false
@@ -30,7 +31,8 @@ tmp_dir = "tmp"
   poll_interval = 500
 
   pre_cmd = []
-  post_cmd = ["templ generate --notify-proxy"]
+  # Notify templ proxy on build completion
+  post_cmd = ["curl -s -X POST http://localhost:7331/_templ/reload || true"]
   rerun = false
   rerun_delay = 500
 
