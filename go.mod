@@ -12,7 +12,7 @@ require (
 	github.com/ncruces/go-sqlite3 v0.30.4
 	github.com/ncruces/go-sqlite3/gormlite v0.30.2
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
