@@ -22,11 +22,30 @@ type Config struct {
 	VAPIDPublicKey  string
 	VAPIDPrivateKey string
 	Hostname        string
+
+	// Email configuration (mutually exclusive: set EITHER SMTP OR Resend)
+	EmailProvider string // "smtp" or "resend" (empty = disabled)
+
+	// SMTP settings (used when EmailProvider = "smtp")
+	SMTPHost     string
+	SMTPPort     int
+	SMTPUsername string
+	SMTPPassword string
+	SMTPFrom     string // "ReadWillBe <noreply@example.com>"
+	SMTPTLS      string // "none", "starttls", "tls" (default: "starttls")
+
+	// Resend settings (used when EmailProvider = "resend")
+	ResendAPIKey string
+	ResendFrom   string // "ReadWillBe <noreply@example.com>"
 }
 
 func (c Config) IsProduction() bool {
 	env := strings.ToLower(os.Getenv("GO_ENV"))
 	return env == "production" || env == "prod"
+}
+
+func (c Config) EmailEnabled() bool {
+	return c.EmailProvider == "smtp" || c.EmailProvider == "resend"
 }
 
 func estimateEntropy(s string) int {
@@ -101,6 +120,35 @@ func ConfigFromViper() (Config, error) {
 		port = ":" + port
 	}
 
+	// Validate email provider config
+	emailProvider := strings.ToLower(viper.GetString("email_provider"))
+	if emailProvider != "" && emailProvider != "smtp" && emailProvider != "resend" {
+		return Config{}, errors.New("email_provider must be 'smtp', 'resend', or empty")
+	}
+
+	if emailProvider == "smtp" {
+		if viper.GetString("smtp_host") == "" {
+			return Config{}, errors.New("smtp_host is required when email_provider is 'smtp'")
+		}
+		if viper.GetString("smtp_from") == "" {
+			return Config{}, errors.New("smtp_from is required when email_provider is 'smtp'")
+		}
+	}
+
+	if emailProvider == "resend" {
+		if viper.GetString("resend_api_key") == "" {
+			return Config{}, errors.New("resend_api_key is required when email_provider is 'resend'")
+		}
+		if viper.GetString("resend_from") == "" {
+			return Config{}, errors.New("resend_from is required when email_provider is 'resend'")
+		}
+	}
+
+	smtpTLS := strings.ToLower(viper.GetString("smtp_tls"))
+	if smtpTLS == "" {
+		smtpTLS = "starttls"
+	}
+
 	return Config{
 		DBPath:          viper.GetString("db_path"),
 		CookieSecret:    []byte(cookieSecret),
@@ -110,5 +158,14 @@ func ConfigFromViper() (Config, error) {
 		VAPIDPublicKey:  viper.GetString("vapid_public_key"),
 		VAPIDPrivateKey: viper.GetString("vapid_private_key"),
 		Hostname:        viper.GetString("hostname"),
+		EmailProvider:   emailProvider,
+		SMTPHost:        viper.GetString("smtp_host"),
+		SMTPPort:        viper.GetInt("smtp_port"),
+		SMTPUsername:    viper.GetString("smtp_username"),
+		SMTPPassword:    viper.GetString("smtp_password"),
+		SMTPFrom:        viper.GetString("smtp_from"),
+		SMTPTLS:         smtpTLS,
+		ResendAPIKey:    viper.GetString("resend_api_key"),
+		ResendFrom:      viper.GetString("resend_from"),
 	}, nil
 }
