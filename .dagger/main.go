@@ -3,19 +3,55 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"dagger/readwillbe/internal/dagger"
 )
 
 type Readwillbe struct{}
 
+func (m *Readwillbe) gitVersion(ctx context.Context, git *dagger.Directory) (string, error) {
+	if git == nil {
+		return "dev", nil
+	}
+	out, err := dag.Container().
+		From("alpine/git:latest").
+		WithMountedDirectory("/src/.git", git).
+		WithWorkdir("/src").
+		WithExec([]string{"git", "describe", "--tags", "--always"}).
+		Stdout(ctx)
+	if err != nil {
+		return "dev", nil
+	}
+	return strings.TrimSpace(out), nil
+}
+
+func (m *Readwillbe) Version(
+	ctx context.Context,
+	// +optional
+	// +defaultPath="/.git"
+	git *dagger.Directory,
+) (string, error) {
+	return m.gitVersion(ctx, git)
+}
+
 func (m *Readwillbe) Build(
 	ctx context.Context,
 	source *dagger.Directory,
 	// +optional
-	// +default="dev"
+	// +defaultPath="/.git"
+	git *dagger.Directory,
+	// +optional
 	version string,
 ) (*dagger.Container, error) {
+	if version == "" {
+		v, err := m.gitVersion(ctx, git)
+		if err != nil {
+			return nil, fmt.Errorf("version detection failed: %w", err)
+		}
+		version = v
+	}
+
 	templSource := m.TemplGenerate(source)
 
 	if _, err := m.lintSource(ctx, templSource); err != nil {
@@ -109,10 +145,12 @@ func (m *Readwillbe) Release(
 	ctx context.Context,
 	source *dagger.Directory,
 	// +optional
-	// +default="dev"
+	// +defaultPath="/.git"
+	git *dagger.Directory,
+	// +optional
 	version string,
 ) (*dagger.Container, error) {
-	binaryContainer, err := m.Build(ctx, source, version)
+	binaryContainer, err := m.Build(ctx, source, git, version)
 	if err != nil {
 		return nil, err
 	}
