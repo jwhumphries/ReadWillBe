@@ -63,6 +63,38 @@ spec:
                   name: {{ include "readwillbe.fullname" . }}
                   key: vapid-private-key
                   optional: true
+            {{- if .Values.email.provider }}
+            - name: EMAIL_PROVIDER
+              value: {{ .Values.email.provider | quote }}
+            {{- end }}
+            {{- if eq .Values.email.provider "smtp" }}
+            - name: SMTP_HOST
+              value: {{ .Values.email.smtp.host | quote }}
+            - name: SMTP_PORT
+              value: {{ .Values.email.smtp.port | quote }}
+            - name: SMTP_USERNAME
+              value: {{ .Values.email.smtp.username | quote }}
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "readwillbe.fullname" . }}
+                  key: smtp-password
+                  optional: true
+            - name: SMTP_FROM
+              value: {{ .Values.email.smtp.from | quote }}
+            - name: SMTP_TLS
+              value: {{ .Values.email.smtp.tls | quote }}
+            {{- end }}
+            {{- if eq .Values.email.provider "resend" }}
+            - name: RESEND_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "readwillbe.fullname" . }}
+                  key: resend-api-key
+                  optional: true
+            - name: RESEND_FROM
+              value: {{ .Values.email.resend.from | quote }}
+            {{- end }}
           # livenessProbe:
           #   httpGet:
           #     path: /

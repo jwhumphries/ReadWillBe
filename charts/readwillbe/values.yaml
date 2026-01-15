@@ -85,9 +85,33 @@ env:
 # Secrets - You should provide these via --set or a separate values file in production
 secrets:
   # Generates a random one if empty (helm function) or you must provide it
-  cookieSecret: "" 
+  cookieSecret: ""
   vapidPublicKey: ""
   vapidPrivateKey: ""
+  # Email secrets (only one provider should be configured)
+  smtpPassword: ""
+  resendApiKey: ""
+
+# Email Configuration
+# Set email.provider to "smtp" or "resend" to enable email notifications
+# Only one provider can be active at a time
+email:
+  # Provider: "smtp", "resend", or "" (disabled)
+  provider: ""
+
+  # SMTP Configuration (used when provider: "smtp")
+  smtp:
+    host: ""
+    port: 587
+    username: ""
+    # Password is stored in secrets.smtpPassword
+    from: ""  # e.g., "ReadWillBe <noreply@example.com>"
+    tls: "starttls"  # "none", "starttls", or "tls"
+
+  # Resend Configuration (used when provider: "resend")
+  resend:
+    # API key is stored in secrets.resendApiKey
+    from: ""  # e.g., "ReadWillBe <noreply@yourdomain.com>"
 
 autoscaling:
   enabled: false
