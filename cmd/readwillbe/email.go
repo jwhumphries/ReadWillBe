@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -105,7 +106,7 @@ func (r *ResendEmailService) send(to, subject, htmlBody, textBody string) error 
 		"text": %q
 	}`, r.cfg.ResendFrom, to, subject, htmlBody, textBody)
 
-	req, err := http.NewRequest("POST", "https://api.resend.com/emails",
+	req, err := http.NewRequestWithContext(context.Background(), "POST", "https://api.resend.com/emails",
 		strings.NewReader(payload))
 	if err != nil {
 		return err
@@ -117,7 +118,7 @@ func (r *ResendEmailService) send(to, subject, htmlBody, textBody string) error 
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("resend API error: status %d", resp.StatusCode)
