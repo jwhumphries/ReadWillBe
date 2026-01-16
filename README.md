@@ -1,16 +1,16 @@
 # ReadWillBe
 
-A GOTH stack application for tracking progress through daily reading plans.
-Heavily inspired by [fanks](https://github.com/oliverisaac/fanks).
+📖 An application for tracking progress through daily reading plans.
+🙏 Heavily inspired by [fanks](https://github.com/oliverisaac/fanks).
 
 ## Features
 
-- User registration and authentication
-- Upload reading plans via CSV files
-- Dashboard view showing today's readings and overdue items
-- History view of completed readings
-- Browser push notifications & Email reminders
-- Support for day, week, and month-based reading schedules
+- 🔐 User registration and authentication
+- ⬆️ Upload reading plans via CSV files
+- 📊 Dashboard view showing today's readings and overdue items
+- 🕰️ History view of completed readings
+- 🔔 Browser push notifications & Email reminders
+- 📆 Support for day, week, and month-based reading schedules
 
 ### CSV Format Example
 
@@ -30,7 +30,7 @@ ReadWillBe is designed to be run via Docker or Kubernetes.
 
 ### Required Configuration
 
-The only strictly required configuration is the **Cookie Secret**.
+The only strictly required configuration is the **Cookie Secret** 🍪.
 
 | Variable | Description |
 |----------|-------------|
@@ -53,7 +53,7 @@ Set `READWILLBE_VAPID_PUBLIC_KEY`, `READWILLBE_VAPID_PRIVATE_KEY` and `READWILLB
 
 ## Development
 
-This project uses [Task](https://taskfile.dev/) for development workflows.
+This project uses [Task](https://taskfile.dev/) for development workflows. The pipeline is managed by [Dagger](https://dagger.io/) 🗡️.
 
 ### Quick Start
 
@@ -77,3 +77,17 @@ task dev-stop
 | `task clean` | Removes generated files and images |
 | `task fmt` | Formats Go files |
 | `task templ-fmt`| Formats Templ files |
+
+### Verifying the Build
+
+As shown above, the development enviromnent features hot-reloading. To build a copy of the release image locally (minimized for production with no reloading), run `task build`. 
+
+Set a cookie secret, then run:
+
+```bash
+docker run -p 8080:8080 \
+-e READWILLBE_COOKIE_SECRET="$READWILLBE_COOKIE_SECRET" \
+-e READWILLBE_DB_PATH="/tmp/readwillbe.db" \
+-e READWILLBE_LOG_LEVEL=debug \
+readwillbe:latest
+```

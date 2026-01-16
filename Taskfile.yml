@@ -92,7 +92,9 @@ tasks:
     cmds:
       - defer: rm ./readwillbe-dev.tar
       - dagger -m .dagger call release --source . --version dev-release export --path ./readwillbe-dev.tar
-      - docker load -i ./readwillbe-dev.tar
+      - |
+        id=$(docker load -i ./readwillbe-dev.tar | sed -n 's/^Loaded image.*: //p')
+        docker tag $id {{.APP_NAME}}:latest
 
   fmt:
     desc: Auto-format go files

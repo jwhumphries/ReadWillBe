@@ -172,13 +172,13 @@ func (m *Readwillbe) Release(
 	return dag.Container().
 		From("alpine:3.23").
 		WithExec([]string{"apk", "add", "--no-cache", "tzdata", "ca-certificates"}).
-		WithFile("/readwillbe", binary).
+		WithFile("/usr/local/bin/readwillbe", binary).
 		WithExec([]string{"sh", "-c", "echo 'nonroot:x:10001:10001:NonRoot User:/:/sbin/nologin' >> /etc/passwd"}).
 		WithEnvVariable("TZ", "America/New_York").
 		WithEnvVariable("PORT", ":8080").
 		WithExposedPort(8080).
 		WithUser("10001").
-		WithEntrypoint([]string{"/readwillbe"}), nil
+		WithEntrypoint([]string{"/usr/local/bin/readwillbe"}), nil
 }
 
 func (m *Readwillbe) Fmt(source *dagger.Directory) *dagger.Directory {
