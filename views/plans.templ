@@ -500,10 +500,12 @@ templ ManualPlanForm(title string, readings []ManualReading, err error) {
 						Create Plan
 					</button>
 				} else {
-					<button class="btn btn-primary gap-2" disabled>
-						@PlusIcon("h-5 w-5")
-						Create Plan
-					</button>
+					<div class="tooltip" data-tip="Add a title and at least one reading">
+						<button class="btn btn-primary gap-2" disabled>
+							@PlusIcon("h-5 w-5")
+							Create Plan
+						</button>
+					</div>
 				}
 			</div>
 		</div>
