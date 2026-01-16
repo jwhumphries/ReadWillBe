@@ -131,9 +131,9 @@ templ PlanCard(plan types.Plan) {
 			if plan.Status == "failed" {
 				@Alert(plan.ErrorMessage, true)
 			} else if plan.Status == "processing" {
-				<div class="mt-4" hx-get="/plans" hx-trigger="every 5s" hx-select="#plans-list" hx-target="#plans-list" hx-swap="outerHTML">
+				<div class="mt-4">
 					<progress class="progress progress-primary w-full"></progress>
-					<div class="text-sm opacity-70 mt-1 text-center">Importing readings...</div>
+					<div class="text-sm opacity-70 mt-1 text-center">Importing readings... (refresh page to check status)</div>
 				</div>
 			} else {
 				<div class="stats shadow mt-4">
@@ -203,14 +203,12 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 				<a href="/plans/create-manual" role="tab" class="tab">Create Manually</a>
 			</div>
 			<div class="card bg-base-200 shadow-xl">
-				<form hx-post="/plans/create" hx-target="body" hx-disabled-elt="find button" enctype="multipart/form-data" class="group">
+				<form method="POST" action="/plans/create" enctype="multipart/form-data">
 					<div class="card-body">
 						<fieldset class="fieldset">
 							<legend class="fieldset-legend">Plan Details</legend>
 							<label class="input input-bordered flex items-center gap-2 mb-4">
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-70" viewBox="0 0 20 20" fill="currentColor">
-									<path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-								</svg>
+								@BookIcon("h-4 w-4 opacity-70")
 								<input type="text" name="title" required placeholder="Plan Title" aria-label="Plan Title" class="grow"/>
 							</label>
 							<div class="space-y-1 w-full max-w-xs">
@@ -226,9 +224,8 @@ templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
 							<a href="/plans" class="btn btn-ghost">
 								Cancel
 							</a>
-							<button type="submit" class="btn btn-primary">
-								<span class="loading loading-spinner loading-sm hidden group-[.htmx-request]:inline-block"></span>
-								@PlusIcon("h-5 w-5 group-[.htmx-request]:hidden")
+							<button type="submit" class="btn btn-primary gap-2">
+								@PlusIcon("h-5 w-5")
 								Create Plan
 							</button>
 						</div>
@@ -254,7 +251,7 @@ templ EditPlan(cfg types.Config, user *types.User, plan types.Plan, err error) {
 				<h1 class="text-3xl font-bold">Edit Reading Plan</h1>
 			</div>
 			<div class="card bg-base-200 shadow-xl">
-				<form hx-post={ fmt.Sprintf("/plans/%d/edit", plan.ID) } hx-target="body" hx-disabled-elt="find button" class="group">
+				<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/plans/%d/edit", plan.ID)) }>
 					<div class="card-body">
 						<h2 class="card-title mb-4">Plan Details</h2>
 						<div class="space-y-1 mb-6">
@@ -360,17 +357,28 @@ templ ManualPlanCreate(cfg types.Config, user *types.User, title string, reading
 	@Layout(cfg, user, "Create Plan Manually - ReadWillBe") {
 		<div class="max-w-4xl mx-auto">
 			<div class="flex items-center gap-4 mb-6">
-				<button type="button" onclick="deleteDraftAndGoBack()" class="btn btn-ghost btn-sm gap-2">
+				<a href="/plans" class="btn btn-ghost btn-sm gap-2">
 					@BackIcon()
 					Back to Plans
-				</button>
+				</a>
 				<h1 class="text-3xl font-bold">Create Reading Plan</h1>
 			</div>
 			<div role="tablist" class="tabs tabs-box mb-6">
 				<a href="/plans/create" role="tab" class="tab">Upload CSV</a>
 				<a role="tab" class="tab tab-active">Create Manually</a>
 			</div>
-			@ManualPlanForm(title, readings, err)
+			<form method="POST" action="/plans/create-manual">
+				@React("PlanEditor", map[string]interface{}{
+					"initialTitle":    title,
+					"initialReadings": toReactReadings(readings),
+				})
+			</form>
+			if err != nil {
+				<div role="alert" class="alert alert-error mt-4">
+					@AlertErrorIcon()
+					<span>{ err.Error() }</span>
+				</div>
+			}
 		</div>
 	}
 }
@@ -565,6 +573,19 @@ func calculateProgress(readings []types.Reading) int {
 		}
 	}
 	return int((float64(completed) / float64(len(readings))) * 100)
+}
+
+// toReactReadings converts ManualReading slice to a format suitable for the React PlanEditor
+func toReactReadings(readings []ManualReading) []map[string]string {
+	result := make([]map[string]string, len(readings))
+	for i, r := range readings {
+		result[i] = map[string]string{
+			"id":      r.ID,
+			"date":    r.Date,
+			"content": r.Content,
+		}
+	}
+	return result
 }
 
 templ ManualReadingRowEdit(reading ManualReading) {

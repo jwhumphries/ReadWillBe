@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Plus, X, Save } from 'lucide-react';
 
 interface Reading {
     id: string;
@@ -88,8 +89,9 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({
                                             type="button"
                                             onClick={() => removeReading(reading.id)}
                                             className="btn btn-ghost btn-xs text-error"
+                                            aria-label="Remove reading"
                                         >
-                                            ✕
+                                            <X className="h-4 w-4" />
                                         </button>
                                     </td>
                                 </tr>
@@ -98,8 +100,9 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({
                     </table>
                 </div>
 
-                <button type="button" onClick={addReading} className="btn btn-outline btn-primary btn-sm">
-                    + Add Reading
+                <button type="button" onClick={addReading} className="btn btn-outline btn-primary btn-sm gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Reading
                 </button>
 
                 {/* HIDDEN INPUT: Serializes React state for form submission */}
@@ -109,9 +112,10 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({
                     <a href="/plans" className="btn btn-ghost">Cancel</a>
                     <button
                         type="submit"
-                        className="btn btn-primary"
+                        className="btn btn-primary gap-2"
                         disabled={readings.length === 0 || !title}
                     >
+                        <Save className="h-4 w-4" />
                         Create Plan
                     </button>
                 </div>

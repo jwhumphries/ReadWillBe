@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Bell } from 'lucide-react';
 import { getCsrfToken } from '../hooks/useCsrf';
-import { usePolling } from '../hooks/usePolling';
 
 interface Reading {
     id: number;
@@ -19,57 +20,40 @@ interface NotificationBellProps {
 
 export const NotificationBell: React.FC<NotificationBellProps> = ({
     initialCount = 0,
-    pollInterval = 30000,
+    pollInterval = 60000,
 }) => {
-    const [count, setCount] = useState(initialCount);
-    const [readings, setReadings] = useState<Reading[]>([]);
     const [isOpen, setIsOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Fetch notification count
-    const fetchCount = async () => {
-        try {
+    // Fetch notification count with React Query
+    const { data: countData } = useQuery({
+        queryKey: ['notifications', 'count'],
+        queryFn: async () => {
             const response = await fetch('/api/notifications/count', {
-                headers: {
-                    'X-CSRF-Token': getCsrfToken(),
-                },
+                headers: { 'X-CSRF-Token': getCsrfToken() },
             });
-            if (response.ok) {
-                const data = await response.json();
-                setCount(data.count);
-            }
-        } catch (e) {
-            console.error('Failed to fetch notification count', e);
-        }
-    };
-
-    // Poll for notification count
-    usePolling(fetchCount, {
-        interval: pollInterval,
-        enabled: true,
-        immediate: false,
+            if (!response.ok) throw new Error('Failed to fetch count');
+            return response.json() as Promise<{ count: number }>;
+        },
+        initialData: { count: initialCount },
+        refetchInterval: pollInterval,
     });
 
-    // Fetch dropdown content when opened
-    const fetchReadings = async () => {
-        setLoading(true);
-        try {
+    // Fetch readings when dropdown is opened
+    const { data: readingsData, isLoading, refetch } = useQuery({
+        queryKey: ['notifications', 'readings'],
+        queryFn: async () => {
             const response = await fetch('/api/notifications/readings', {
-                headers: {
-                    'X-CSRF-Token': getCsrfToken(),
-                },
+                headers: { 'X-CSRF-Token': getCsrfToken() },
             });
-            if (response.ok) {
-                const data = await response.json();
-                setReadings(data.readings || []);
-            }
-        } catch (e) {
-            console.error('Failed to fetch notifications', e);
-        } finally {
-            setLoading(false);
-        }
-    };
+            if (!response.ok) throw new Error('Failed to fetch readings');
+            return response.json() as Promise<{ readings: Reading[] }>;
+        },
+        enabled: false, // Only fetch on demand
+    });
+
+    const count = countData?.count ?? 0;
+    const readings = readingsData?.readings ?? [];
 
     // Handle click outside to close dropdown
     useEffect(() => {
@@ -87,7 +71,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
         const newIsOpen = !isOpen;
         setIsOpen(newIsOpen);
         if (newIsOpen) {
-            fetchReadings();
+            refetch();
         }
     };
 
@@ -100,9 +84,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                 aria-label="Notifications"
             >
                 <div className="indicator">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
+                    <Bell className="h-5 w-5" />
                     {count > 0 && (
                         <span className="badge badge-sm badge-primary indicator-item">
                             {count > 99 ? '99+' : count}
@@ -116,7 +98,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                     <div className="px-2 py-1 font-semibold border-b border-base-300 mb-2">
                         Today's Readings
                     </div>
-                    {loading ? (
+                    {isLoading ? (
                         <div className="flex justify-center py-4">
                             <span className="loading loading-spinner loading-sm"></span>
                         </div>
@@ -126,7 +108,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                         </div>
                     ) : (
                         <ul className="max-h-64 overflow-y-auto">
-                            {readings.map((reading) => (
+                            {readings.map((reading: Reading) => (
                                 <li key={reading.id}>
                                     <a
                                         href={`/plans/${reading.plan?.id}`}

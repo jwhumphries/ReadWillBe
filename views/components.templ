@@ -23,25 +23,18 @@ templ ConfirmModal(id string, title string, message string, confirmText string, 
 				<form method="dialog">
 					<button class="btn">Cancel</button>
 				</form>
-				if hxMethod == "DELETE" {
-					<button
-						hx-delete={ hxUrl }
-						hx-target={ hxTarget }
-						class="btn btn-error modal-close"
-						data-modal-id={ id }
-					>
-						{ confirmText }
-					</button>
-				} else if hxMethod == "POST" {
-					<button
-						hx-post={ hxUrl }
-						hx-target={ hxTarget }
-						class="btn btn-primary modal-close"
-						data-modal-id={ id }
-					>
-						{ confirmText }
-					</button>
-				}
+				<form method="POST" action={ templ.SafeURL(hxUrl) }>
+					if hxMethod == "DELETE" {
+						<input type="hidden" name="_method" value="DELETE"/>
+						<button type="submit" class="btn btn-error">
+							{ confirmText }
+						</button>
+					} else {
+						<button type="submit" class="btn btn-primary">
+							{ confirmText }
+						</button>
+					}
+				</form>
 			</div>
 		</div>
 		<form method="dialog" class="modal-backdrop">

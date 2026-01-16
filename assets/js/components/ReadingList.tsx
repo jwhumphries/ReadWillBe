@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Check, Undo2 } from 'lucide-react';
 import { getCsrfToken } from '../hooks/useCsrf';
+import { toast } from './Toaster';
 
 interface Reading {
     id: number;
@@ -25,16 +28,14 @@ export const ReadingList: React.FC<ReadingListProps> = ({
     actionType,
 }) => {
     const [readings, setReadings] = useState(initialReadings);
-    const [loadingIds, setLoadingIds] = useState<Set<number>>(new Set());
+    const queryClient = useQueryClient();
 
-    const handleAction = async (readingId: number) => {
-        setLoadingIds(prev => new Set(prev).add(readingId));
+    const mutation = useMutation({
+        mutationFn: async (readingId: number) => {
+            const endpoint = actionType === 'complete'
+                ? `/reading/${readingId}/complete`
+                : `/reading/${readingId}/uncomplete`;
 
-        const endpoint = actionType === 'complete'
-            ? `/reading/${readingId}/complete`
-            : `/reading/${readingId}/uncomplete`;
-
-        try {
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -42,20 +43,22 @@ export const ReadingList: React.FC<ReadingListProps> = ({
                 },
             });
 
-            if (response.ok) {
-                // Remove the reading from the list on success
-                setReadings(prev => prev.filter(r => r.id !== readingId));
+            if (!response.ok) {
+                throw new Error(`Failed to ${actionType} reading`);
             }
-        } catch (e) {
-            console.error(`Failed to ${actionType} reading`, e);
-        } finally {
-            setLoadingIds(prev => {
-                const next = new Set(prev);
-                next.delete(readingId);
-                return next;
-            });
-        }
-    };
+
+            return readingId;
+        },
+        onSuccess: (readingId: number) => {
+            // Remove the reading from the list on success
+            setReadings(prev => prev.filter(r => r.id !== readingId));
+            toast.success(actionType === 'complete' ? 'Reading completed!' : 'Reading marked as incomplete');
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        },
+        onError: () => {
+            toast.error(`Failed to ${actionType} reading`);
+        },
+    });
 
     if (readings.length === 0) {
         return (
@@ -70,7 +73,7 @@ export const ReadingList: React.FC<ReadingListProps> = ({
     return (
         <div className="space-y-4">
             {readings.map((reading) => {
-                const isLoading = loadingIds.has(reading.id);
+                const isLoading = mutation.isPending && mutation.variables === reading.id;
 
                 return (
                     <div
@@ -98,7 +101,7 @@ export const ReadingList: React.FC<ReadingListProps> = ({
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={() => handleAction(reading.id)}
+                                    onClick={() => mutation.mutate(reading.id)}
                                     disabled={isLoading}
                                     className={`btn btn-sm ${
                                         actionType === 'complete'
@@ -110,16 +113,12 @@ export const ReadingList: React.FC<ReadingListProps> = ({
                                         <span className="loading loading-spinner loading-xs" />
                                     ) : actionType === 'complete' ? (
                                         <>
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                            </svg>
+                                            <Check className="h-4 w-4" />
                                             Complete
                                         </>
                                     ) : (
                                         <>
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                                            </svg>
+                                            <Undo2 className="h-4 w-4" />
                                             Undo
                                         </>
                                     )}
