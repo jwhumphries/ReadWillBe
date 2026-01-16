@@ -16,3 +16,7 @@
 ## 2026-01-15 - Semantic Labels for Forms
 **Learning:** Many form inputs were labeled with `span` elements instead of proper `<label>` tags, making them inaccessible to screen readers and preventing click-to-focus. Playwright's `get_by_label` fails on these, highlighting the issue.
 **Action:** Always use `<label for="id">` for visible labels, and ensure the corresponding input has the matching `id`. For inputs without visible labels, use `aria-label`.
+
+## 2026-01-20 - HTMX for Modal List Management
+**Learning:** When deleting items from a long list (like readings in a plan) via a modal, a full page reload disrupts the user's context and scroll position.
+**Action:** For list item actions in modals, use `hx-delete`, `hx-target="closest .item-container"`, and `hx-swap="outerHTML"` to smoothly remove the item without a reload, while falling back to standard form submission for page-level actions.
