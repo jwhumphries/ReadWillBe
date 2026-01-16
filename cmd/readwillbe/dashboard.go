@@ -27,7 +27,17 @@ func dashboardHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		// Filter to active/overdue readings and group by plan
 		planGroups := groupReadingsByPlan(readings)
 
-		return render(c, 200, views.Dashboard(cfg, &user, planGroups))
+		weeklyCount, err := GetWeeklyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "Failed to load weekly stats")
+		}
+
+		monthlyCount, err := GetMonthlyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "Failed to load monthly stats")
+		}
+
+		return render(c, 200, views.Dashboard(cfg, &user, planGroups, weeklyCount, monthlyCount))
 	}
 }
 

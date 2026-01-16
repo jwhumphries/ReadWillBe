@@ -112,3 +112,33 @@ func GetActiveReadings(tx *gorm.DB, userID uint, limit int) ([]types.Reading, er
 	err := q.Find(&readings).Error
 	return readings, err
 }
+
+// GetWeeklyCompletedReadingsCount fetches the count of readings completed this week.
+func GetWeeklyCompletedReadingsCount(tx *gorm.DB, userID uint) (int64, error) {
+	now := time.Now()
+	startWeek, endWeek := getStartOfWeek(now), getEndOfWeek(now)
+
+	var count int64
+	err := tx.Model(&types.Reading{}).
+		Joins("JOIN plans ON plans.id = readings.plan_id").
+		Where("plans.user_id = ? AND readings.status = ?", userID, types.StatusCompleted).
+		Where("readings.completed_at >= ? AND readings.completed_at <= ?", startWeek, endWeek).
+		Count(&count).Error
+
+	return count, err
+}
+
+// GetMonthlyCompletedReadingsCount fetches the count of readings completed this month.
+func GetMonthlyCompletedReadingsCount(tx *gorm.DB, userID uint) (int64, error) {
+	now := time.Now()
+	startMonth, endMonth := getStartOfMonth(now), getEndOfMonth(now)
+
+	var count int64
+	err := tx.Model(&types.Reading{}).
+		Joins("JOIN plans ON plans.id = readings.plan_id").
+		Where("plans.user_id = ? AND readings.status = ?", userID, types.StatusCompleted).
+		Where("readings.completed_at >= ? AND readings.completed_at <= ?", startMonth, endMonth).
+		Count(&count).Error
+
+	return count, err
+}
