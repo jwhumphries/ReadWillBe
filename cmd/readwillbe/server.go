@@ -40,9 +40,19 @@ func render(ctx echo.Context, status int, t templ.Component) error {
 	return nil
 }
 
-func htmxRedirect(c echo.Context, url string) error {
-	c.Response().Header().Set("HX-Redirect", url)
-	return c.NoContent(http.StatusOK)
+// MethodOverride middleware handles _method form field for DELETE operations
+func MethodOverride() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if c.Request().Method == "POST" {
+				method := c.FormValue("_method")
+				if method == "DELETE" {
+					c.Request().Method = "DELETE"
+				}
+			}
+			return next(c)
+		}
+	}
 }
 
 func runServer(cmd *cobra.Command, args []string) error {
@@ -81,6 +91,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 	e.Use(middleware.RequestID())
 	e.Use(middleware.BodyLimit("11M"))
+	e.Use(MethodOverride())
 
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 		Skipper:           middleware.DefaultSkipper,
@@ -118,7 +129,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 		TokenLookup:    "form:_csrf,header:X-CSRF-Token",
 		CookiePath:     "/",
 		CookieSecure:   cfg.IsProduction(),
-		CookieHTTPOnly: false, // Must be false so JavaScript (HTMX) can read the token for AJAX requests
+		CookieHTTPOnly: false, // Must be false so JavaScript can read the token for AJAX requests
 		CookieSameSite: http.SameSiteStrictMode,
 		Skipper: func(c echo.Context) bool {
 			return c.Path() == "/healthz"

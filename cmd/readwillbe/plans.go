@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -311,7 +312,7 @@ func deleteDraft() echo.HandlerFunc {
 		if err := clearDraftData(c); err != nil {
 			return c.NoContent(http.StatusInternalServerError)
 		}
-		return htmxRedirect(c, "/plans")
+		return c.Redirect(http.StatusFound, "/plans")
 	}
 }
 
@@ -322,9 +323,24 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
 
-		title, draftReadings, err := getDraftData(c)
-		if err != nil {
-			return c.NoContent(http.StatusInternalServerError)
+		// Get title from form
+		title := c.FormValue("title")
+
+		// Get readings from JSON (React form submission)
+		readingsJSON := c.FormValue("readingsJSON")
+		var formReadings []struct {
+			ID      string `json:"id"`
+			Date    string `json:"date"`
+			Content string `json:"content"`
+		}
+		if err := json.Unmarshal([]byte(readingsJSON), &formReadings); err != nil {
+			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, nil, fmt.Errorf("invalid readings data")))
+		}
+
+		// Convert to ManualReading for error display
+		draftReadings := make([]views.ManualReading, len(formReadings))
+		for i, r := range formReadings {
+			draftReadings[i] = views.ManualReading{ID: r.ID, Date: r.Date, Content: r.Content}
 		}
 
 		if title == "" {
@@ -335,14 +351,14 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("title cannot start with formula characters (=, +, -, @)")))
 		}
 
-		if len(draftReadings) == 0 {
+		if len(formReadings) == 0 {
 			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("at least one reading is required")))
 		}
 
-		readings := make([]types.Reading, 0, len(draftReadings))
-		for _, mr := range draftReadings {
+		readings := make([]types.Reading, 0, len(formReadings))
+		for _, mr := range formReadings {
 			parsedDate, dateType, parseErr := parseDate(mr.Date)
-			if err != nil {
+			if parseErr != nil {
 				return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, errors.Wrap(parseErr, fmt.Sprintf("invalid date: %s", mr.Date))))
 			}
 			readings = append(readings, types.Reading{
@@ -359,8 +375,8 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			Status: "active",
 		}
 
-		err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
-			if txErr := tx.Create(&plan).Error; txErr != nil {
+		txErr := db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
+			if err := tx.Create(&plan).Error; err != nil {
 				return err
 			}
 
@@ -368,19 +384,18 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 				readings[i].PlanID = plan.ID
 			}
 
-			if txErr := tx.Create(&readings).Error; txErr != nil {
+			if err := tx.Create(&readings).Error; err != nil {
 				return err
 			}
 
 			return nil
 		})
 
-		if err != nil {
-			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, errors.Wrap(err, "failed to create plan")))
+		if txErr != nil {
+			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, errors.Wrap(txErr, "failed to create plan")))
 		}
 
-		_ = clearDraftData(c)
-		return htmxRedirect(c, "/plans")
+		return c.Redirect(http.StatusFound, "/plans")
 	}
 }
 
@@ -507,7 +522,7 @@ func createPlan(fs afero.Fs, db *gorm.DB) echo.HandlerFunc {
 			}
 		}(plan, tempPath, fs, db)
 
-		return htmxRedirect(c, "/plans")
+		return c.Redirect(http.StatusFound, "/plans")
 	}
 }
 
@@ -544,7 +559,7 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Failed to update plan")
 		}
 
-		return htmxRedirect(c, "/plans")
+		return c.Redirect(http.StatusFound, "/plans")
 	}
 }
 
@@ -569,7 +584,7 @@ func deletePlan(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Failed to delete plan")
 		}
 
-		return htmxRedirect(c, "/plans")
+		return c.Redirect(http.StatusFound, "/plans")
 	}
 }
 
@@ -660,7 +675,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return render(c, 422, views.EditPlan(cfg, &user, plan, errors.Wrap(err, "Failed to update plan")))
 		}
 
-		return htmxRedirect(c, "/plans")
+		return c.Redirect(http.StatusFound, "/plans")
 	}
 }
 

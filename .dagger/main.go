@@ -62,8 +62,9 @@ func (m *Readwillbe) Build(
 		return nil, fmt.Errorf("test failed: %w", err)
 	}
 
-	cssDir := m.BuildCss(source)
-	buildSource := templSource.WithDirectory("static/css", cssDir)
+	// Build CSS and React together
+	assetsDir := m.BuildAssets(source)
+	buildSource := templSource.WithDirectory("static", assetsDir)
 
 	return m.BuildBinary(buildSource, version), nil
 }
@@ -78,6 +79,16 @@ func (m *Readwillbe) lintSource(ctx context.Context, source *dagger.Directory) (
 		WithModuleCache(dag.CacheVolume("go-mod-cache")).
 		WithLinterCache(dag.CacheVolume("golangci-lint-cache")).
 		Run(source).
+		Stdout(ctx)
+}
+
+func (m *Readwillbe) Typecheck(ctx context.Context, source *dagger.Directory) (string, error) {
+	return dag.Container().
+		From("ghcr.io/jwhumphries/frontend:latest").
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"bun", "install"}).
+		WithExec([]string{"bun", "run", "typecheck"}).
 		Stdout(ctx)
 }
 
@@ -99,14 +110,16 @@ func (m *Readwillbe) testSource(ctx context.Context, source *dagger.Directory) (
 		Stdout(ctx)
 }
 
-func (m *Readwillbe) BuildCss(source *dagger.Directory) *dagger.Directory {
+// BuildAssets compiles both CSS (Tailwind) and React/TypeScript in one step
+func (m *Readwillbe) BuildAssets(source *dagger.Directory) *dagger.Directory {
 	return dag.Container().
 		From("ghcr.io/jwhumphries/frontend:latest").
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithExec([]string{"bun", "install"}).
-		WithExec([]string{"bun", "run", "build"}).
-		Directory("/app/static/css")
+		WithExec([]string{"bun", "run", "build"}).    // CSS
+		WithExec([]string{"bun", "run", "build:js"}). // React
+		Directory("/app/static")
 }
 
 func (m *Readwillbe) TemplGenerate(source *dagger.Directory) *dagger.Directory {

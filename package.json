@@ -6,13 +6,33 @@
   "scripts": {
     "init": "tailwindcss -i ./input.css -o ./static/css/main.css",
     "dev": "tailwindcss -i ./input.css -o ./static/css/main.css --watch",
-    "build": "tailwindcss -i ./input.css -o ./static/css/main.css --minify"
+    "build": "tailwindcss -i ./input.css -o ./static/css/main.css --minify",
+    "build:js": "node tools/build.js",
+    "watch:js": "node tools/build.js --watch",
+    "watch:css": "node tools/watch_css.js",
+    "typecheck": "tsc --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "@tanstack/react-query": "^5.80.6",
+    "sonner": "^2.0.3",
+    "react-hook-form": "^7.56.4",
+    "lucide-react": "^0.511.0",
+    "date-fns": "^4.1.0",
+    "react-day-picker": "^9.7.0"
+  },
   "devDependencies": {
-    "@tailwindcss/cli": "4.1.18",
+    "@parcel/watcher": "^2.5.1",
+    "@tailwindcss/oxide": "^4.1.8",
     "@tailwindcss/typography": "0.5.19",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
     "daisyui": "5.5.14",
-    "tailwindcss": "4.1.18"
+    "esbuild": "^0.27.2",
+    "lightningcss": "^1.29.2",
+    "typescript": "^5.8.3",
+    "zod": "^3.25.36",
+    "@hookform/resolvers": "^5.0.1"
   }
 }

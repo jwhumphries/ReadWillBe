@@ -81,8 +81,8 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Verify redirect
-	assert.Equal(t, http.StatusOK, rec.Code) // HTMX redirect returns 200 with HX-Redirect header
-	assert.Equal(t, "/plans", rec.Header().Get("HX-Redirect"))
+	assert.Equal(t, http.StatusFound, rec.Code)
+	assert.Equal(t, "/plans", rec.Header().Get("Location"))
 
 	// Verify plan status is initially "processing" or eventually "active"
 	// Since it's a goroutine, it might be fast enough to be active immediately or still processing.
