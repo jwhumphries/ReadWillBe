@@ -1,5 +1,6 @@
 package views
 
+import "fmt"
 import "readwillbe/types"
 
 // ReactPlanGroup represents a plan group for the React component
@@ -47,9 +48,21 @@ func toReactPlanGroups(groups []types.PlanGroup) []ReactPlanGroup {
 	return result
 }
 
-templ Dashboard(cfg types.Config, user *types.User, planGroups []types.PlanGroup) {
+templ Dashboard(cfg types.Config, user *types.User, planGroups []types.PlanGroup, weeklyCount int64, monthlyCount int64) {
 	@Layout(cfg, user, "Dashboard - ReadWillBe") {
 		<div class="space-y-8">
+			<div class="stats stats-vertical md:stats-horizontal shadow-none bg-transparent w-full stats-sm">
+				<div class="stat place-items-center">
+					<div class="stat-title opacity-70">Completed this week</div>
+					<div class="stat-value text-2xl">{ fmt.Sprintf("%d", weeklyCount) }</div>
+					<div class="stat-desc">Readings</div>
+				</div>
+				<div class="stat place-items-center">
+					<div class="stat-title opacity-70">Completed this month</div>
+					<div class="stat-value text-2xl">{ fmt.Sprintf("%d", monthlyCount) }</div>
+					<div class="stat-desc">Readings</div>
+				</div>
+			</div>
 			<div>
 				<h2 class="text-3xl font-bold mb-6">Today's Reading</h2>
 				@React("DashboardReadings", map[string]interface{}{
