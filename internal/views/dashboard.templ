@@ -1,7 +1,7 @@
 package views
 
-import "readwillbe/types"
-import "readwillbe/views/partials"
+import "readwillbe/internal/model"
+import "readwillbe/internal/views/partials"
 
 // ReactPlanGroup represents a plan group for the React component
 type ReactPlanGroup struct {
@@ -23,7 +23,7 @@ type ReactReading struct {
 	IsOverdue bool   `json:"isOverdue"`
 }
 
-func toReactPlanGroups(groups []types.PlanGroup) []ReactPlanGroup {
+func toReactPlanGroups(groups []model.PlanGroup) []ReactPlanGroup {
 	result := make([]ReactPlanGroup, len(groups))
 	for i, g := range groups {
 		readings := make([]ReactReading, len(g.Readings))
@@ -48,7 +48,7 @@ func toReactPlanGroups(groups []types.PlanGroup) []ReactPlanGroup {
 	return result
 }
 
-templ Dashboard(cfg types.Config, user *types.User, planGroups []types.PlanGroup, weeklyCount int64, monthlyCount int64) {
+templ Dashboard(cfg model.Config, user *model.User, planGroups []model.PlanGroup, weeklyCount int64, monthlyCount int64) {
 	@Layout(cfg, user, "Dashboard - ReadWillBe") {
 		<div class="space-y-8">
 			@partials.DashboardStats(weeklyCount, monthlyCount)

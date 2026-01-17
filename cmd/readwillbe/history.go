@@ -5,23 +5,24 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"readwillbe/types"
-	"readwillbe/views"
+	mw "readwillbe/internal/middleware"
+	"readwillbe/internal/model"
+	"readwillbe/internal/views"
 )
 
-func historyHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
+func historyHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
 
-		var readings []types.Reading
+		var readings []model.Reading
 		tx := db.WithContext(c.Request().Context())
 		tx.Preload("Plan").
 			Where("plan_id IN (?) AND status = ?",
 				tx.Table("plans").Select("id").Where("user_id = ?", user.ID),
-				types.StatusCompleted,
+				model.StatusCompleted,
 			).
 			Order("completed_at DESC").
 			Find(&readings)

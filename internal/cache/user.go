@@ -1,14 +1,14 @@
-package main
+package cache
 
 import (
 	"sync"
 	"time"
 
-	"readwillbe/types"
+	"readwillbe/internal/model"
 )
 
 type cachedUser struct {
-	user      types.User
+	user      model.User
 	expiresAt time.Time
 }
 
@@ -46,26 +46,26 @@ func (c *UserCache) cleanup() {
 	})
 }
 
-func (c *UserCache) Get(id uint) (types.User, bool) {
+func (c *UserCache) Get(id uint) (model.User, bool) {
 	val, ok := c.cache.Load(id)
 	if !ok {
-		return types.User{}, false
+		return model.User{}, false
 	}
 
 	cached, ok := val.(cachedUser)
 	if !ok {
 		c.cache.Delete(id)
-		return types.User{}, false
+		return model.User{}, false
 	}
 	if time.Now().After(cached.expiresAt) {
 		c.cache.Delete(id)
-		return types.User{}, false
+		return model.User{}, false
 	}
 
 	return cached.user, true
 }
 
-func (c *UserCache) Set(user types.User) {
+func (c *UserCache) Set(user model.User) {
 	c.cache.Store(user.ID, cachedUser{
 		user:      user,
 		expiresAt: time.Now().Add(c.ttl),

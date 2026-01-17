@@ -1,4 +1,4 @@
-package main
+package email
 
 import (
 	"context"
@@ -7,40 +7,40 @@ import (
 	"strings"
 
 	mail "github.com/wneessen/go-mail"
-	"readwillbe/types"
+	"readwillbe/internal/model"
 )
 
-type EmailService interface {
-	SendDailyDigest(user types.User, readings []types.Reading, hostname string) error
+type Service interface {
+	SendDailyDigest(user model.User, readings []model.Reading, hostname string) error
 	SendTestEmail(to, hostname string) error
 }
 
-func NewEmailService(cfg types.Config) EmailService {
+func NewService(cfg model.Config) Service {
 	switch cfg.EmailProvider {
 	case "smtp":
-		return &SMTPEmailService{cfg: cfg}
+		return &SMTPService{cfg: cfg}
 	case "resend":
-		return &ResendEmailService{cfg: cfg}
+		return &ResendService{cfg: cfg}
 	default:
 		return nil
 	}
 }
 
-type SMTPEmailService struct {
-	cfg types.Config
+type SMTPService struct {
+	cfg model.Config
 }
 
-func (s *SMTPEmailService) SendDailyDigest(user types.User, readings []types.Reading, hostname string) error {
-	html, text := renderDailyDigestEmail(user, readings, hostname)
+func (s *SMTPService) SendDailyDigest(user model.User, readings []model.Reading, hostname string) error {
+	html, text := RenderDailyDigestEmail(user, readings, hostname)
 	return s.send(user.GetNotificationEmail(), "Your readings for today", html, text)
 }
 
-func (s *SMTPEmailService) SendTestEmail(to, hostname string) error {
-	html, text := renderTestEmail(hostname)
+func (s *SMTPService) SendTestEmail(to, hostname string) error {
+	html, text := RenderTestEmail(hostname)
 	return s.send(to, "Test Email from ReadWillBe", html, text)
 }
 
-func (s *SMTPEmailService) send(to, subject, htmlBody, textBody string) error {
+func (s *SMTPService) send(to, subject, htmlBody, textBody string) error {
 	m := mail.NewMsg()
 	if err := m.From(s.cfg.SMTPFrom); err != nil {
 		return fmt.Errorf("invalid from address: %w", err)
@@ -83,21 +83,21 @@ func (s *SMTPEmailService) send(to, subject, htmlBody, textBody string) error {
 	return c.DialAndSend(m)
 }
 
-type ResendEmailService struct {
-	cfg types.Config
+type ResendService struct {
+	cfg model.Config
 }
 
-func (r *ResendEmailService) SendDailyDigest(user types.User, readings []types.Reading, hostname string) error {
-	html, text := renderDailyDigestEmail(user, readings, hostname)
+func (r *ResendService) SendDailyDigest(user model.User, readings []model.Reading, hostname string) error {
+	html, text := RenderDailyDigestEmail(user, readings, hostname)
 	return r.send(user.GetNotificationEmail(), "Your readings for today", html, text)
 }
 
-func (r *ResendEmailService) SendTestEmail(to, hostname string) error {
-	html, text := renderTestEmail(hostname)
+func (r *ResendService) SendTestEmail(to, hostname string) error {
+	html, text := RenderTestEmail(hostname)
 	return r.send(to, "Test Email from ReadWillBe", html, text)
 }
 
-func (r *ResendEmailService) send(to, subject, htmlBody, textBody string) error {
+func (r *ResendService) send(to, subject, htmlBody, textBody string) error {
 	payload := fmt.Sprintf(`{
 		"from": %q,
 		"to": [%q],

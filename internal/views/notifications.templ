@@ -1,6 +1,6 @@
 package views
 
-import "readwillbe/types"
+import "readwillbe/internal/model"
 import "fmt"
 
 templ NotificationBell(count int) {
@@ -10,7 +10,7 @@ templ NotificationBell(count int) {
 	})
 }
 
-templ NotificationDropdown(readings []types.Reading) {
+templ NotificationDropdown(readings []model.Reading) {
 	if len(readings) == 0 {
 		<div class="p-4 text-center">
 			<div class="mx-auto w-12 h-12 mb-2 opacity-10">

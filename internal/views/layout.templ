@@ -2,7 +2,7 @@ package views
 
 import (
 	"fmt"
-	"readwillbe/types"
+	"readwillbe/internal/model"
 	"readwillbe/version"
 	"strings"
 )
@@ -11,7 +11,7 @@ func versionedPath(path string) string {
 	return fmt.Sprintf("%s?version=%s", path, version.Tag)
 }
 
-templ Layout(cfg types.Config, user *types.User, title string) {
+templ Layout(cfg model.Config, user *model.User, title string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>

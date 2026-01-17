@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"readwillbe/internal/views/components"
-	"readwillbe/types"
+	"readwillbe/internal/model"
 )
 
-templ PlansList(cfg types.Config, user *types.User, inProgressPlans []types.Plan, completedPlans []types.Plan) {
+templ PlansList(cfg model.Config, user *model.User, inProgressPlans []model.Plan, completedPlans []model.Plan) {
 	@Layout(cfg, user, "Plans - ReadWillBe") {
 		<div>
 			<div class="flex justify-between items-center mb-6">
@@ -95,7 +95,7 @@ templ PlansList(cfg types.Config, user *types.User, inProgressPlans []types.Plan
 	}
 }
 
-templ PlanCard(plan types.Plan) {
+templ PlanCard(plan model.Plan) {
 	<div class="card bg-base-200 shadow-xl" id={ fmt.Sprintf("plan-%d", plan.ID) }>
 		<div class="card-body">
 			<div class="flex justify-between items-start">
@@ -168,7 +168,7 @@ templ PlanCard(plan types.Plan) {
 	</div>
 }
 
-templ PlanReadingItem(reading types.Reading) {
+templ PlanReadingItem(reading model.Reading) {
 	<li class="list-row">
 		<div class="flex flex-col">
 			<span class="text-sm font-bold">{ reading.FormattedDate() }</span>
@@ -176,11 +176,11 @@ templ PlanReadingItem(reading types.Reading) {
 		</div>
 		<span
 			class={ templ.Classes("badge badge-sm",
-			templ.KV("badge-success", reading.Status == types.StatusCompleted),
-			templ.KV("badge-warning", reading.Status == types.StatusPending && !reading.IsOverdue()),
+			templ.KV("badge-success", reading.Status == model.StatusCompleted),
+			templ.KV("badge-warning", reading.Status == model.StatusPending && !reading.IsOverdue()),
 			templ.KV("badge-error", reading.IsOverdue())) }
 		>
-			if reading.Status == types.StatusCompleted {
+			if reading.Status == model.StatusCompleted {
 				✓ Completed
 			} else if reading.IsOverdue() {
 				⚠ Overdue
@@ -191,7 +191,7 @@ templ PlanReadingItem(reading types.Reading) {
 	</li>
 }
 
-templ CreatePlanForm(cfg types.Config, user *types.User, err error) {
+templ CreatePlanForm(cfg model.Config, user *model.User, err error) {
 	@Layout(cfg, user, "Create Plan - ReadWillBe") {
 		<div class="max-w-2xl mx-auto">
 			<div class="flex items-center gap-4 mb-6">
@@ -243,7 +243,7 @@ templ CreatePlanFormError(err error) {
 	@components.AlertError(err.Error())
 }
 
-templ EditPlan(cfg types.Config, user *types.User, plan types.Plan, err error) {
+templ EditPlan(cfg model.Config, user *model.User, plan model.Plan, err error) {
 	@Layout(cfg, user, "Edit Plan - ReadWillBe") {
 		<div class="max-w-4xl mx-auto">
 			<div class="flex items-center gap-4 mb-6">
@@ -267,7 +267,7 @@ templ EditPlan(cfg types.Config, user *types.User, plan types.Plan, err error) {
 	}
 }
 
-func toReactReadingsFromDomain(readings []types.Reading) []map[string]string {
+func toReactReadingsFromDomain(readings []model.Reading) []map[string]string {
 	result := make([]map[string]string, len(readings))
 	for i, r := range readings {
 		result[i] = map[string]string{
@@ -281,21 +281,21 @@ func toReactReadingsFromDomain(readings []types.Reading) []map[string]string {
 }
 
 // formatDateForReact formats a date based on its type for the React PlanEditor
-func formatDateForReact(date time.Time, dateType types.DateType) string {
+func formatDateForReact(date time.Time, dateType model.DateType) string {
 	switch dateType {
-	case types.DateTypeWeek:
+	case model.DateTypeWeek:
 		year, week := date.ISOWeek()
 		return fmt.Sprintf("%d-W%02d", year, week)
-	case types.DateTypeMonth:
+	case model.DateTypeMonth:
 		return date.Format("January 2006")
-	case types.DateTypeDay:
+	case model.DateTypeDay:
 		fallthrough
 	default:
 		return date.Format("2006-01-02")
 	}
 }
 
-templ ManualPlanCreate(cfg types.Config, user *types.User, title string, readings []ManualReading, err error) {
+templ ManualPlanCreate(cfg model.Config, user *model.User, title string, readings []ManualReading, err error) {
 	@Layout(cfg, user, "Create Plan Manually - ReadWillBe") {
 		<div class="max-w-4xl mx-auto">
 			<div class="flex items-center gap-4 mb-6">
@@ -489,7 +489,7 @@ templ ManualReadingRow(reading ManualReading) {
 	</tr>
 }
 
-templ PlanProgress(readings []types.Reading, planID uint) {
+templ PlanProgress(readings []model.Reading, planID uint) {
 	<div class="mt-4">
 		<div class="flex justify-between items-center mb-1">
 			<span class="text-sm font-medium opacity-70" id={ fmt.Sprintf("progress-label-%d", planID) }>Progress</span>
@@ -504,13 +504,13 @@ templ PlanProgress(readings []types.Reading, planID uint) {
 	</div>
 }
 
-func calculateProgress(readings []types.Reading) int {
+func calculateProgress(readings []model.Reading) int {
 	if len(readings) == 0 {
 		return 0
 	}
 	completed := 0
 	for _, r := range readings {
-		if r.Status == types.StatusCompleted {
+		if r.Status == model.StatusCompleted {
 			completed++
 		}
 	}

@@ -7,15 +7,17 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/spf13/afero"
-
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"gorm.io/gorm"
-	"readwillbe/types"
-	"readwillbe/views"
+
+	mw "readwillbe/internal/middleware"
+	"readwillbe/internal/model"
+	csvservice "readwillbe/internal/service/csv"
+	"readwillbe/internal/views"
 )
 
 const (
@@ -24,18 +26,18 @@ const (
 	MaxContentLength = 2000
 )
 
-func plansListHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
+func plansListHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
 
-		var plans []types.Plan
+		var plans []model.Plan
 		db.WithContext(c.Request().Context()).Preload("Readings").Where("user_id = ?", user.ID).Order("title ASC").Find(&plans)
 
 		// Separate into in-progress and completed plans
-		var inProgressPlans, completedPlans []types.Plan
+		var inProgressPlans, completedPlans []model.Plan
 		for _, plan := range plans {
 			if plan.IsComplete() {
 				completedPlans = append(completedPlans, plan)
@@ -48,9 +50,9 @@ func plansListHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-func createPlanForm(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
+func createPlanForm(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -63,7 +65,7 @@ const DraftTitleKey = "draft-plan-title"
 const DraftReadingsKey = "draft-plan-readings"
 
 func getDraftData(c echo.Context) (string, []views.ManualReading, error) {
-	sess, err := session.Get(SessionKey, c)
+	sess, err := session.Get(mw.SessionKey, c)
 	if err != nil {
 		logrus.Errorf("getDraftData: failed to get session: %v", err)
 		return "", nil, err
@@ -81,7 +83,7 @@ func getDraftData(c echo.Context) (string, []views.ManualReading, error) {
 }
 
 func saveDraftData(c echo.Context, title string, readings []views.ManualReading) error {
-	sess, err := session.Get(SessionKey, c)
+	sess, err := session.Get(mw.SessionKey, c)
 	if err != nil {
 		logrus.Errorf("saveDraftData: failed to get session: %v", err)
 		return err
@@ -97,7 +99,7 @@ func saveDraftData(c echo.Context, title string, readings []views.ManualReading)
 }
 
 func clearDraftData(c echo.Context) error {
-	sess, err := session.Get(SessionKey, c)
+	sess, err := session.Get(mw.SessionKey, c)
 	if err != nil {
 		return err
 	}
@@ -106,9 +108,9 @@ func clearDraftData(c echo.Context) error {
 	return sess.Save(c.Request(), c.Response())
 }
 
-func manualPlanForm(cfg types.Config) echo.HandlerFunc {
+func manualPlanForm(cfg model.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -123,7 +125,7 @@ func manualPlanForm(cfg types.Config) echo.HandlerFunc {
 
 func updateDraftTitle() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		_, ok := GetSessionUser(c)
+		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
 		}
@@ -132,7 +134,7 @@ func updateDraftTitle() echo.HandlerFunc {
 		if len(title) > MaxTitleLength {
 			return c.String(http.StatusBadRequest, fmt.Sprintf("Title exceeds maximum length of %d characters", MaxTitleLength))
 		}
-		if title != "" && isFormulaInjection(title) {
+		if title != "" && csvservice.IsFormulaInjection(title) {
 			return c.String(http.StatusBadRequest, "Title cannot start with formula characters (=, +, -, @)")
 		}
 
@@ -149,7 +151,7 @@ func updateDraftTitle() echo.HandlerFunc {
 
 func addDraftReading() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		_, ok := GetSessionUser(c)
+		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
 		}
@@ -186,7 +188,7 @@ func addDraftReading() echo.HandlerFunc {
 
 func getDraftReading() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		_, ok := GetSessionUser(c)
+		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
 		}
@@ -208,7 +210,7 @@ func getDraftReading() echo.HandlerFunc {
 
 func getDraftReadingEdit() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		_, ok := GetSessionUser(c)
+		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
 		}
@@ -230,7 +232,7 @@ func getDraftReadingEdit() echo.HandlerFunc {
 
 func updateDraftReading() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		_, ok := GetSessionUser(c)
+		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
 		}
@@ -276,7 +278,7 @@ func updateDraftReading() echo.HandlerFunc {
 
 func deleteDraftReading() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		_, ok := GetSessionUser(c)
+		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
 		}
@@ -304,7 +306,7 @@ func deleteDraftReading() echo.HandlerFunc {
 
 func deleteDraft() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		_, ok := GetSessionUser(c)
+		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
 		}
@@ -316,9 +318,9 @@ func deleteDraft() echo.HandlerFunc {
 	}
 }
 
-func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
+func createManualPlan(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -347,7 +349,7 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("plan title is required")))
 		}
 
-		if isFormulaInjection(title) {
+		if csvservice.IsFormulaInjection(title) {
 			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("title cannot start with formula characters (=, +, -, @)")))
 		}
 
@@ -355,21 +357,21 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("at least one reading is required")))
 		}
 
-		readings := make([]types.Reading, 0, len(formReadings))
+		readings := make([]model.Reading, 0, len(formReadings))
 		for _, mr := range formReadings {
-			parsedDate, dateType, parseErr := parseDate(mr.Date)
+			parsedDate, dateType, parseErr := csvservice.ParseDate(mr.Date)
 			if parseErr != nil {
 				return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, errors.Wrap(parseErr, fmt.Sprintf("invalid date: %s", mr.Date))))
 			}
-			readings = append(readings, types.Reading{
+			readings = append(readings, model.Reading{
 				Date:     parsedDate,
 				DateType: dateType,
 				Content:  mr.Content,
-				Status:   types.StatusPending,
+				Status:   model.StatusPending,
 			})
 		}
 
-		plan := types.Plan{
+		plan := model.Plan{
 			Title:  title,
 			UserID: user.ID,
 			Status: "active",
@@ -401,7 +403,7 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 
 func createPlan(fs afero.Fs, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -413,7 +415,7 @@ func createPlan(fs afero.Fs, db *gorm.DB) echo.HandlerFunc {
 		if len(title) > MaxTitleLength {
 			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("plan title must be less than %d characters", MaxTitleLength)))
 		}
-		if isFormulaInjection(title) {
+		if csvservice.IsFormulaInjection(title) {
 			return render(c, 422, views.CreatePlanFormError(fmt.Errorf("title cannot start with formula characters (=, +, -, @)")))
 		}
 
@@ -462,7 +464,7 @@ func createPlan(fs afero.Fs, db *gorm.DB) echo.HandlerFunc {
 		_ = tempFile.Close()
 
 		// Create plan immediately in processing state
-		plan := types.Plan{
+		plan := model.Plan{
 			Title:  title,
 			UserID: user.ID,
 			Status: "processing",
@@ -474,7 +476,7 @@ func createPlan(fs afero.Fs, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		// Process CSV in background
-		go func(p types.Plan, filePath string, fileSys afero.Fs, d *gorm.DB) {
+		go func(p model.Plan, filePath string, fileSys afero.Fs, d *gorm.DB) {
 			defer func() {
 				if r := recover(); r != nil {
 					p.Status = "failed"
@@ -493,7 +495,7 @@ func createPlan(fs afero.Fs, db *gorm.DB) echo.HandlerFunc {
 			}
 			defer func() { _ = f.Close() }()
 
-			readings, err := parseCSV(f)
+			readings, err := csvservice.ParseCSV(f)
 			if err != nil {
 				p.Status = "failed"
 				p.ErrorMessage = fmt.Sprintf("Failed to parse CSV: %v", err)
@@ -528,7 +530,7 @@ func createPlan(fs afero.Fs, db *gorm.DB) echo.HandlerFunc {
 
 func renamePlan(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -538,7 +540,7 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "Invalid plan ID")
 		}
 
-		var plan types.Plan
+		var plan model.Plan
 		if err := db.WithContext(c.Request().Context()).First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
@@ -550,7 +552,7 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 		if len(newTitle) > MaxTitleLength {
 			return c.String(http.StatusBadRequest, fmt.Sprintf("Title must be less than %d characters", MaxTitleLength))
 		}
-		if isFormulaInjection(newTitle) {
+		if csvservice.IsFormulaInjection(newTitle) {
 			return c.String(http.StatusBadRequest, "Title cannot start with formula characters (=, +, -, @)")
 		}
 
@@ -565,7 +567,7 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 
 func deletePlan(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -575,7 +577,7 @@ func deletePlan(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "Invalid plan ID")
 		}
 
-		var plan types.Plan
+		var plan model.Plan
 		if err := db.WithContext(c.Request().Context()).First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
@@ -588,9 +590,9 @@ func deletePlan(db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-func editPlanForm(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
+func editPlanForm(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -600,7 +602,7 @@ func editPlanForm(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "Invalid plan ID")
 		}
 
-		var plan types.Plan
+		var plan model.Plan
 		if err := db.WithContext(c.Request().Context()).Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
@@ -609,9 +611,9 @@ func editPlanForm(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
+func editPlan(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -621,7 +623,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "Invalid plan ID")
 		}
 
-		var plan types.Plan
+		var plan model.Plan
 		if dbErr := db.WithContext(c.Request().Context()).Preload("Readings").First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; dbErr != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
@@ -630,7 +632,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		if title == "" {
 			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("plan title is required")))
 		}
-		if isFormulaInjection(title) {
+		if csvservice.IsFormulaInjection(title) {
 			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("title cannot start with formula characters (=, +, -, @)")))
 		}
 
@@ -654,14 +656,14 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			processedIDs := make(map[uint]bool)
 
 			for _, fr := range formReadings {
-				parsedDate, dateType, parseErr := parseDate(fr.Date)
+				parsedDate, dateType, parseErr := csvservice.ParseDate(fr.Date)
 				if parseErr != nil {
 					return errors.Wrap(parseErr, fmt.Sprintf("invalid date: %s", fr.Date))
 				}
 
 				// Try to parse ID as uint to check if it's an existing reading
 				readingID, parseIDErr := strconv.ParseUint(fr.ID, 10, 32)
-				var existingReading *types.Reading
+				var existingReading *model.Reading
 
 				// If ID is valid uint, check if it belongs to this plan
 				if parseIDErr == nil {
@@ -684,12 +686,12 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 					processedIDs[existingReading.ID] = true
 				} else {
 					// Create new
-					newReading := types.Reading{
+					newReading := model.Reading{
 						PlanID:   plan.ID,
 						Date:     parsedDate,
 						DateType: dateType,
 						Content:  fr.Content,
-						Status:   types.StatusPending,
+						Status:   model.StatusPending,
 					}
 					if createErr := tx.Create(&newReading).Error; createErr != nil {
 						return createErr
@@ -720,7 +722,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 // JSON API endpoint for plan status (used by React polling)
 func apiPlanStatus(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 		}
@@ -730,7 +732,7 @@ func apiPlanStatus(db *gorm.DB) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid plan ID"})
 		}
 
-		var plan types.Plan
+		var plan model.Plan
 		if err := db.WithContext(c.Request().Context()).First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
 			return c.JSON(http.StatusNotFound, map[string]string{"error": "plan not found"})
 		}
@@ -742,7 +744,7 @@ func apiPlanStatus(db *gorm.DB) echo.HandlerFunc {
 // JSON API endpoint for saving draft (used by React PlanEditor)
 func apiSaveDraft() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		_, ok := GetSessionUser(c)
+		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 		}
@@ -769,7 +771,7 @@ func apiSaveDraft() echo.HandlerFunc {
 			if len(body.Title) > MaxTitleLength {
 				return c.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("title exceeds maximum length of %d characters", MaxTitleLength)})
 			}
-			if isFormulaInjection(body.Title) {
+			if csvservice.IsFormulaInjection(body.Title) {
 				return c.JSON(http.StatusBadRequest, map[string]string{"error": "title cannot start with formula characters"})
 			}
 			title = body.Title
@@ -800,7 +802,7 @@ func apiSaveDraft() echo.HandlerFunc {
 
 func deleteReading(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -815,12 +817,12 @@ func deleteReading(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "Invalid reading ID")
 		}
 
-		var plan types.Plan
+		var plan model.Plan
 		if err := db.WithContext(c.Request().Context()).First(&plan, "id = ? AND user_id = ?", planID, user.ID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Plan not found")
 		}
 
-		var reading types.Reading
+		var reading model.Reading
 		if err := db.WithContext(c.Request().Context()).First(&reading, "id = ? AND plan_id = ?", readingID, planID).Error; err != nil {
 			return c.String(http.StatusNotFound, "Reading not found")
 		}

@@ -1,4 +1,4 @@
-package main
+package cache
 
 import (
 	"testing"
@@ -6,14 +6,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"readwillbe/types"
+	"readwillbe/internal/model"
 )
 
 func TestUserCache_Cleanup(t *testing.T) {
 	ttl := 100 * time.Millisecond
 	cache := NewUserCache(ttl, 50*time.Millisecond)
 
-	user := types.User{
+	user := model.User{
 		Model: gorm.Model{ID: 1},
 		Email: "test@example.com",
 	}
@@ -43,7 +43,7 @@ func TestUserCache_Get_Expired(t *testing.T) {
 	// although Get() checks expiry anyway.
 	cache := NewUserCache(ttl, 1*time.Second)
 
-	user := types.User{Model: gorm.Model{ID: 1}}
+	user := model.User{Model: gorm.Model{ID: 1}}
 	cache.Set(user)
 
 	time.Sleep(100 * time.Millisecond)

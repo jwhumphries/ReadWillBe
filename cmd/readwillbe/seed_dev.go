@@ -4,7 +4,6 @@ package main
 
 import (
 	"path/filepath"
-	"readwillbe/types"
 	"strings"
 	"time"
 
@@ -13,14 +12,17 @@ import (
 	"github.com/spf13/afero"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+
+	"readwillbe/internal/model"
+	csvservice "readwillbe/internal/service/csv"
 )
 
 func seedDatabase(db *gorm.DB, fs afero.Fs) error {
 	logrus.Info("Seeding database (dev environment)...")
 
 	// 1. Ensure Test User Exists
-	var testUser types.User
-	var users []types.User
+	var testUser model.User
+	var users []model.User
 	err := db.Where("email = ?", "testy@testicular.test").Limit(1).Find(&users).Error
 	if err != nil {
 		return errors.Wrap(err, "checking for test user")
@@ -36,7 +38,7 @@ func seedDatabase(db *gorm.DB, fs afero.Fs) error {
 			return errors.Wrap(err, "generating password hash")
 		}
 
-		testUser = types.User{
+		testUser = model.User{
 			Name:      "Testy",
 			Email:     "testy@testicular.test",
 			Password:  string(hash),
@@ -74,7 +76,7 @@ func seedDatabase(db *gorm.DB, fs afero.Fs) error {
 
 		// Check if plan already exists
 		var existingPlanCount int64
-		if err := db.Model(&types.Plan{}).Where("user_id = ? AND title = ?", testUser.ID, planTitle).Count(&existingPlanCount).Error; err != nil {
+		if err := db.Model(&model.Plan{}).Where("user_id = ? AND title = ?", testUser.ID, planTitle).Count(&existingPlanCount).Error; err != nil {
 			return errors.Wrapf(err, "checking existence of plan %s", planTitle)
 		}
 
@@ -90,14 +92,14 @@ func seedDatabase(db *gorm.DB, fs afero.Fs) error {
 			return errors.Wrapf(err, "opening file %s", filename)
 		}
 
-		readings, err := parseCSV(f)
+		readings, err := csvservice.ParseCSV(f)
 		f.Close() // Close immediately after reading
 
 		if err != nil {
 			return errors.Wrapf(err, "parsing CSV %s", filename)
 		}
 
-		plan := types.Plan{
+		plan := model.Plan{
 			Title:    planTitle,
 			UserID:   testUser.ID,
 			Readings: readings,

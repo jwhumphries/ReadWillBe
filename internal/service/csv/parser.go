@@ -1,4 +1,4 @@
-package main
+package csv
 
 import (
 	"encoding/csv"
@@ -8,18 +8,20 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"readwillbe/types"
+	"readwillbe/internal/model"
 )
 
-const MaxCSVRows = 10000
+const (
+	MaxCSVRows       = 10000
+	MaxContentLength = 10000
+)
 
-// MaxContentLength is defined in plans.go
+// FormulaInjectionPrefixes are characters that could trigger formula execution in spreadsheet applications
+var FormulaInjectionPrefixes = []string{"=", "+", "-", "@", "\t", "\r"}
 
-// formulaInjectionPrefixes are characters that could trigger formula execution in spreadsheet applications
-var formulaInjectionPrefixes = []string{"=", "+", "-", "@", "\t", "\r"}
-
-func isFormulaInjection(s string) bool {
-	for _, prefix := range formulaInjectionPrefixes {
+// IsFormulaInjection checks if a string starts with characters that could trigger formula execution
+func IsFormulaInjection(s string) bool {
+	for _, prefix := range FormulaInjectionPrefixes {
 		if strings.HasPrefix(s, prefix) {
 			return true
 		}
@@ -27,7 +29,7 @@ func isFormulaInjection(s string) bool {
 	return false
 }
 
-func parseCSV(r io.Reader) ([]types.Reading, error) {
+func ParseCSV(r io.Reader) ([]model.Reading, error) {
 	reader := csv.NewReader(r)
 	reader.LazyQuotes = false
 	reader.TrimLeadingSpace = true
@@ -49,7 +51,7 @@ func parseCSV(r io.Reader) ([]types.Reading, error) {
 		return nil, fmt.Errorf("CSV must have at least 2 columns: date and reading")
 	}
 
-	var readings []types.Reading
+	var readings []model.Reading
 	for i, record := range records[1:] {
 		if len(record) < 2 {
 			return nil, fmt.Errorf("row %d: insufficient columns", i+2)
@@ -66,20 +68,20 @@ func parseCSV(r io.Reader) ([]types.Reading, error) {
 			return nil, fmt.Errorf("row %d: content exceeds maximum length of %d characters", i+2, MaxContentLength)
 		}
 
-		if isFormulaInjection(content) {
+		if IsFormulaInjection(content) {
 			return nil, fmt.Errorf("row %d: content cannot start with formula characters (=, +, -, @)", i+2)
 		}
 
-		date, dateType, err := parseDate(dateStr)
+		date, dateType, err := ParseDate(dateStr)
 		if err != nil {
 			return nil, fmt.Errorf("row %d: %w", i+2, err)
 		}
 
-		reading := types.Reading{
+		reading := model.Reading{
 			Date:     date,
 			DateType: dateType,
 			Content:  content,
-			Status:   types.StatusPending,
+			Status:   model.StatusPending,
 		}
 
 		readings = append(readings, reading)
@@ -88,7 +90,7 @@ func parseCSV(r io.Reader) ([]types.Reading, error) {
 	return readings, nil
 }
 
-func parseDate(dateStr string) (time.Time, types.DateType, error) {
+func ParseDate(dateStr string) (time.Time, model.DateType, error) {
 	if strings.HasPrefix(dateStr, "Week ") {
 		return parseWeekFormat(dateStr)
 	}
@@ -99,13 +101,13 @@ func parseDate(dateStr string) (time.Time, types.DateType, error) {
 
 	layouts := []struct {
 		layout   string
-		dateType types.DateType
+		dateType model.DateType
 	}{
-		{"2006-01-02", types.DateTypeDay},
-		{"01/02/2006", types.DateTypeDay},
-		{"January 2006", types.DateTypeMonth},
-		{"Jan 2006", types.DateTypeMonth},
-		{"2006-01", types.DateTypeMonth},
+		{"2006-01-02", model.DateTypeDay},
+		{"01/02/2006", model.DateTypeDay},
+		{"January 2006", model.DateTypeMonth},
+		{"Jan 2006", model.DateTypeMonth},
+		{"2006-01", model.DateTypeMonth},
 	}
 
 	for _, l := range layouts {
@@ -118,7 +120,7 @@ func parseDate(dateStr string) (time.Time, types.DateType, error) {
 	return time.Time{}, "", fmt.Errorf("invalid date format: %s (supported: YYYY-MM-DD, MM/DD/YYYY, Month YYYY, YYYY-MM, YYYY-Wnn, Week n)", dateStr)
 }
 
-func parseISOWeek(dateStr string) (time.Time, types.DateType, error) {
+func parseISOWeek(dateStr string) (time.Time, model.DateType, error) {
 	var year, week int
 	_, err := fmt.Sscanf(dateStr, "%d-W%d", &year, &week)
 	if err != nil {
@@ -137,10 +139,10 @@ func parseISOWeek(dateStr string) (time.Time, types.DateType, error) {
 	mondayOfWeek1 := jan4.AddDate(0, 0, 1-weekday)
 	weekStart := mondayOfWeek1.AddDate(0, 0, 7*(week-1))
 
-	return weekStart, types.DateTypeWeek, nil
+	return weekStart, model.DateTypeWeek, nil
 }
 
-func parseWeekFormat(dateStr string) (time.Time, types.DateType, error) {
+func parseWeekFormat(dateStr string) (time.Time, model.DateType, error) {
 	var week int
 	_, err := fmt.Sscanf(dateStr, "Week %d", &week)
 	if err != nil {

@@ -11,8 +11,11 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"readwillbe/types"
-	"readwillbe/views"
+
+	mw "readwillbe/internal/middleware"
+	"readwillbe/internal/model"
+	"readwillbe/internal/repository"
+	"readwillbe/internal/views"
 )
 
 const (
@@ -27,28 +30,14 @@ const (
 // Generated with cost 12 to match BcryptCost for consistent timing.
 var dummyHash = []byte("$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.qfTJ.l5NmY8S2e")
 
-func getUserByID(db *gorm.DB, id uint) (types.User, error) {
-	var user types.User
-	err := db.Preload("Plans").First(&user, "id = ?", id).Error
-
-	return user, errors.Wrap(err, "Finding user")
-}
-
-func userExists(email string, db *gorm.DB) bool {
-	var user types.User
-	err := db.First(&user, "email = ?", email).Error
-
-	return !errors.Is(err, gorm.ErrRecordNotFound)
-}
-
-func signUp(cfg types.Config) echo.HandlerFunc {
+func signUp(cfg model.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		csrf, _ := c.Get("csrf").(string)
 		return render(c, 200, views.SignUpPage(cfg, csrf, nil))
 	}
 }
 
-func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc {
+func signUpWithEmailAndPassword(db *gorm.DB, cfg model.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		name := c.FormValue("name")
 		email := c.FormValue("email")
@@ -73,7 +62,7 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 			return render(c, 422, views.SignUpPage(cfg, csrf, fmt.Errorf("password must be between %d and %d characters", MinPasswordLength, MaxPasswordLength)))
 		}
 
-		if userExists(email, db) {
+		if repository.UserExists(email, db) {
 			return render(c, 422, views.SignUpPage(cfg, csrf, fmt.Errorf("email already registered")))
 		}
 
@@ -82,25 +71,25 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 			return render(c, 422, views.SignUpPage(cfg, csrf, fmt.Errorf("internal server error")))
 		}
 
-		user := types.User{
+		user := model.User{
 			Name:      name,
 			Email:     email,
 			Password:  string(hash),
 			CreatedAt: time.Now(),
 		}
 
-		if dbErr := db.Create(&user).Error; dbErr != nil {
+		if dbErr := repository.CreateUser(db, &user); dbErr != nil {
 			wrappedErr := errors.Wrap(dbErr, "Create user error")
 			return render(c, 422, views.SignUpPage(cfg, csrf, wrappedErr))
 		}
 
-		sess, err := session.Get(SessionKey, c)
+		sess, err := session.Get(mw.SessionKey, c)
 		if err != nil {
 			return render(c, 422, views.SignUpPage(cfg, csrf, fmt.Errorf("internal server error")))
 		}
-		sess.Options = getSecureSessionOptions(cfg)
+		sess.Options = mw.GetSecureSessionOptions(cfg)
 
-		sess.Values[SessionUserIDKey] = user.ID
+		sess.Values[mw.SessionUserIDKey] = user.ID
 
 		err = sess.Save(c.Request(), c.Response())
 		if err != nil {
@@ -111,14 +100,14 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 	}
 }
 
-func signIn(cfg types.Config) echo.HandlerFunc {
+func signIn(cfg model.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		csrf, _ := c.Get("csrf").(string)
 		return render(c, 200, views.SignInPage(cfg, csrf, nil))
 	}
 }
 
-func signInWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc {
+func signInWithEmailAndPassword(db *gorm.DB, cfg model.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		email := c.FormValue("email")
 		password := c.FormValue("password")
@@ -131,8 +120,8 @@ func signInWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 			return render(c, 422, views.SignInPage(cfg, csrf, fmt.Errorf("invalid email or password")))
 		}
 
-		var user types.User
-		if dbErr := db.First(&user, "email = ?", email).Error; dbErr != nil {
+		user, dbErr := repository.GetUserByEmail(db, email)
+		if dbErr != nil {
 			_ = bcrypt.CompareHashAndPassword(dummyHash, []byte(password))
 			return render(c, 422, views.SignInPage(cfg, csrf, fmt.Errorf("invalid email or password")))
 		}
@@ -147,15 +136,15 @@ func signInWithEmailAndPassword(db *gorm.DB, cfg types.Config) echo.HandlerFunc 
 		}
 
 		// Clear existing session values to prevent session fixation
-		sess, err := session.Get(SessionKey, c)
+		sess, err := session.Get(mw.SessionKey, c)
 		if err != nil {
 			return render(c, 422, views.SignInPage(cfg, csrf, fmt.Errorf("internal server error")))
 		}
 		for key := range sess.Values {
 			delete(sess.Values, key)
 		}
-		sess.Options = getSecureSessionOptions(cfg)
-		sess.Values[SessionUserIDKey] = user.ID
+		sess.Options = mw.GetSecureSessionOptions(cfg)
+		sess.Values[mw.SessionUserIDKey] = user.ID
 
 		err = sess.Save(c.Request(), c.Response())
 		if err != nil {

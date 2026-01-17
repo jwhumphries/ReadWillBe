@@ -1,11 +1,11 @@
-package main
+package email
 
 import (
 	"bytes"
 	"fmt"
 	"html/template"
 
-	"readwillbe/types"
+	"readwillbe/internal/model"
 )
 
 const dailyDigestHTMLTemplate = `<!DOCTYPE html>
@@ -189,7 +189,7 @@ type dailyDigestData struct {
 	SettingsURL  string
 }
 
-func renderDailyDigestEmail(user types.User, readings []types.Reading, hostname string) (html, text string) {
+func RenderDailyDigestEmail(user model.User, readings []model.Reading, hostname string) (html, text string) {
 	data := dailyDigestData{
 		UserName:     user.Name,
 		DashboardURL: fmt.Sprintf("https://%s/dashboard", hostname),
@@ -220,6 +220,6 @@ func renderDailyDigestEmail(user types.User, readings []types.Reading, hostname 
 	return htmlBuf.String(), textBuf.String()
 }
 
-func renderTestEmail(_ string) (html, text string) {
+func RenderTestEmail(_ string) (html, text string) {
 	return testEmailHTMLTemplate, testEmailTextTemplate
 }

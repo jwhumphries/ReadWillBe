@@ -2,16 +2,16 @@ package views
 
 import (
 	"readwillbe/internal/views/components"
-	"readwillbe/types"
+	"readwillbe/internal/model"
 )
 
-templ SignInPage(cfg types.Config, csrf string, err error) {
+templ SignInPage(cfg model.Config, csrf string, err error) {
 	@Layout(cfg, nil, "Sign In - ReadWillBe") {
 		@SignInForm(cfg, csrf, err)
 	}
 }
 
-templ SignInForm(config types.Config, csrf string, err error) {
+templ SignInForm(config model.Config, csrf string, err error) {
 	<div class="flex flex-col items-center justify-center min-h-screen p-8">
 		<h1 class="text-5xl font-bold text-center mb-12">ReadWillBe</h1>
 		<div class="card w-full max-w-md bg-base-200 shadow-xl">
@@ -52,7 +52,7 @@ templ SignInForm(config types.Config, csrf string, err error) {
 	</div>
 }
 
-templ SignUpPage(cfg types.Config, csrf string, err error) {
+templ SignUpPage(cfg model.Config, csrf string, err error) {
 	@Layout(cfg, nil, "Sign Up - ReadWillBe") {
 		@SignUpForm(csrf, err)
 	}

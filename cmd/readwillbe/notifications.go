@@ -5,17 +5,20 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"readwillbe/views"
+
+	mw "readwillbe/internal/middleware"
+	"readwillbe/internal/repository"
+	"readwillbe/internal/views"
 )
 
 func notificationCount(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
 		}
 
-		count, err := GetActiveReadingsCount(db.WithContext(c.Request().Context()), user.ID)
+		count, err := repository.GetActiveReadingsCount(db.WithContext(c.Request().Context()), user.ID)
 		if err != nil {
 			// Log error but return 0 count
 			return render(c, 200, views.NotificationBell(0))
@@ -27,12 +30,12 @@ func notificationCount(db *gorm.DB) echo.HandlerFunc {
 
 func notificationDropdown(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
 		}
 
-		readings, err := GetActiveReadings(db.WithContext(c.Request().Context()), user.ID, 5)
+		readings, err := repository.GetActiveReadings(db.WithContext(c.Request().Context()), user.ID, 5)
 		if err != nil {
 			return c.NoContent(http.StatusInternalServerError)
 		}
@@ -45,12 +48,12 @@ func notificationDropdown(db *gorm.DB) echo.HandlerFunc {
 
 func apiNotificationCount(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 		}
 
-		count, err := GetActiveReadingsCount(db.WithContext(c.Request().Context()), user.ID)
+		count, err := repository.GetActiveReadingsCount(db.WithContext(c.Request().Context()), user.ID)
 		if err != nil {
 			return c.JSON(http.StatusOK, map[string]int{"count": 0})
 		}
@@ -73,12 +76,12 @@ type apiPlan struct {
 
 func apiNotificationReadings(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
 		}
 
-		readings, err := GetActiveReadings(db.WithContext(c.Request().Context()), user.ID, 10)
+		readings, err := repository.GetActiveReadings(db.WithContext(c.Request().Context()), user.ID, 10)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to fetch readings"})
 		}

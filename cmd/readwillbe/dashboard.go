@@ -6,21 +6,24 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"readwillbe/types"
-	"readwillbe/views"
-	"readwillbe/views/partials"
+
+	mw "readwillbe/internal/middleware"
+	"readwillbe/internal/model"
+	"readwillbe/internal/repository"
+	"readwillbe/internal/views"
+	"readwillbe/internal/views/partials"
 )
 
-func dashboardHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
+func dashboardHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
 
 		// Fetch only relevant readings (active today or overdue, excluding future)
 		// using optimized SQL query
-		readings, err := GetDashboardReadings(db.WithContext(c.Request().Context()), user.ID)
+		readings, err := repository.GetDashboardReadings(db.WithContext(c.Request().Context()), user.ID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to load dashboard data")
 		}
@@ -28,12 +31,12 @@ func dashboardHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		// Filter to active/overdue readings and group by plan
 		planGroups := groupReadingsByPlan(readings)
 
-		weeklyCount, err := GetWeeklyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
+		weeklyCount, err := repository.GetWeeklyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to load weekly stats")
 		}
 
-		monthlyCount, err := GetMonthlyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
+		monthlyCount, err := repository.GetMonthlyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to load monthly stats")
 		}
@@ -42,9 +45,9 @@ func dashboardHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-func groupReadingsByPlan(readings []types.Reading) []types.PlanGroup {
+func groupReadingsByPlan(readings []model.Reading) []model.PlanGroup {
 	// Filter to only active today or overdue readings
-	var activeReadings []types.Reading
+	var activeReadings []model.Reading
 	for _, r := range readings {
 		if r.IsActiveToday() || r.IsOverdue() {
 			activeReadings = append(activeReadings, r)
@@ -52,20 +55,20 @@ func groupReadingsByPlan(readings []types.Reading) []types.PlanGroup {
 	}
 
 	// Group by PlanID
-	groupMap := make(map[uint]*types.PlanGroup)
+	groupMap := make(map[uint]*model.PlanGroup)
 	for _, r := range activeReadings {
 		if group, exists := groupMap[r.PlanID]; exists {
 			group.Readings = append(group.Readings, r)
 		} else {
-			groupMap[r.PlanID] = &types.PlanGroup{
+			groupMap[r.PlanID] = &model.PlanGroup{
 				Plan:     r.Plan,
-				Readings: []types.Reading{r},
+				Readings: []model.Reading{r},
 			}
 		}
 	}
 
 	// Convert map to slice
-	var groups []types.PlanGroup
+	var groups []model.PlanGroup
 	for _, g := range groupMap {
 		// Sort readings within group by date (oldest first)
 		sort.Slice(g.Readings, func(i, j int) bool {
@@ -85,17 +88,17 @@ func groupReadingsByPlan(readings []types.Reading) []types.PlanGroup {
 // dashboardStatsPartial returns just the stats section for HTMX updates
 func dashboardStatsPartial(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
 		}
 
-		weeklyCount, err := GetWeeklyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
+		weeklyCount, err := repository.GetWeeklyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to load weekly stats")
 		}
 
-		monthlyCount, err := GetMonthlyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
+		monthlyCount, err := repository.GetMonthlyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to load monthly stats")
 		}

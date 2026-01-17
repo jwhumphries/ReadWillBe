@@ -15,7 +15,9 @@ import (
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"readwillbe/types"
+	"readwillbe/internal/cache"
+	mw "readwillbe/internal/middleware"
+	"readwillbe/internal/model"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {
@@ -31,7 +33,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	assert.NoError(t, err)
 	sqlDB.SetMaxOpenConns(1)
 
-	err = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{}, &types.PushSubscription{})
+	err = db.AutoMigrate(&model.User{}, &model.Plan{}, &model.Reading{}, &model.PushSubscription{})
 	assert.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -45,7 +47,7 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 	db := setupTestDB(t)
 
 	// Create test user
-	user := types.User{
+	user := model.User{
 		Email: "test@example.com",
 		Name:  "Test User",
 	}
@@ -74,7 +76,7 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.Set(UserKey, user)
+	c.Set(mw.UserKey, user)
 
 	// Invoke handler
 	h := createPlan(afero.NewMemMapFs(), db)
@@ -89,7 +91,7 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 	// Since it's a goroutine, it might be fast enough to be active immediately or still processing.
 	// We'll poll for "active" status.
 
-	var plan types.Plan
+	var plan model.Plan
 	assert.Eventually(t, func() bool {
 		db.Preload("Readings").First(&plan, "title = ?", "Test Plan")
 		return plan.Status == "active"
@@ -102,7 +104,7 @@ func TestCreatePlan_BackgroundProcessing(t *testing.T) {
 func TestCreatePlan_BackgroundProcessingFailure(t *testing.T) {
 	db := setupTestDB(t)
 
-	user := types.User{
+	user := model.User{
 		Email: "test@example.com",
 		Name:  "Test User",
 	}
@@ -126,7 +128,7 @@ invalid-row`
 	req.Header.Set(echo.HeaderContentType, writer.FormDataContentType())
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.Set(UserKey, user)
+	c.Set(mw.UserKey, user)
 
 	// Invoke handler
 	h := createPlan(afero.NewMemMapFs(), db)
@@ -134,7 +136,7 @@ invalid-row`
 	assert.NoError(t, err)
 
 	// Verify plan status eventually "failed"
-	var plan types.Plan
+	var plan model.Plan
 	assert.Eventually(t, func() bool {
 		db.First(&plan, "title = ?", "Failed Plan")
 		return plan.Status == "failed"
@@ -144,8 +146,8 @@ invalid-row`
 }
 
 func TestUserCache(t *testing.T) {
-	cache := NewUserCache(100*time.Millisecond, 200*time.Millisecond)
-	user := types.User{
+	cache := cache.NewUserCache(100*time.Millisecond, 200*time.Millisecond)
+	user := model.User{
 		Model: gorm.Model{ID: 1},
 		Email: "cache@example.com",
 	}
@@ -180,13 +182,13 @@ func TestDeletePlan(t *testing.T) {
 		c := e.NewContext(req, rec)
 		c.SetParamNames("id")
 		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
-		c.Set(UserKey, *user)
+		c.Set(mw.UserKey, *user)
 
 		handler := deletePlan(db)
 		err := handler(c)
 		assert.NoError(t, err)
 
-		var deletedPlan types.Plan
+		var deletedPlan model.Plan
 		err = db.First(&deletedPlan, plan.ID).Error
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
@@ -199,7 +201,7 @@ func TestDeletePlan(t *testing.T) {
 		c := e.NewContext(req, rec)
 		c.SetParamNames("id")
 		c.SetParamValues("99999")
-		c.Set(UserKey, *user)
+		c.Set(mw.UserKey, *user)
 
 		handler := deletePlan(db)
 		err := handler(c)
@@ -236,13 +238,13 @@ func TestRenamePlan(t *testing.T) {
 		c := e.NewContext(req, rec)
 		c.SetParamNames("id")
 		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
-		c.Set(UserKey, *user)
+		c.Set(mw.UserKey, *user)
 
 		handler := renamePlan(db)
 		err := handler(c)
 		assert.NoError(t, err)
 
-		var updated types.Plan
+		var updated model.Plan
 		db.First(&updated, plan.ID)
 		assert.Equal(t, "New Title", updated.Title)
 	})
@@ -256,7 +258,7 @@ func TestRenamePlan(t *testing.T) {
 		c := e.NewContext(req, rec)
 		c.SetParamNames("id")
 		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
-		c.Set(UserKey, *user)
+		c.Set(mw.UserKey, *user)
 
 		handler := renamePlan(db)
 		err := handler(c)
@@ -273,7 +275,7 @@ func TestRenamePlan(t *testing.T) {
 		c := e.NewContext(req, rec)
 		c.SetParamNames("id")
 		c.SetParamValues("99999")
-		c.Set(UserKey, *user)
+		c.Set(mw.UserKey, *user)
 
 		handler := renamePlan(db)
 		err := handler(c)
@@ -288,9 +290,9 @@ func TestEditPlan(t *testing.T) {
 	plan := createTestPlan(t, db, user, "Original Title")
 
 	// Create initial readings with DateType
-	readings := []types.Reading{
-		{PlanID: plan.ID, Date: timeMustParse("2025-01-01"), DateType: types.DateTypeDay, Content: "Reading 1", Status: types.StatusPending},
-		{PlanID: plan.ID, Date: timeMustParse("2025-01-02"), DateType: types.DateTypeDay, Content: "Reading 2", Status: types.StatusPending},
+	readings := []model.Reading{
+		{PlanID: plan.ID, Date: timeMustParse("2025-01-01"), DateType: model.DateTypeDay, Content: "Reading 1", Status: model.StatusPending},
+		{PlanID: plan.ID, Date: timeMustParse("2025-01-02"), DateType: model.DateTypeDay, Content: "Reading 2", Status: model.StatusPending},
 	}
 	db.Create(&readings)
 
@@ -317,16 +319,16 @@ func TestEditPlan(t *testing.T) {
 		c := e.NewContext(req, rec)
 		c.SetParamNames("id")
 		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
-		c.Set(UserKey, *user)
+		c.Set(mw.UserKey, *user)
 
-		handler := editPlan(types.Config{}, db)
+		handler := editPlan(model.Config{}, db)
 		err := handler(c)
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusFound, rec.Code)
 		assert.Equal(t, "/plans", rec.Header().Get("Location"))
 
 		// Verify updates in DB
-		var updatedPlan types.Plan
+		var updatedPlan model.Plan
 		db.Preload("Readings").First(&updatedPlan, plan.ID)
 
 		assert.Equal(t, "Updated Title", updatedPlan.Title)
@@ -339,11 +341,11 @@ func TestEditPlan(t *testing.T) {
 		for _, r := range updatedPlan.Readings {
 			if r.ID == readings[0].ID {
 				assert.Equal(t, "Updated Reading 1", r.Content)
-				assert.Equal(t, types.DateTypeDay, r.DateType, "DateType should be preserved on update")
+				assert.Equal(t, model.DateTypeDay, r.DateType, "DateType should be preserved on update")
 				foundUpdated = true
 			} else if r.Content == "Reading 3" {
 				assert.Equal(t, "2025-01-03", r.Date.Format("2006-01-02"))
-				assert.Equal(t, types.DateTypeDay, r.DateType, "DateType should be set on new reading")
+				assert.Equal(t, model.DateTypeDay, r.DateType, "DateType should be set on new reading")
 				foundNew = true
 			} else if r.ID == readings[1].ID {
 				assert.Fail(t, "Reading 2 should have been deleted")
@@ -366,9 +368,9 @@ func TestEditPlan(t *testing.T) {
 		c := e.NewContext(req, rec)
 		c.SetParamNames("id")
 		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
-		c.Set(UserKey, *user)
+		c.Set(mw.UserKey, *user)
 
-		handler := editPlan(types.Config{}, db)
+		handler := editPlan(model.Config{}, db)
 		err := handler(c)
 		assert.NoError(t, err)
 		assert.Equal(t, 422, rec.Code)

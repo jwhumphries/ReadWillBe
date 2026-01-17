@@ -1,13 +1,73 @@
-package main
+package repository
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
+	_ "github.com/ncruces/go-sqlite3/embed"
+	"github.com/ncruces/go-sqlite3/gormlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"readwillbe/types"
+	"gorm.io/gorm"
+	"readwillbe/internal/model"
 )
+
+func setupTestDB(t *testing.T) *gorm.DB {
+	safeName := strings.ReplaceAll(t.Name(), "/", "_")
+	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared", safeName)
+	db, err := gorm.Open(gormlite.Open(dsn), &gorm.Config{})
+	require.NoError(t, err)
+
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	sqlDB.SetMaxOpenConns(1)
+
+	err = db.AutoMigrate(&model.User{}, &model.Plan{}, &model.Reading{}, &model.PushSubscription{})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_ = sqlDB.Close()
+	})
+
+	return db
+}
+
+func createTestUser(t *testing.T, db *gorm.DB, email, password string) *model.User {
+	user := &model.User{
+		Email:    email,
+		Name:     "Test User",
+		Password: password, // In tests we don't need actual hashing
+	}
+	err := db.Create(user).Error
+	require.NoError(t, err)
+	return user
+}
+
+func createTestPlan(t *testing.T, db *gorm.DB, user *model.User, title string) *model.Plan {
+	plan := &model.Plan{
+		Title:  title,
+		UserID: user.ID,
+		Status: "active",
+	}
+	err := db.Create(plan).Error
+	require.NoError(t, err)
+	return plan
+}
+
+func createTestReading(t *testing.T, db *gorm.DB, plan *model.Plan, content string, date time.Time) *model.Reading {
+	reading := &model.Reading{
+		PlanID:   plan.ID,
+		Content:  content,
+		Date:     date,
+		DateType: model.DateTypeDay,
+		Status:   model.StatusPending,
+	}
+	err := db.Create(reading).Error
+	require.NoError(t, err)
+	return reading
+}
 
 func TestGetDashboardReadings(t *testing.T) {
 	db := setupTestDB(t)
@@ -23,7 +83,7 @@ func TestGetDashboardReadings(t *testing.T) {
 	futureReading := createTestReading(t, db, plan, "Future Reading", now.AddDate(0, 0, 5))
 	// Create completed reading (should be filtered out)
 	completedReading := createTestReading(t, db, plan, "Completed Reading", now.AddDate(0, 0, -1))
-	completedReading.Status = types.StatusCompleted
+	completedReading.Status = model.StatusCompleted
 	db.Save(completedReading)
 
 	readings, err := GetDashboardReadings(db, user.ID)
@@ -52,7 +112,6 @@ func TestGetActiveReadingsCount(t *testing.T) {
 	createTestReading(t, db, plan, "Active 1", now)
 
 	// Active today but different time
-	// Active today but different time
 	createTestReading(t, db, plan, "Active 2", now)
 
 	// Past (not active today)
@@ -73,7 +132,6 @@ func TestGetActiveReadings(t *testing.T) {
 
 	now := time.Now()
 	createTestReading(t, db, plan, "Active 1", now)
-	// Active today but different time
 	createTestReading(t, db, plan, "Active 2", now)
 	createTestReading(t, db, plan, "Past", now.AddDate(0, 0, -2))
 
@@ -96,7 +154,7 @@ func TestGetWeeklyCompletedReadingsCount(t *testing.T) {
 
 	// Completed this week
 	r1 := createTestReading(t, db, plan, "Completed 1", now)
-	r1.Status = types.StatusCompleted
+	r1.Status = model.StatusCompleted
 	completedAt1 := now
 	r1.CompletedAt = &completedAt1
 	db.Save(r1)
@@ -104,7 +162,7 @@ func TestGetWeeklyCompletedReadingsCount(t *testing.T) {
 	// Completed but last week
 	// Use -14 days to be safely outside the current week regardless of day of week
 	r2 := createTestReading(t, db, plan, "Completed 2", now.AddDate(0, 0, -14))
-	r2.Status = types.StatusCompleted
+	r2.Status = model.StatusCompleted
 	completedAt2 := now.AddDate(0, 0, -14)
 	r2.CompletedAt = &completedAt2
 	db.Save(r2)
@@ -126,14 +184,14 @@ func TestGetMonthlyCompletedReadingsCount(t *testing.T) {
 
 	// Completed this month
 	r1 := createTestReading(t, db, plan, "Completed 1", now)
-	r1.Status = types.StatusCompleted
+	r1.Status = model.StatusCompleted
 	completedAt1 := now
 	r1.CompletedAt = &completedAt1
 	db.Save(r1)
 
 	// Completed but last month
 	r2 := createTestReading(t, db, plan, "Completed 2", now.AddDate(0, -2, 0))
-	r2.Status = types.StatusCompleted
+	r2.Status = model.StatusCompleted
 	completedAt2 := now.AddDate(0, -2, 0)
 	r2.CompletedAt = &completedAt2
 	db.Save(r2)

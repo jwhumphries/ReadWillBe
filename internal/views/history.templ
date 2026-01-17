@@ -2,10 +2,10 @@ package views
 
 import (
 	"fmt"
-	"readwillbe/types"
+	"readwillbe/internal/model"
 )
 
-templ History(cfg types.Config, user *types.User, readings []types.Reading) {
+templ History(cfg model.Config, user *model.User, readings []model.Reading) {
 	@Layout(cfg, user, "History - ReadWillBe") {
 		<div>
 			<h1 class="text-3xl font-bold mb-6">Reading History</h1>
@@ -33,7 +33,7 @@ templ History(cfg types.Config, user *types.User, readings []types.Reading) {
 	}
 }
 
-templ CompletedReadingCard(reading types.Reading) {
+templ CompletedReadingCard(reading model.Reading) {
 	<div class="card bg-base-200 shadow-xl">
 		<div class="card-body">
 			<h3 class="card-title">{ reading.Plan.Title }</h3>

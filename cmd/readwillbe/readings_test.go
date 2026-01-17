@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"readwillbe/types"
+	"readwillbe/internal/model"
 )
 
 func TestCompleteReading(t *testing.T) {
@@ -33,10 +33,10 @@ func TestCompleteReading(t *testing.T) {
 		err := handler(c)
 		require.NoError(t, err)
 
-		var updated types.Reading
+		var updated model.Reading
 		err = db.First(&updated, reading.ID).Error
 		require.NoError(t, err)
-		assert.Equal(t, types.StatusCompleted, updated.Status)
+		assert.Equal(t, model.StatusCompleted, updated.Status)
 		assert.NotNil(t, updated.CompletedAt)
 	})
 
@@ -77,7 +77,7 @@ func TestUncompleteReading(t *testing.T) {
 	reading := createTestReading(t, db, plan, "Genesis 1", time.Now())
 
 	completedAt := time.Now()
-	reading.Status = types.StatusCompleted
+	reading.Status = model.StatusCompleted
 	reading.CompletedAt = &completedAt
 	db.Save(&reading)
 
@@ -94,10 +94,10 @@ func TestUncompleteReading(t *testing.T) {
 		err := handler(c)
 		require.NoError(t, err)
 
-		var updated types.Reading
+		var updated model.Reading
 		err = db.First(&updated, reading.ID).Error
 		require.NoError(t, err)
-		assert.Equal(t, types.StatusPending, updated.Status)
+		assert.Equal(t, model.StatusPending, updated.Status)
 		assert.Nil(t, updated.CompletedAt)
 	})
 
@@ -139,7 +139,7 @@ func TestUpdateReading(t *testing.T) {
 		err := handler(c)
 		require.NoError(t, err)
 
-		var updated types.Reading
+		var updated model.Reading
 		err = db.First(&updated, reading.ID).Error
 		require.NoError(t, err)
 		assert.Equal(t, "Genesis 1-3", updated.Content)
