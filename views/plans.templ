@@ -2,6 +2,8 @@ package views
 
 import (
 	"fmt"
+	"time"
+
 	"readwillbe/internal/views/components"
 	"readwillbe/types"
 )
@@ -169,7 +171,7 @@ templ PlanCard(plan types.Plan) {
 templ PlanReadingItem(reading types.Reading) {
 	<li class="list-row">
 		<div class="flex flex-col">
-			<span class="text-sm font-bold">{ reading.Date.Format("Jan 2, 2006") }</span>
+			<span class="text-sm font-bold">{ reading.FormattedDate() }</span>
 			<span class="text-sm opacity-80">{ reading.Content }</span>
 		</div>
 		<span
@@ -269,12 +271,28 @@ func toReactReadingsFromDomain(readings []types.Reading) []map[string]string {
 	result := make([]map[string]string, len(readings))
 	for i, r := range readings {
 		result[i] = map[string]string{
-			"id":      fmt.Sprintf("%d", r.ID),
-			"date":    r.Date.Format("2006-01-02"),
-			"content": r.Content,
+			"id":       fmt.Sprintf("%d", r.ID),
+			"date":     formatDateForReact(r.Date, r.DateType),
+			"dateType": string(r.DateType),
+			"content":  r.Content,
 		}
 	}
 	return result
+}
+
+// formatDateForReact formats a date based on its type for the React PlanEditor
+func formatDateForReact(date time.Time, dateType types.DateType) string {
+	switch dateType {
+	case types.DateTypeWeek:
+		year, week := date.ISOWeek()
+		return fmt.Sprintf("%d-W%02d", year, week)
+	case types.DateTypeMonth:
+		return date.Format("January 2006")
+	case types.DateTypeDay:
+		fallthrough
+	default:
+		return date.Format("2006-01-02")
+	}
 }
 
 templ ManualPlanCreate(cfg types.Config, user *types.User, title string, readings []ManualReading, err error) {

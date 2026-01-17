@@ -287,10 +287,10 @@ func TestEditPlan(t *testing.T) {
 	user := createTestUser(t, db, "test_edit@example.com", "password123")
 	plan := createTestPlan(t, db, user, "Original Title")
 
-	// Create initial readings
+	// Create initial readings with DateType
 	readings := []types.Reading{
-		{PlanID: plan.ID, Date: timeMustParse("2025-01-01"), Content: "Reading 1", Status: types.StatusPending},
-		{PlanID: plan.ID, Date: timeMustParse("2025-01-02"), Content: "Reading 2", Status: types.StatusPending},
+		{PlanID: plan.ID, Date: timeMustParse("2025-01-01"), DateType: types.DateTypeDay, Content: "Reading 1", Status: types.StatusPending},
+		{PlanID: plan.ID, Date: timeMustParse("2025-01-02"), DateType: types.DateTypeDay, Content: "Reading 2", Status: types.StatusPending},
 	}
 	db.Create(&readings)
 
@@ -339,9 +339,11 @@ func TestEditPlan(t *testing.T) {
 		for _, r := range updatedPlan.Readings {
 			if r.ID == readings[0].ID {
 				assert.Equal(t, "Updated Reading 1", r.Content)
+				assert.Equal(t, types.DateTypeDay, r.DateType, "DateType should be preserved on update")
 				foundUpdated = true
 			} else if r.Content == "Reading 3" {
 				assert.Equal(t, "2025-01-03", r.Date.Format("2006-01-02"))
+				assert.Equal(t, types.DateTypeDay, r.DateType, "DateType should be set on new reading")
 				foundNew = true
 			} else if r.ID == readings[1].ID {
 				assert.Fail(t, "Reading 2 should have been deleted")

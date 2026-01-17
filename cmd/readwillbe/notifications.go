@@ -87,7 +87,7 @@ func apiNotificationReadings(db *gorm.DB) echo.HandlerFunc {
 		for i, r := range readings {
 			apiReadings[i] = apiReading{
 				ID:      r.ID,
-				Date:    r.Date.Format("January 2, 2006"),
+				Date:    r.FormattedDate(),
 				Content: r.Content,
 			}
 			if r.Plan.ID != 0 {

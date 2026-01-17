@@ -205,7 +205,7 @@ func renderDailyDigestEmail(user types.User, readings []types.Reading, hostname 
 		data.Readings = append(data.Readings, emailReading{
 			PlanTitle:     r.Plan.Title,
 			Content:       r.Content,
-			FormattedDate: r.Date.Format("January 2, 2006"),
+			FormattedDate: r.FormattedDate(),
 			IsOverdue:     isOverdue,
 		})
 	}
