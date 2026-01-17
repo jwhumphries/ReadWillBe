@@ -18519,14 +18519,14 @@
           ));
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var Scheduler = require_scheduler(), React41 = require_react(), ReactDOM2 = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
+        var Scheduler = require_scheduler(), React41 = require_react(), ReactDOM = require_react_dom(), assign = Object.assign, REACT_LEGACY_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.element"), REACT_ELEMENT_TYPE = /* @__PURE__ */ Symbol.for("react.transitional.element"), REACT_PORTAL_TYPE = /* @__PURE__ */ Symbol.for("react.portal"), REACT_FRAGMENT_TYPE = /* @__PURE__ */ Symbol.for("react.fragment"), REACT_STRICT_MODE_TYPE = /* @__PURE__ */ Symbol.for("react.strict_mode"), REACT_PROFILER_TYPE = /* @__PURE__ */ Symbol.for("react.profiler"), REACT_CONSUMER_TYPE = /* @__PURE__ */ Symbol.for("react.consumer"), REACT_CONTEXT_TYPE = /* @__PURE__ */ Symbol.for("react.context"), REACT_FORWARD_REF_TYPE = /* @__PURE__ */ Symbol.for("react.forward_ref"), REACT_SUSPENSE_TYPE = /* @__PURE__ */ Symbol.for("react.suspense"), REACT_SUSPENSE_LIST_TYPE = /* @__PURE__ */ Symbol.for("react.suspense_list"), REACT_MEMO_TYPE = /* @__PURE__ */ Symbol.for("react.memo"), REACT_LAZY_TYPE = /* @__PURE__ */ Symbol.for("react.lazy");
         /* @__PURE__ */ Symbol.for("react.scope");
         var REACT_ACTIVITY_TYPE = /* @__PURE__ */ Symbol.for("react.activity");
         /* @__PURE__ */ Symbol.for("react.legacy_hidden");
         /* @__PURE__ */ Symbol.for("react.tracing_marker");
         var REACT_MEMO_CACHE_SENTINEL = /* @__PURE__ */ Symbol.for("react.memo_cache_sentinel");
         /* @__PURE__ */ Symbol.for("react.view_transition");
-        var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React41.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM2.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
+        var MAYBE_ITERATOR_SYMBOL = Symbol.iterator, REACT_CLIENT_REFERENCE = /* @__PURE__ */ Symbol.for("react.client.reference"), isArrayImpl = Array.isArray, ReactSharedInternals = React41.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, NotPending = Object.freeze({
           pending: false,
           data: null,
           method: null,
@@ -24412,7 +24412,7 @@
 
   // node_modules/@tanstack/react-query/build/modern/useBaseQuery.js
   var React5 = __toESM(require_react(), 1);
-  function useBaseQuery(options, Observer2, queryClient2) {
+  function useBaseQuery(options, Observer, queryClient2) {
     if (true) {
       if (typeof options !== "object" || Array.isArray(options)) {
         throw new Error(
@@ -24441,7 +24441,7 @@
     useClearResetErrorBoundary(errorResetBoundary);
     const isNewCacheEntry = !client.getQueryCache().get(defaultedOptions.queryHash);
     const [observer] = React5.useState(
-      () => new Observer2(
+      () => new Observer(
         client,
         defaultedOptions
       )
@@ -24544,1114 +24544,80 @@
     }
   });
 
-  // node_modules/sonner/dist/index.mjs
-  var import_react = __toESM(require_react(), 1);
-  var import_react_dom = __toESM(require_react_dom(), 1);
-  function __insertCSS(code) {
-    if (!code || typeof document == "undefined") return;
-    let head = document.head || document.getElementsByTagName("head")[0];
-    let style = document.createElement("style");
-    style.type = "text/css";
-    head.appendChild(style);
-    style.styleSheet ? style.styleSheet.cssText = code : style.appendChild(document.createTextNode(code));
-  }
-  var getAsset = (type) => {
-    switch (type) {
-      case "success":
-        return SuccessIcon;
-      case "info":
-        return InfoIcon;
-      case "warning":
-        return WarningIcon;
-      case "error":
-        return ErrorIcon;
-      default:
-        return null;
-    }
-  };
-  var bars = Array(12).fill(0);
-  var Loader = ({ visible, className }) => {
-    return /* @__PURE__ */ import_react.default.createElement("div", {
-      className: [
-        "sonner-loading-wrapper",
-        className
-      ].filter(Boolean).join(" "),
-      "data-visible": visible
-    }, /* @__PURE__ */ import_react.default.createElement("div", {
-      className: "sonner-spinner"
-    }, bars.map((_, i) => /* @__PURE__ */ import_react.default.createElement("div", {
-      className: "sonner-loading-bar",
-      key: `spinner-bar-${i}`
-    }))));
-  };
-  var SuccessIcon = /* @__PURE__ */ import_react.default.createElement("svg", {
-    xmlns: "http://www.w3.org/2000/svg",
-    viewBox: "0 0 20 20",
-    fill: "currentColor",
-    height: "20",
-    width: "20"
-  }, /* @__PURE__ */ import_react.default.createElement("path", {
-    fillRule: "evenodd",
-    d: "M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z",
-    clipRule: "evenodd"
-  }));
-  var WarningIcon = /* @__PURE__ */ import_react.default.createElement("svg", {
-    xmlns: "http://www.w3.org/2000/svg",
-    viewBox: "0 0 24 24",
-    fill: "currentColor",
-    height: "20",
-    width: "20"
-  }, /* @__PURE__ */ import_react.default.createElement("path", {
-    fillRule: "evenodd",
-    d: "M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z",
-    clipRule: "evenodd"
-  }));
-  var InfoIcon = /* @__PURE__ */ import_react.default.createElement("svg", {
-    xmlns: "http://www.w3.org/2000/svg",
-    viewBox: "0 0 20 20",
-    fill: "currentColor",
-    height: "20",
-    width: "20"
-  }, /* @__PURE__ */ import_react.default.createElement("path", {
-    fillRule: "evenodd",
-    d: "M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z",
-    clipRule: "evenodd"
-  }));
-  var ErrorIcon = /* @__PURE__ */ import_react.default.createElement("svg", {
-    xmlns: "http://www.w3.org/2000/svg",
-    viewBox: "0 0 20 20",
-    fill: "currentColor",
-    height: "20",
-    width: "20"
-  }, /* @__PURE__ */ import_react.default.createElement("path", {
-    fillRule: "evenodd",
-    d: "M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z",
-    clipRule: "evenodd"
-  }));
-  var CloseIcon = /* @__PURE__ */ import_react.default.createElement("svg", {
-    xmlns: "http://www.w3.org/2000/svg",
-    width: "12",
-    height: "12",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: "1.5",
-    strokeLinecap: "round",
-    strokeLinejoin: "round"
-  }, /* @__PURE__ */ import_react.default.createElement("line", {
-    x1: "18",
-    y1: "6",
-    x2: "6",
-    y2: "18"
-  }), /* @__PURE__ */ import_react.default.createElement("line", {
-    x1: "6",
-    y1: "6",
-    x2: "18",
-    y2: "18"
-  }));
-  var useIsDocumentHidden = () => {
-    const [isDocumentHidden, setIsDocumentHidden] = import_react.default.useState(document.hidden);
-    import_react.default.useEffect(() => {
-      const callback = () => {
-        setIsDocumentHidden(document.hidden);
-      };
-      document.addEventListener("visibilitychange", callback);
-      return () => window.removeEventListener("visibilitychange", callback);
+  // assets/js/context/ToastContext.tsx
+  var import_react = __toESM(require_react());
+  var import_jsx_runtime3 = __toESM(require_jsx_runtime());
+  var ToastContext = (0, import_react.createContext)(null);
+  function ToastProvider({ children }) {
+    const [toasts, setToasts] = (0, import_react.useState)([]);
+    const idRef = (0, import_react.useRef)(0);
+    const removeToast = (0, import_react.useCallback)((id) => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
     }, []);
-    return isDocumentHidden;
-  };
-  var toastsCounter = 1;
-  var Observer = class {
-    constructor() {
-      this.subscribe = (subscriber) => {
-        this.subscribers.push(subscriber);
-        return () => {
-          const index = this.subscribers.indexOf(subscriber);
-          this.subscribers.splice(index, 1);
-        };
-      };
-      this.publish = (data) => {
-        this.subscribers.forEach((subscriber) => subscriber(data));
-      };
-      this.addToast = (data) => {
-        this.publish(data);
-        this.toasts = [
-          ...this.toasts,
-          data
-        ];
-      };
-      this.create = (data) => {
-        var _data_id;
-        const { message: message2, ...rest } = data;
-        const id = typeof (data == null ? void 0 : data.id) === "number" || ((_data_id = data.id) == null ? void 0 : _data_id.length) > 0 ? data.id : toastsCounter++;
-        const alreadyExists = this.toasts.find((toast2) => {
-          return toast2.id === id;
-        });
-        const dismissible = data.dismissible === void 0 ? true : data.dismissible;
-        if (this.dismissedToasts.has(id)) {
-          this.dismissedToasts.delete(id);
-        }
-        if (alreadyExists) {
-          this.toasts = this.toasts.map((toast2) => {
-            if (toast2.id === id) {
-              this.publish({
-                ...toast2,
-                ...data,
-                id,
-                title: message2
-              });
-              return {
-                ...toast2,
-                ...data,
-                id,
-                dismissible,
-                title: message2
-              };
-            }
-            return toast2;
-          });
-        } else {
-          this.addToast({
-            title: message2,
-            ...rest,
-            dismissible,
-            id
-          });
-        }
-        return id;
-      };
-      this.dismiss = (id) => {
-        if (id) {
-          this.dismissedToasts.add(id);
-          requestAnimationFrame(() => this.subscribers.forEach((subscriber) => subscriber({
-            id,
-            dismiss: true
-          })));
-        } else {
-          this.toasts.forEach((toast2) => {
-            this.subscribers.forEach((subscriber) => subscriber({
-              id: toast2.id,
-              dismiss: true
-            }));
-          });
-        }
-        return id;
-      };
-      this.message = (message2, data) => {
-        return this.create({
-          ...data,
-          message: message2
-        });
-      };
-      this.error = (message2, data) => {
-        return this.create({
-          ...data,
-          message: message2,
-          type: "error"
-        });
-      };
-      this.success = (message2, data) => {
-        return this.create({
-          ...data,
-          type: "success",
-          message: message2
-        });
-      };
-      this.info = (message2, data) => {
-        return this.create({
-          ...data,
-          type: "info",
-          message: message2
-        });
-      };
-      this.warning = (message2, data) => {
-        return this.create({
-          ...data,
-          type: "warning",
-          message: message2
-        });
-      };
-      this.loading = (message2, data) => {
-        return this.create({
-          ...data,
-          type: "loading",
-          message: message2
-        });
-      };
-      this.promise = (promise, data) => {
-        if (!data) {
-          return;
-        }
-        let id = void 0;
-        if (data.loading !== void 0) {
-          id = this.create({
-            ...data,
-            promise,
-            type: "loading",
-            message: data.loading,
-            description: typeof data.description !== "function" ? data.description : void 0
-          });
-        }
-        const p = Promise.resolve(promise instanceof Function ? promise() : promise);
-        let shouldDismiss = id !== void 0;
-        let result;
-        const originalPromise = p.then(async (response) => {
-          result = [
-            "resolve",
-            response
-          ];
-          const isReactElementResponse = import_react.default.isValidElement(response);
-          if (isReactElementResponse) {
-            shouldDismiss = false;
-            this.create({
-              id,
-              type: "default",
-              message: response
-            });
-          } else if (isHttpResponse(response) && !response.ok) {
-            shouldDismiss = false;
-            const promiseData = typeof data.error === "function" ? await data.error(`HTTP error! status: ${response.status}`) : data.error;
-            const description = typeof data.description === "function" ? await data.description(`HTTP error! status: ${response.status}`) : data.description;
-            const isExtendedResult = typeof promiseData === "object" && !import_react.default.isValidElement(promiseData);
-            const toastSettings = isExtendedResult ? promiseData : {
-              message: promiseData
-            };
-            this.create({
-              id,
-              type: "error",
-              description,
-              ...toastSettings
-            });
-          } else if (response instanceof Error) {
-            shouldDismiss = false;
-            const promiseData = typeof data.error === "function" ? await data.error(response) : data.error;
-            const description = typeof data.description === "function" ? await data.description(response) : data.description;
-            const isExtendedResult = typeof promiseData === "object" && !import_react.default.isValidElement(promiseData);
-            const toastSettings = isExtendedResult ? promiseData : {
-              message: promiseData
-            };
-            this.create({
-              id,
-              type: "error",
-              description,
-              ...toastSettings
-            });
-          } else if (data.success !== void 0) {
-            shouldDismiss = false;
-            const promiseData = typeof data.success === "function" ? await data.success(response) : data.success;
-            const description = typeof data.description === "function" ? await data.description(response) : data.description;
-            const isExtendedResult = typeof promiseData === "object" && !import_react.default.isValidElement(promiseData);
-            const toastSettings = isExtendedResult ? promiseData : {
-              message: promiseData
-            };
-            this.create({
-              id,
-              type: "success",
-              description,
-              ...toastSettings
-            });
-          }
-        }).catch(async (error) => {
-          result = [
-            "reject",
-            error
-          ];
-          if (data.error !== void 0) {
-            shouldDismiss = false;
-            const promiseData = typeof data.error === "function" ? await data.error(error) : data.error;
-            const description = typeof data.description === "function" ? await data.description(error) : data.description;
-            const isExtendedResult = typeof promiseData === "object" && !import_react.default.isValidElement(promiseData);
-            const toastSettings = isExtendedResult ? promiseData : {
-              message: promiseData
-            };
-            this.create({
-              id,
-              type: "error",
-              description,
-              ...toastSettings
-            });
-          }
-        }).finally(() => {
-          if (shouldDismiss) {
-            this.dismiss(id);
-            id = void 0;
-          }
-          data.finally == null ? void 0 : data.finally.call(data);
-        });
-        const unwrap = () => new Promise((resolve, reject) => originalPromise.then(() => result[0] === "reject" ? reject(result[1]) : resolve(result[1])).catch(reject));
-        if (typeof id !== "string" && typeof id !== "number") {
-          return {
-            unwrap
-          };
-        } else {
-          return Object.assign(id, {
-            unwrap
-          });
-        }
-      };
-      this.custom = (jsx13, data) => {
-        const id = (data == null ? void 0 : data.id) || toastsCounter++;
-        this.create({
-          jsx: jsx13(id),
-          id,
-          ...data
-        });
-        return id;
-      };
-      this.getActiveToasts = () => {
-        return this.toasts.filter((toast2) => !this.dismissedToasts.has(toast2.id));
-      };
-      this.subscribers = [];
-      this.toasts = [];
-      this.dismissedToasts = /* @__PURE__ */ new Set();
+    const addToast = (0, import_react.useCallback)((message2, type = "info") => {
+      const id = ++idRef.current;
+      setToasts((prev) => [...prev, { id, message: message2, type }]);
+      setTimeout(() => removeToast(id), 3e3);
+    }, [removeToast]);
+    return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(ToastContext.Provider, { value: { toasts, addToast, removeToast }, children });
+  }
+  function useToast() {
+    const context = (0, import_react.useContext)(ToastContext);
+    if (!context) {
+      throw new Error("useToast must be used within a ToastProvider");
+    }
+    return context;
+  }
+  var toast = {
+    success: (message2) => {
+      window.dispatchEvent(new CustomEvent("toast", { detail: { message: message2, type: "success" } }));
+    },
+    error: (message2) => {
+      window.dispatchEvent(new CustomEvent("toast", { detail: { message: message2, type: "error" } }));
+    },
+    info: (message2) => {
+      window.dispatchEvent(new CustomEvent("toast", { detail: { message: message2, type: "info" } }));
+    },
+    warning: (message2) => {
+      window.dispatchEvent(new CustomEvent("toast", { detail: { message: message2, type: "warning" } }));
     }
   };
-  var ToastState = new Observer();
-  var toastFunction = (message2, data) => {
-    const id = (data == null ? void 0 : data.id) || toastsCounter++;
-    ToastState.addToast({
-      title: message2,
-      ...data,
-      id
-    });
-    return id;
-  };
-  var isHttpResponse = (data) => {
-    return data && typeof data === "object" && "ok" in data && typeof data.ok === "boolean" && "status" in data && typeof data.status === "number";
-  };
-  var basicToast = toastFunction;
-  var getHistory = () => ToastState.toasts;
-  var getToasts = () => ToastState.getActiveToasts();
-  var toast = Object.assign(basicToast, {
-    success: ToastState.success,
-    info: ToastState.info,
-    warning: ToastState.warning,
-    error: ToastState.error,
-    custom: ToastState.custom,
-    message: ToastState.message,
-    promise: ToastState.promise,
-    dismiss: ToastState.dismiss,
-    loading: ToastState.loading
-  }, {
-    getHistory,
-    getToasts
-  });
-  __insertCSS("[data-sonner-toaster][dir=ltr],html[dir=ltr]{--toast-icon-margin-start:-3px;--toast-icon-margin-end:4px;--toast-svg-margin-start:-1px;--toast-svg-margin-end:0px;--toast-button-margin-start:auto;--toast-button-margin-end:0;--toast-close-button-start:0;--toast-close-button-end:unset;--toast-close-button-transform:translate(-35%, -35%)}[data-sonner-toaster][dir=rtl],html[dir=rtl]{--toast-icon-margin-start:4px;--toast-icon-margin-end:-3px;--toast-svg-margin-start:0px;--toast-svg-margin-end:-1px;--toast-button-margin-start:0;--toast-button-margin-end:auto;--toast-close-button-start:unset;--toast-close-button-end:0;--toast-close-button-transform:translate(35%, -35%)}[data-sonner-toaster]{position:fixed;width:var(--width);font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;--gray1:hsl(0, 0%, 99%);--gray2:hsl(0, 0%, 97.3%);--gray3:hsl(0, 0%, 95.1%);--gray4:hsl(0, 0%, 93%);--gray5:hsl(0, 0%, 90.9%);--gray6:hsl(0, 0%, 88.7%);--gray7:hsl(0, 0%, 85.8%);--gray8:hsl(0, 0%, 78%);--gray9:hsl(0, 0%, 56.1%);--gray10:hsl(0, 0%, 52.3%);--gray11:hsl(0, 0%, 43.5%);--gray12:hsl(0, 0%, 9%);--border-radius:8px;box-sizing:border-box;padding:0;margin:0;list-style:none;outline:0;z-index:999999999;transition:transform .4s ease}@media (hover:none) and (pointer:coarse){[data-sonner-toaster][data-lifted=true]{transform:none}}[data-sonner-toaster][data-x-position=right]{right:var(--offset-right)}[data-sonner-toaster][data-x-position=left]{left:var(--offset-left)}[data-sonner-toaster][data-x-position=center]{left:50%;transform:translateX(-50%)}[data-sonner-toaster][data-y-position=top]{top:var(--offset-top)}[data-sonner-toaster][data-y-position=bottom]{bottom:var(--offset-bottom)}[data-sonner-toast]{--y:translateY(100%);--lift-amount:calc(var(--lift) * var(--gap));z-index:var(--z-index);position:absolute;opacity:0;transform:var(--y);touch-action:none;transition:transform .4s,opacity .4s,height .4s,box-shadow .2s;box-sizing:border-box;outline:0;overflow-wrap:anywhere}[data-sonner-toast][data-styled=true]{padding:16px;background:var(--normal-bg);border:1px solid var(--normal-border);color:var(--normal-text);border-radius:var(--border-radius);box-shadow:0 4px 12px rgba(0,0,0,.1);width:var(--width);font-size:13px;display:flex;align-items:center;gap:6px}[data-sonner-toast]:focus-visible{box-shadow:0 4px 12px rgba(0,0,0,.1),0 0 0 2px rgba(0,0,0,.2)}[data-sonner-toast][data-y-position=top]{top:0;--y:translateY(-100%);--lift:1;--lift-amount:calc(1 * var(--gap))}[data-sonner-toast][data-y-position=bottom]{bottom:0;--y:translateY(100%);--lift:-1;--lift-amount:calc(var(--lift) * var(--gap))}[data-sonner-toast][data-styled=true] [data-description]{font-weight:400;line-height:1.4;color:#3f3f3f}[data-rich-colors=true][data-sonner-toast][data-styled=true] [data-description]{color:inherit}[data-sonner-toaster][data-sonner-theme=dark] [data-description]{color:#e8e8e8}[data-sonner-toast][data-styled=true] [data-title]{font-weight:500;line-height:1.5;color:inherit}[data-sonner-toast][data-styled=true] [data-icon]{display:flex;height:16px;width:16px;position:relative;justify-content:flex-start;align-items:center;flex-shrink:0;margin-left:var(--toast-icon-margin-start);margin-right:var(--toast-icon-margin-end)}[data-sonner-toast][data-promise=true] [data-icon]>svg{opacity:0;transform:scale(.8);transform-origin:center;animation:sonner-fade-in .3s ease forwards}[data-sonner-toast][data-styled=true] [data-icon]>*{flex-shrink:0}[data-sonner-toast][data-styled=true] [data-icon] svg{margin-left:var(--toast-svg-margin-start);margin-right:var(--toast-svg-margin-end)}[data-sonner-toast][data-styled=true] [data-content]{display:flex;flex-direction:column;gap:2px}[data-sonner-toast][data-styled=true] [data-button]{border-radius:4px;padding-left:8px;padding-right:8px;height:24px;font-size:12px;color:var(--normal-bg);background:var(--normal-text);margin-left:var(--toast-button-margin-start);margin-right:var(--toast-button-margin-end);border:none;font-weight:500;cursor:pointer;outline:0;display:flex;align-items:center;flex-shrink:0;transition:opacity .4s,box-shadow .2s}[data-sonner-toast][data-styled=true] [data-button]:focus-visible{box-shadow:0 0 0 2px rgba(0,0,0,.4)}[data-sonner-toast][data-styled=true] [data-button]:first-of-type{margin-left:var(--toast-button-margin-start);margin-right:var(--toast-button-margin-end)}[data-sonner-toast][data-styled=true] [data-cancel]{color:var(--normal-text);background:rgba(0,0,0,.08)}[data-sonner-toaster][data-sonner-theme=dark] [data-sonner-toast][data-styled=true] [data-cancel]{background:rgba(255,255,255,.3)}[data-sonner-toast][data-styled=true] [data-close-button]{position:absolute;left:var(--toast-close-button-start);right:var(--toast-close-button-end);top:0;height:20px;width:20px;display:flex;justify-content:center;align-items:center;padding:0;color:var(--gray12);background:var(--normal-bg);border:1px solid var(--gray4);transform:var(--toast-close-button-transform);border-radius:50%;cursor:pointer;z-index:1;transition:opacity .1s,background .2s,border-color .2s}[data-sonner-toast][data-styled=true] [data-close-button]:focus-visible{box-shadow:0 4px 12px rgba(0,0,0,.1),0 0 0 2px rgba(0,0,0,.2)}[data-sonner-toast][data-styled=true] [data-disabled=true]{cursor:not-allowed}[data-sonner-toast][data-styled=true]:hover [data-close-button]:hover{background:var(--gray2);border-color:var(--gray5)}[data-sonner-toast][data-swiping=true]::before{content:'';position:absolute;left:-100%;right:-100%;height:100%;z-index:-1}[data-sonner-toast][data-y-position=top][data-swiping=true]::before{bottom:50%;transform:scaleY(3) translateY(50%)}[data-sonner-toast][data-y-position=bottom][data-swiping=true]::before{top:50%;transform:scaleY(3) translateY(-50%)}[data-sonner-toast][data-swiping=false][data-removed=true]::before{content:'';position:absolute;inset:0;transform:scaleY(2)}[data-sonner-toast][data-expanded=true]::after{content:'';position:absolute;left:0;height:calc(var(--gap) + 1px);bottom:100%;width:100%}[data-sonner-toast][data-mounted=true]{--y:translateY(0);opacity:1}[data-sonner-toast][data-expanded=false][data-front=false]{--scale:var(--toasts-before) * 0.05 + 1;--y:translateY(calc(var(--lift-amount) * var(--toasts-before))) scale(calc(-1 * var(--scale)));height:var(--front-toast-height)}[data-sonner-toast]>*{transition:opacity .4s}[data-sonner-toast][data-x-position=right]{right:0}[data-sonner-toast][data-x-position=left]{left:0}[data-sonner-toast][data-expanded=false][data-front=false][data-styled=true]>*{opacity:0}[data-sonner-toast][data-visible=false]{opacity:0;pointer-events:none}[data-sonner-toast][data-mounted=true][data-expanded=true]{--y:translateY(calc(var(--lift) * var(--offset)));height:var(--initial-height)}[data-sonner-toast][data-removed=true][data-front=true][data-swipe-out=false]{--y:translateY(calc(var(--lift) * -100%));opacity:0}[data-sonner-toast][data-removed=true][data-front=false][data-swipe-out=false][data-expanded=true]{--y:translateY(calc(var(--lift) * var(--offset) + var(--lift) * -100%));opacity:0}[data-sonner-toast][data-removed=true][data-front=false][data-swipe-out=false][data-expanded=false]{--y:translateY(40%);opacity:0;transition:transform .5s,opacity .2s}[data-sonner-toast][data-removed=true][data-front=false]::before{height:calc(var(--initial-height) + 20%)}[data-sonner-toast][data-swiping=true]{transform:var(--y) translateY(var(--swipe-amount-y,0)) translateX(var(--swipe-amount-x,0));transition:none}[data-sonner-toast][data-swiped=true]{user-select:none}[data-sonner-toast][data-swipe-out=true][data-y-position=bottom],[data-sonner-toast][data-swipe-out=true][data-y-position=top]{animation-duration:.2s;animation-timing-function:ease-out;animation-fill-mode:forwards}[data-sonner-toast][data-swipe-out=true][data-swipe-direction=left]{animation-name:swipe-out-left}[data-sonner-toast][data-swipe-out=true][data-swipe-direction=right]{animation-name:swipe-out-right}[data-sonner-toast][data-swipe-out=true][data-swipe-direction=up]{animation-name:swipe-out-up}[data-sonner-toast][data-swipe-out=true][data-swipe-direction=down]{animation-name:swipe-out-down}@keyframes swipe-out-left{from{transform:var(--y) translateX(var(--swipe-amount-x));opacity:1}to{transform:var(--y) translateX(calc(var(--swipe-amount-x) - 100%));opacity:0}}@keyframes swipe-out-right{from{transform:var(--y) translateX(var(--swipe-amount-x));opacity:1}to{transform:var(--y) translateX(calc(var(--swipe-amount-x) + 100%));opacity:0}}@keyframes swipe-out-up{from{transform:var(--y) translateY(var(--swipe-amount-y));opacity:1}to{transform:var(--y) translateY(calc(var(--swipe-amount-y) - 100%));opacity:0}}@keyframes swipe-out-down{from{transform:var(--y) translateY(var(--swipe-amount-y));opacity:1}to{transform:var(--y) translateY(calc(var(--swipe-amount-y) + 100%));opacity:0}}@media (max-width:600px){[data-sonner-toaster]{position:fixed;right:var(--mobile-offset-right);left:var(--mobile-offset-left);width:100%}[data-sonner-toaster][dir=rtl]{left:calc(var(--mobile-offset-left) * -1)}[data-sonner-toaster] [data-sonner-toast]{left:0;right:0;width:calc(100% - var(--mobile-offset-left) * 2)}[data-sonner-toaster][data-x-position=left]{left:var(--mobile-offset-left)}[data-sonner-toaster][data-y-position=bottom]{bottom:var(--mobile-offset-bottom)}[data-sonner-toaster][data-y-position=top]{top:var(--mobile-offset-top)}[data-sonner-toaster][data-x-position=center]{left:var(--mobile-offset-left);right:var(--mobile-offset-right);transform:none}}[data-sonner-toaster][data-sonner-theme=light]{--normal-bg:#fff;--normal-border:var(--gray4);--normal-text:var(--gray12);--success-bg:hsl(143, 85%, 96%);--success-border:hsl(145, 92%, 87%);--success-text:hsl(140, 100%, 27%);--info-bg:hsl(208, 100%, 97%);--info-border:hsl(221, 91%, 93%);--info-text:hsl(210, 92%, 45%);--warning-bg:hsl(49, 100%, 97%);--warning-border:hsl(49, 91%, 84%);--warning-text:hsl(31, 92%, 45%);--error-bg:hsl(359, 100%, 97%);--error-border:hsl(359, 100%, 94%);--error-text:hsl(360, 100%, 45%)}[data-sonner-toaster][data-sonner-theme=light] [data-sonner-toast][data-invert=true]{--normal-bg:#000;--normal-border:hsl(0, 0%, 20%);--normal-text:var(--gray1)}[data-sonner-toaster][data-sonner-theme=dark] [data-sonner-toast][data-invert=true]{--normal-bg:#fff;--normal-border:var(--gray3);--normal-text:var(--gray12)}[data-sonner-toaster][data-sonner-theme=dark]{--normal-bg:#000;--normal-bg-hover:hsl(0, 0%, 12%);--normal-border:hsl(0, 0%, 20%);--normal-border-hover:hsl(0, 0%, 25%);--normal-text:var(--gray1);--success-bg:hsl(150, 100%, 6%);--success-border:hsl(147, 100%, 12%);--success-text:hsl(150, 86%, 65%);--info-bg:hsl(215, 100%, 6%);--info-border:hsl(223, 43%, 17%);--info-text:hsl(216, 87%, 65%);--warning-bg:hsl(64, 100%, 6%);--warning-border:hsl(60, 100%, 9%);--warning-text:hsl(46, 87%, 65%);--error-bg:hsl(358, 76%, 10%);--error-border:hsl(357, 89%, 16%);--error-text:hsl(358, 100%, 81%)}[data-sonner-toaster][data-sonner-theme=dark] [data-sonner-toast] [data-close-button]{background:var(--normal-bg);border-color:var(--normal-border);color:var(--normal-text)}[data-sonner-toaster][data-sonner-theme=dark] [data-sonner-toast] [data-close-button]:hover{background:var(--normal-bg-hover);border-color:var(--normal-border-hover)}[data-rich-colors=true][data-sonner-toast][data-type=success]{background:var(--success-bg);border-color:var(--success-border);color:var(--success-text)}[data-rich-colors=true][data-sonner-toast][data-type=success] [data-close-button]{background:var(--success-bg);border-color:var(--success-border);color:var(--success-text)}[data-rich-colors=true][data-sonner-toast][data-type=info]{background:var(--info-bg);border-color:var(--info-border);color:var(--info-text)}[data-rich-colors=true][data-sonner-toast][data-type=info] [data-close-button]{background:var(--info-bg);border-color:var(--info-border);color:var(--info-text)}[data-rich-colors=true][data-sonner-toast][data-type=warning]{background:var(--warning-bg);border-color:var(--warning-border);color:var(--warning-text)}[data-rich-colors=true][data-sonner-toast][data-type=warning] [data-close-button]{background:var(--warning-bg);border-color:var(--warning-border);color:var(--warning-text)}[data-rich-colors=true][data-sonner-toast][data-type=error]{background:var(--error-bg);border-color:var(--error-border);color:var(--error-text)}[data-rich-colors=true][data-sonner-toast][data-type=error] [data-close-button]{background:var(--error-bg);border-color:var(--error-border);color:var(--error-text)}.sonner-loading-wrapper{--size:16px;height:var(--size);width:var(--size);position:absolute;inset:0;z-index:10}.sonner-loading-wrapper[data-visible=false]{transform-origin:center;animation:sonner-fade-out .2s ease forwards}.sonner-spinner{position:relative;top:50%;left:50%;height:var(--size);width:var(--size)}.sonner-loading-bar{animation:sonner-spin 1.2s linear infinite;background:var(--gray11);border-radius:6px;height:8%;left:-10%;position:absolute;top:-3.9%;width:24%}.sonner-loading-bar:first-child{animation-delay:-1.2s;transform:rotate(.0001deg) translate(146%)}.sonner-loading-bar:nth-child(2){animation-delay:-1.1s;transform:rotate(30deg) translate(146%)}.sonner-loading-bar:nth-child(3){animation-delay:-1s;transform:rotate(60deg) translate(146%)}.sonner-loading-bar:nth-child(4){animation-delay:-.9s;transform:rotate(90deg) translate(146%)}.sonner-loading-bar:nth-child(5){animation-delay:-.8s;transform:rotate(120deg) translate(146%)}.sonner-loading-bar:nth-child(6){animation-delay:-.7s;transform:rotate(150deg) translate(146%)}.sonner-loading-bar:nth-child(7){animation-delay:-.6s;transform:rotate(180deg) translate(146%)}.sonner-loading-bar:nth-child(8){animation-delay:-.5s;transform:rotate(210deg) translate(146%)}.sonner-loading-bar:nth-child(9){animation-delay:-.4s;transform:rotate(240deg) translate(146%)}.sonner-loading-bar:nth-child(10){animation-delay:-.3s;transform:rotate(270deg) translate(146%)}.sonner-loading-bar:nth-child(11){animation-delay:-.2s;transform:rotate(300deg) translate(146%)}.sonner-loading-bar:nth-child(12){animation-delay:-.1s;transform:rotate(330deg) translate(146%)}@keyframes sonner-fade-in{0%{opacity:0;transform:scale(.8)}100%{opacity:1;transform:scale(1)}}@keyframes sonner-fade-out{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.8)}}@keyframes sonner-spin{0%{opacity:1}100%{opacity:.15}}@media (prefers-reduced-motion){.sonner-loading-bar,[data-sonner-toast],[data-sonner-toast]>*{transition:none!important;animation:none!important}}.sonner-loader{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);transform-origin:center;transition:opacity .2s,transform .2s}.sonner-loader[data-visible=false]{opacity:0;transform:scale(.8) translate(-50%,-50%)}");
-  function isAction(action) {
-    return action.label !== void 0;
-  }
-  var VISIBLE_TOASTS_AMOUNT = 3;
-  var VIEWPORT_OFFSET = "24px";
-  var MOBILE_VIEWPORT_OFFSET = "16px";
-  var TOAST_LIFETIME = 4e3;
-  var TOAST_WIDTH = 356;
-  var GAP = 14;
-  var SWIPE_THRESHOLD = 45;
-  var TIME_BEFORE_UNMOUNT = 200;
-  function cn(...classes) {
-    return classes.filter(Boolean).join(" ");
-  }
-  function getDefaultSwipeDirections(position) {
-    const [y, x] = position.split("-");
-    const directions = [];
-    if (y) {
-      directions.push(y);
-    }
-    if (x) {
-      directions.push(x);
-    }
-    return directions;
-  }
-  var Toast = (props) => {
-    var _toast_classNames, _toast_classNames1, _toast_classNames2, _toast_classNames3, _toast_classNames4, _toast_classNames5, _toast_classNames6, _toast_classNames7, _toast_classNames8;
-    const { invert: ToasterInvert, toast: toast2, unstyled, interacting, setHeights, visibleToasts, heights, index, toasts, expanded, removeToast, defaultRichColors, closeButton: closeButtonFromToaster, style, cancelButtonStyle, actionButtonStyle, className = "", descriptionClassName = "", duration: durationFromToaster, position, gap, expandByDefault, classNames, icons, closeButtonAriaLabel = "Close toast" } = props;
-    const [swipeDirection, setSwipeDirection] = import_react.default.useState(null);
-    const [swipeOutDirection, setSwipeOutDirection] = import_react.default.useState(null);
-    const [mounted, setMounted] = import_react.default.useState(false);
-    const [removed, setRemoved] = import_react.default.useState(false);
-    const [swiping, setSwiping] = import_react.default.useState(false);
-    const [swipeOut, setSwipeOut] = import_react.default.useState(false);
-    const [isSwiped, setIsSwiped] = import_react.default.useState(false);
-    const [offsetBeforeRemove, setOffsetBeforeRemove] = import_react.default.useState(0);
-    const [initialHeight, setInitialHeight] = import_react.default.useState(0);
-    const remainingTime = import_react.default.useRef(toast2.duration || durationFromToaster || TOAST_LIFETIME);
-    const dragStartTime = import_react.default.useRef(null);
-    const toastRef = import_react.default.useRef(null);
-    const isFront = index === 0;
-    const isVisible = index + 1 <= visibleToasts;
-    const toastType = toast2.type;
-    const dismissible = toast2.dismissible !== false;
-    const toastClassname = toast2.className || "";
-    const toastDescriptionClassname = toast2.descriptionClassName || "";
-    const heightIndex = import_react.default.useMemo(() => heights.findIndex((height) => height.toastId === toast2.id) || 0, [
-      heights,
-      toast2.id
-    ]);
-    const closeButton = import_react.default.useMemo(() => {
-      var _toast_closeButton;
-      return (_toast_closeButton = toast2.closeButton) != null ? _toast_closeButton : closeButtonFromToaster;
-    }, [
-      toast2.closeButton,
-      closeButtonFromToaster
-    ]);
-    const duration = import_react.default.useMemo(() => toast2.duration || durationFromToaster || TOAST_LIFETIME, [
-      toast2.duration,
-      durationFromToaster
-    ]);
-    const closeTimerStartTimeRef = import_react.default.useRef(0);
-    const offset = import_react.default.useRef(0);
-    const lastCloseTimerStartTimeRef = import_react.default.useRef(0);
-    const pointerStartRef = import_react.default.useRef(null);
-    const [y, x] = position.split("-");
-    const toastsHeightBefore = import_react.default.useMemo(() => {
-      return heights.reduce((prev, curr, reducerIndex) => {
-        if (reducerIndex >= heightIndex) {
-          return prev;
-        }
-        return prev + curr.height;
-      }, 0);
-    }, [
-      heights,
-      heightIndex
-    ]);
-    const isDocumentHidden = useIsDocumentHidden();
-    const invert = toast2.invert || ToasterInvert;
-    const disabled = toastType === "loading";
-    offset.current = import_react.default.useMemo(() => heightIndex * gap + toastsHeightBefore, [
-      heightIndex,
-      toastsHeightBefore
-    ]);
-    import_react.default.useEffect(() => {
-      remainingTime.current = duration;
-    }, [
-      duration
-    ]);
-    import_react.default.useEffect(() => {
-      setMounted(true);
-    }, []);
-    import_react.default.useEffect(() => {
-      const toastNode = toastRef.current;
-      if (toastNode) {
-        const height = toastNode.getBoundingClientRect().height;
-        setInitialHeight(height);
-        setHeights((h) => [
-          {
-            toastId: toast2.id,
-            height,
-            position: toast2.position
-          },
-          ...h
-        ]);
-        return () => setHeights((h) => h.filter((height2) => height2.toastId !== toast2.id));
-      }
-    }, [
-      setHeights,
-      toast2.id
-    ]);
-    import_react.default.useLayoutEffect(() => {
-      if (!mounted) return;
-      const toastNode = toastRef.current;
-      const originalHeight = toastNode.style.height;
-      toastNode.style.height = "auto";
-      const newHeight = toastNode.getBoundingClientRect().height;
-      toastNode.style.height = originalHeight;
-      setInitialHeight(newHeight);
-      setHeights((heights2) => {
-        const alreadyExists = heights2.find((height) => height.toastId === toast2.id);
-        if (!alreadyExists) {
-          return [
-            {
-              toastId: toast2.id,
-              height: newHeight,
-              position: toast2.position
-            },
-            ...heights2
-          ];
-        } else {
-          return heights2.map((height) => height.toastId === toast2.id ? {
-            ...height,
-            height: newHeight
-          } : height);
-        }
-      });
-    }, [
-      mounted,
-      toast2.title,
-      toast2.description,
-      setHeights,
-      toast2.id,
-      toast2.jsx,
-      toast2.action,
-      toast2.cancel
-    ]);
-    const deleteToast = import_react.default.useCallback(() => {
-      setRemoved(true);
-      setOffsetBeforeRemove(offset.current);
-      setHeights((h) => h.filter((height) => height.toastId !== toast2.id));
-      setTimeout(() => {
-        removeToast(toast2);
-      }, TIME_BEFORE_UNMOUNT);
-    }, [
-      toast2,
-      removeToast,
-      setHeights,
-      offset
-    ]);
-    import_react.default.useEffect(() => {
-      if (toast2.promise && toastType === "loading" || toast2.duration === Infinity || toast2.type === "loading") return;
-      let timeoutId;
-      const pauseTimer = () => {
-        if (lastCloseTimerStartTimeRef.current < closeTimerStartTimeRef.current) {
-          const elapsedTime = (/* @__PURE__ */ new Date()).getTime() - closeTimerStartTimeRef.current;
-          remainingTime.current = remainingTime.current - elapsedTime;
-        }
-        lastCloseTimerStartTimeRef.current = (/* @__PURE__ */ new Date()).getTime();
-      };
-      const startTimer = () => {
-        if (remainingTime.current === Infinity) return;
-        closeTimerStartTimeRef.current = (/* @__PURE__ */ new Date()).getTime();
-        timeoutId = setTimeout(() => {
-          toast2.onAutoClose == null ? void 0 : toast2.onAutoClose.call(toast2, toast2);
-          deleteToast();
-        }, remainingTime.current);
-      };
-      if (expanded || interacting || isDocumentHidden) {
-        pauseTimer();
-      } else {
-        startTimer();
-      }
-      return () => clearTimeout(timeoutId);
-    }, [
-      expanded,
-      interacting,
-      toast2,
-      toastType,
-      isDocumentHidden,
-      deleteToast
-    ]);
-    import_react.default.useEffect(() => {
-      if (toast2.delete) {
-        deleteToast();
-        toast2.onDismiss == null ? void 0 : toast2.onDismiss.call(toast2, toast2);
-      }
-    }, [
-      deleteToast,
-      toast2.delete
-    ]);
-    function getLoadingIcon() {
-      var _toast_classNames9;
-      if (icons == null ? void 0 : icons.loading) {
-        var _toast_classNames12;
-        return /* @__PURE__ */ import_react.default.createElement("div", {
-          className: cn(classNames == null ? void 0 : classNames.loader, toast2 == null ? void 0 : (_toast_classNames12 = toast2.classNames) == null ? void 0 : _toast_classNames12.loader, "sonner-loader"),
-          "data-visible": toastType === "loading"
-        }, icons.loading);
-      }
-      return /* @__PURE__ */ import_react.default.createElement(Loader, {
-        className: cn(classNames == null ? void 0 : classNames.loader, toast2 == null ? void 0 : (_toast_classNames9 = toast2.classNames) == null ? void 0 : _toast_classNames9.loader),
-        visible: toastType === "loading"
-      });
-    }
-    const icon = toast2.icon || (icons == null ? void 0 : icons[toastType]) || getAsset(toastType);
-    var _toast_richColors, _icons_close;
-    return /* @__PURE__ */ import_react.default.createElement("li", {
-      tabIndex: 0,
-      ref: toastRef,
-      className: cn(className, toastClassname, classNames == null ? void 0 : classNames.toast, toast2 == null ? void 0 : (_toast_classNames = toast2.classNames) == null ? void 0 : _toast_classNames.toast, classNames == null ? void 0 : classNames.default, classNames == null ? void 0 : classNames[toastType], toast2 == null ? void 0 : (_toast_classNames1 = toast2.classNames) == null ? void 0 : _toast_classNames1[toastType]),
-      "data-sonner-toast": "",
-      "data-rich-colors": (_toast_richColors = toast2.richColors) != null ? _toast_richColors : defaultRichColors,
-      "data-styled": !Boolean(toast2.jsx || toast2.unstyled || unstyled),
-      "data-mounted": mounted,
-      "data-promise": Boolean(toast2.promise),
-      "data-swiped": isSwiped,
-      "data-removed": removed,
-      "data-visible": isVisible,
-      "data-y-position": y,
-      "data-x-position": x,
-      "data-index": index,
-      "data-front": isFront,
-      "data-swiping": swiping,
-      "data-dismissible": dismissible,
-      "data-type": toastType,
-      "data-invert": invert,
-      "data-swipe-out": swipeOut,
-      "data-swipe-direction": swipeOutDirection,
-      "data-expanded": Boolean(expanded || expandByDefault && mounted),
-      "data-testid": toast2.testId,
-      style: {
-        "--index": index,
-        "--toasts-before": index,
-        "--z-index": toasts.length - index,
-        "--offset": `${removed ? offsetBeforeRemove : offset.current}px`,
-        "--initial-height": expandByDefault ? "auto" : `${initialHeight}px`,
-        ...style,
-        ...toast2.style
-      },
-      onDragEnd: () => {
-        setSwiping(false);
-        setSwipeDirection(null);
-        pointerStartRef.current = null;
-      },
-      onPointerDown: (event) => {
-        if (event.button === 2) return;
-        if (disabled || !dismissible) return;
-        dragStartTime.current = /* @__PURE__ */ new Date();
-        setOffsetBeforeRemove(offset.current);
-        event.target.setPointerCapture(event.pointerId);
-        if (event.target.tagName === "BUTTON") return;
-        setSwiping(true);
-        pointerStartRef.current = {
-          x: event.clientX,
-          y: event.clientY
-        };
-      },
-      onPointerUp: () => {
-        var _toastRef_current, _toastRef_current1, _dragStartTime_current;
-        if (swipeOut || !dismissible) return;
-        pointerStartRef.current = null;
-        const swipeAmountX = Number(((_toastRef_current = toastRef.current) == null ? void 0 : _toastRef_current.style.getPropertyValue("--swipe-amount-x").replace("px", "")) || 0);
-        const swipeAmountY = Number(((_toastRef_current1 = toastRef.current) == null ? void 0 : _toastRef_current1.style.getPropertyValue("--swipe-amount-y").replace("px", "")) || 0);
-        const timeTaken = (/* @__PURE__ */ new Date()).getTime() - ((_dragStartTime_current = dragStartTime.current) == null ? void 0 : _dragStartTime_current.getTime());
-        const swipeAmount = swipeDirection === "x" ? swipeAmountX : swipeAmountY;
-        const velocity = Math.abs(swipeAmount) / timeTaken;
-        if (Math.abs(swipeAmount) >= SWIPE_THRESHOLD || velocity > 0.11) {
-          setOffsetBeforeRemove(offset.current);
-          toast2.onDismiss == null ? void 0 : toast2.onDismiss.call(toast2, toast2);
-          if (swipeDirection === "x") {
-            setSwipeOutDirection(swipeAmountX > 0 ? "right" : "left");
-          } else {
-            setSwipeOutDirection(swipeAmountY > 0 ? "down" : "up");
-          }
-          deleteToast();
-          setSwipeOut(true);
-          return;
-        } else {
-          var _toastRef_current2, _toastRef_current3;
-          (_toastRef_current2 = toastRef.current) == null ? void 0 : _toastRef_current2.style.setProperty("--swipe-amount-x", `0px`);
-          (_toastRef_current3 = toastRef.current) == null ? void 0 : _toastRef_current3.style.setProperty("--swipe-amount-y", `0px`);
-        }
-        setIsSwiped(false);
-        setSwiping(false);
-        setSwipeDirection(null);
-      },
-      onPointerMove: (event) => {
-        var _window_getSelection, _toastRef_current, _toastRef_current1;
-        if (!pointerStartRef.current || !dismissible) return;
-        const isHighlighted = ((_window_getSelection = window.getSelection()) == null ? void 0 : _window_getSelection.toString().length) > 0;
-        if (isHighlighted) return;
-        const yDelta = event.clientY - pointerStartRef.current.y;
-        const xDelta = event.clientX - pointerStartRef.current.x;
-        var _props_swipeDirections;
-        const swipeDirections = (_props_swipeDirections = props.swipeDirections) != null ? _props_swipeDirections : getDefaultSwipeDirections(position);
-        if (!swipeDirection && (Math.abs(xDelta) > 1 || Math.abs(yDelta) > 1)) {
-          setSwipeDirection(Math.abs(xDelta) > Math.abs(yDelta) ? "x" : "y");
-        }
-        let swipeAmount = {
-          x: 0,
-          y: 0
-        };
-        const getDampening = (delta) => {
-          const factor = Math.abs(delta) / 20;
-          return 1 / (1.5 + factor);
-        };
-        if (swipeDirection === "y") {
-          if (swipeDirections.includes("top") || swipeDirections.includes("bottom")) {
-            if (swipeDirections.includes("top") && yDelta < 0 || swipeDirections.includes("bottom") && yDelta > 0) {
-              swipeAmount.y = yDelta;
-            } else {
-              const dampenedDelta = yDelta * getDampening(yDelta);
-              swipeAmount.y = Math.abs(dampenedDelta) < Math.abs(yDelta) ? dampenedDelta : yDelta;
-            }
-          }
-        } else if (swipeDirection === "x") {
-          if (swipeDirections.includes("left") || swipeDirections.includes("right")) {
-            if (swipeDirections.includes("left") && xDelta < 0 || swipeDirections.includes("right") && xDelta > 0) {
-              swipeAmount.x = xDelta;
-            } else {
-              const dampenedDelta = xDelta * getDampening(xDelta);
-              swipeAmount.x = Math.abs(dampenedDelta) < Math.abs(xDelta) ? dampenedDelta : xDelta;
-            }
-          }
-        }
-        if (Math.abs(swipeAmount.x) > 0 || Math.abs(swipeAmount.y) > 0) {
-          setIsSwiped(true);
-        }
-        (_toastRef_current = toastRef.current) == null ? void 0 : _toastRef_current.style.setProperty("--swipe-amount-x", `${swipeAmount.x}px`);
-        (_toastRef_current1 = toastRef.current) == null ? void 0 : _toastRef_current1.style.setProperty("--swipe-amount-y", `${swipeAmount.y}px`);
-      }
-    }, closeButton && !toast2.jsx && toastType !== "loading" ? /* @__PURE__ */ import_react.default.createElement("button", {
-      "aria-label": closeButtonAriaLabel,
-      "data-disabled": disabled,
-      "data-close-button": true,
-      onClick: disabled || !dismissible ? () => {
-      } : () => {
-        deleteToast();
-        toast2.onDismiss == null ? void 0 : toast2.onDismiss.call(toast2, toast2);
-      },
-      className: cn(classNames == null ? void 0 : classNames.closeButton, toast2 == null ? void 0 : (_toast_classNames2 = toast2.classNames) == null ? void 0 : _toast_classNames2.closeButton)
-    }, (_icons_close = icons == null ? void 0 : icons.close) != null ? _icons_close : CloseIcon) : null, (toastType || toast2.icon || toast2.promise) && toast2.icon !== null && ((icons == null ? void 0 : icons[toastType]) !== null || toast2.icon) ? /* @__PURE__ */ import_react.default.createElement("div", {
-      "data-icon": "",
-      className: cn(classNames == null ? void 0 : classNames.icon, toast2 == null ? void 0 : (_toast_classNames3 = toast2.classNames) == null ? void 0 : _toast_classNames3.icon)
-    }, toast2.promise || toast2.type === "loading" && !toast2.icon ? toast2.icon || getLoadingIcon() : null, toast2.type !== "loading" ? icon : null) : null, /* @__PURE__ */ import_react.default.createElement("div", {
-      "data-content": "",
-      className: cn(classNames == null ? void 0 : classNames.content, toast2 == null ? void 0 : (_toast_classNames4 = toast2.classNames) == null ? void 0 : _toast_classNames4.content)
-    }, /* @__PURE__ */ import_react.default.createElement("div", {
-      "data-title": "",
-      className: cn(classNames == null ? void 0 : classNames.title, toast2 == null ? void 0 : (_toast_classNames5 = toast2.classNames) == null ? void 0 : _toast_classNames5.title)
-    }, toast2.jsx ? toast2.jsx : typeof toast2.title === "function" ? toast2.title() : toast2.title), toast2.description ? /* @__PURE__ */ import_react.default.createElement("div", {
-      "data-description": "",
-      className: cn(descriptionClassName, toastDescriptionClassname, classNames == null ? void 0 : classNames.description, toast2 == null ? void 0 : (_toast_classNames6 = toast2.classNames) == null ? void 0 : _toast_classNames6.description)
-    }, typeof toast2.description === "function" ? toast2.description() : toast2.description) : null), /* @__PURE__ */ import_react.default.isValidElement(toast2.cancel) ? toast2.cancel : toast2.cancel && isAction(toast2.cancel) ? /* @__PURE__ */ import_react.default.createElement("button", {
-      "data-button": true,
-      "data-cancel": true,
-      style: toast2.cancelButtonStyle || cancelButtonStyle,
-      onClick: (event) => {
-        if (!isAction(toast2.cancel)) return;
-        if (!dismissible) return;
-        toast2.cancel.onClick == null ? void 0 : toast2.cancel.onClick.call(toast2.cancel, event);
-        deleteToast();
-      },
-      className: cn(classNames == null ? void 0 : classNames.cancelButton, toast2 == null ? void 0 : (_toast_classNames7 = toast2.classNames) == null ? void 0 : _toast_classNames7.cancelButton)
-    }, toast2.cancel.label) : null, /* @__PURE__ */ import_react.default.isValidElement(toast2.action) ? toast2.action : toast2.action && isAction(toast2.action) ? /* @__PURE__ */ import_react.default.createElement("button", {
-      "data-button": true,
-      "data-action": true,
-      style: toast2.actionButtonStyle || actionButtonStyle,
-      onClick: (event) => {
-        if (!isAction(toast2.action)) return;
-        toast2.action.onClick == null ? void 0 : toast2.action.onClick.call(toast2.action, event);
-        if (event.defaultPrevented) return;
-        deleteToast();
-      },
-      className: cn(classNames == null ? void 0 : classNames.actionButton, toast2 == null ? void 0 : (_toast_classNames8 = toast2.classNames) == null ? void 0 : _toast_classNames8.actionButton)
-    }, toast2.action.label) : null);
-  };
-  function getDocumentDirection() {
-    if (typeof window === "undefined") return "ltr";
-    if (typeof document === "undefined") return "ltr";
-    const dirAttribute = document.documentElement.getAttribute("dir");
-    if (dirAttribute === "auto" || !dirAttribute) {
-      return window.getComputedStyle(document.documentElement).direction;
-    }
-    return dirAttribute;
-  }
-  function assignOffset(defaultOffset, mobileOffset) {
-    const styles = {};
-    [
-      defaultOffset,
-      mobileOffset
-    ].forEach((offset, index) => {
-      const isMobile = index === 1;
-      const prefix = isMobile ? "--mobile-offset" : "--offset";
-      const defaultValue = isMobile ? MOBILE_VIEWPORT_OFFSET : VIEWPORT_OFFSET;
-      function assignAll(offset2) {
-        [
-          "top",
-          "right",
-          "bottom",
-          "left"
-        ].forEach((key) => {
-          styles[`${prefix}-${key}`] = typeof offset2 === "number" ? `${offset2}px` : offset2;
-        });
-      }
-      if (typeof offset === "number" || typeof offset === "string") {
-        assignAll(offset);
-      } else if (typeof offset === "object") {
-        [
-          "top",
-          "right",
-          "bottom",
-          "left"
-        ].forEach((key) => {
-          if (offset[key] === void 0) {
-            styles[`${prefix}-${key}`] = defaultValue;
-          } else {
-            styles[`${prefix}-${key}`] = typeof offset[key] === "number" ? `${offset[key]}px` : offset[key];
-          }
-        });
-      } else {
-        assignAll(defaultValue);
-      }
-    });
-    return styles;
-  }
-  var Toaster = /* @__PURE__ */ import_react.default.forwardRef(function Toaster2(props, ref) {
-    const { id, invert, position = "bottom-right", hotkey = [
-      "altKey",
-      "KeyT"
-    ], expand, closeButton, className, offset, mobileOffset, theme = "light", richColors, duration, style, visibleToasts = VISIBLE_TOASTS_AMOUNT, toastOptions, dir = getDocumentDirection(), gap = GAP, icons, containerAriaLabel = "Notifications" } = props;
-    const [toasts, setToasts] = import_react.default.useState([]);
-    const filteredToasts = import_react.default.useMemo(() => {
-      if (id) {
-        return toasts.filter((toast2) => toast2.toasterId === id);
-      }
-      return toasts.filter((toast2) => !toast2.toasterId);
-    }, [
-      toasts,
-      id
-    ]);
-    const possiblePositions = import_react.default.useMemo(() => {
-      return Array.from(new Set([
-        position
-      ].concat(filteredToasts.filter((toast2) => toast2.position).map((toast2) => toast2.position))));
-    }, [
-      filteredToasts,
-      position
-    ]);
-    const [heights, setHeights] = import_react.default.useState([]);
-    const [expanded, setExpanded] = import_react.default.useState(false);
-    const [interacting, setInteracting] = import_react.default.useState(false);
-    const [actualTheme, setActualTheme] = import_react.default.useState(theme !== "system" ? theme : typeof window !== "undefined" ? window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light" : "light");
-    const listRef = import_react.default.useRef(null);
-    const hotkeyLabel = hotkey.join("+").replace(/Key/g, "").replace(/Digit/g, "");
-    const lastFocusedElementRef = import_react.default.useRef(null);
-    const isFocusWithinRef = import_react.default.useRef(false);
-    const removeToast = import_react.default.useCallback((toastToRemove) => {
-      setToasts((toasts2) => {
-        var _toasts_find;
-        if (!((_toasts_find = toasts2.find((toast2) => toast2.id === toastToRemove.id)) == null ? void 0 : _toasts_find.delete)) {
-          ToastState.dismiss(toastToRemove.id);
-        }
-        return toasts2.filter(({ id: id2 }) => id2 !== toastToRemove.id);
-      });
-    }, []);
-    import_react.default.useEffect(() => {
-      return ToastState.subscribe((toast2) => {
-        if (toast2.dismiss) {
-          requestAnimationFrame(() => {
-            setToasts((toasts2) => toasts2.map((t) => t.id === toast2.id ? {
-              ...t,
-              delete: true
-            } : t));
-          });
-          return;
-        }
-        setTimeout(() => {
-          import_react_dom.default.flushSync(() => {
-            setToasts((toasts2) => {
-              const indexOfExistingToast = toasts2.findIndex((t) => t.id === toast2.id);
-              if (indexOfExistingToast !== -1) {
-                return [
-                  ...toasts2.slice(0, indexOfExistingToast),
-                  {
-                    ...toasts2[indexOfExistingToast],
-                    ...toast2
-                  },
-                  ...toasts2.slice(indexOfExistingToast + 1)
-                ];
-              }
-              return [
-                toast2,
-                ...toasts2
-              ];
-            });
-          });
-        });
-      });
-    }, [
-      toasts
-    ]);
-    import_react.default.useEffect(() => {
-      if (theme !== "system") {
-        setActualTheme(theme);
-        return;
-      }
-      if (theme === "system") {
-        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-          setActualTheme("dark");
-        } else {
-          setActualTheme("light");
-        }
-      }
-      if (typeof window === "undefined") return;
-      const darkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      try {
-        darkMediaQuery.addEventListener("change", ({ matches }) => {
-          if (matches) {
-            setActualTheme("dark");
-          } else {
-            setActualTheme("light");
-          }
-        });
-      } catch (error) {
-        darkMediaQuery.addListener(({ matches }) => {
-          try {
-            if (matches) {
-              setActualTheme("dark");
-            } else {
-              setActualTheme("light");
-            }
-          } catch (e) {
-            console.error(e);
-          }
-        });
-      }
-    }, [
-      theme
-    ]);
-    import_react.default.useEffect(() => {
-      if (toasts.length <= 1) {
-        setExpanded(false);
-      }
-    }, [
-      toasts
-    ]);
-    import_react.default.useEffect(() => {
-      const handleKeyDown = (event) => {
-        var _listRef_current;
-        const isHotkeyPressed = hotkey.every((key) => event[key] || event.code === key);
-        if (isHotkeyPressed) {
-          var _listRef_current1;
-          setExpanded(true);
-          (_listRef_current1 = listRef.current) == null ? void 0 : _listRef_current1.focus();
-        }
-        if (event.code === "Escape" && (document.activeElement === listRef.current || ((_listRef_current = listRef.current) == null ? void 0 : _listRef_current.contains(document.activeElement)))) {
-          setExpanded(false);
-        }
-      };
-      document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [
-      hotkey
-    ]);
-    import_react.default.useEffect(() => {
-      if (listRef.current) {
-        return () => {
-          if (lastFocusedElementRef.current) {
-            lastFocusedElementRef.current.focus({
-              preventScroll: true
-            });
-            lastFocusedElementRef.current = null;
-            isFocusWithinRef.current = false;
-          }
-        };
-      }
-    }, [
-      listRef.current
-    ]);
-    return (
-      // Remove item from normal navigation flow, only available via hotkey
-      /* @__PURE__ */ import_react.default.createElement("section", {
-        ref,
-        "aria-label": `${containerAriaLabel} ${hotkeyLabel}`,
-        tabIndex: -1,
-        "aria-live": "polite",
-        "aria-relevant": "additions text",
-        "aria-atomic": "false",
-        suppressHydrationWarning: true
-      }, possiblePositions.map((position2, index) => {
-        var _heights_;
-        const [y, x] = position2.split("-");
-        if (!filteredToasts.length) return null;
-        return /* @__PURE__ */ import_react.default.createElement("ol", {
-          key: position2,
-          dir: dir === "auto" ? getDocumentDirection() : dir,
-          tabIndex: -1,
-          ref: listRef,
-          className,
-          "data-sonner-toaster": true,
-          "data-sonner-theme": actualTheme,
-          "data-y-position": y,
-          "data-x-position": x,
-          style: {
-            "--front-toast-height": `${((_heights_ = heights[0]) == null ? void 0 : _heights_.height) || 0}px`,
-            "--width": `${TOAST_WIDTH}px`,
-            "--gap": `${gap}px`,
-            ...style,
-            ...assignOffset(offset, mobileOffset)
-          },
-          onBlur: (event) => {
-            if (isFocusWithinRef.current && !event.currentTarget.contains(event.relatedTarget)) {
-              isFocusWithinRef.current = false;
-              if (lastFocusedElementRef.current) {
-                lastFocusedElementRef.current.focus({
-                  preventScroll: true
-                });
-                lastFocusedElementRef.current = null;
-              }
-            }
-          },
-          onFocus: (event) => {
-            const isNotDismissible = event.target instanceof HTMLElement && event.target.dataset.dismissible === "false";
-            if (isNotDismissible) return;
-            if (!isFocusWithinRef.current) {
-              isFocusWithinRef.current = true;
-              lastFocusedElementRef.current = event.relatedTarget;
-            }
-          },
-          onMouseEnter: () => setExpanded(true),
-          onMouseMove: () => setExpanded(true),
-          onMouseLeave: () => {
-            if (!interacting) {
-              setExpanded(false);
-            }
-          },
-          onDragEnd: () => setExpanded(false),
-          onPointerDown: (event) => {
-            const isNotDismissible = event.target instanceof HTMLElement && event.target.dataset.dismissible === "false";
-            if (isNotDismissible) return;
-            setInteracting(true);
-          },
-          onPointerUp: () => setInteracting(false)
-        }, filteredToasts.filter((toast2) => !toast2.position && index === 0 || toast2.position === position2).map((toast2, index2) => {
-          var _toastOptions_duration, _toastOptions_closeButton;
-          return /* @__PURE__ */ import_react.default.createElement(Toast, {
-            key: toast2.id,
-            icons,
-            index: index2,
-            toast: toast2,
-            defaultRichColors: richColors,
-            duration: (_toastOptions_duration = toastOptions == null ? void 0 : toastOptions.duration) != null ? _toastOptions_duration : duration,
-            className: toastOptions == null ? void 0 : toastOptions.className,
-            descriptionClassName: toastOptions == null ? void 0 : toastOptions.descriptionClassName,
-            invert,
-            visibleToasts,
-            closeButton: (_toastOptions_closeButton = toastOptions == null ? void 0 : toastOptions.closeButton) != null ? _toastOptions_closeButton : closeButton,
-            interacting,
-            position: position2,
-            style: toastOptions == null ? void 0 : toastOptions.style,
-            unstyled: toastOptions == null ? void 0 : toastOptions.unstyled,
-            classNames: toastOptions == null ? void 0 : toastOptions.classNames,
-            cancelButtonStyle: toastOptions == null ? void 0 : toastOptions.cancelButtonStyle,
-            actionButtonStyle: toastOptions == null ? void 0 : toastOptions.actionButtonStyle,
-            closeButtonAriaLabel: toastOptions == null ? void 0 : toastOptions.closeButtonAriaLabel,
-            removeToast,
-            toasts: filteredToasts.filter((t) => t.position == toast2.position),
-            heights: heights.filter((h) => h.position == toast2.position),
-            setHeights,
-            expandByDefault: expand,
-            gap,
-            expanded,
-            swipeDirections: props.swipeDirections
-          });
-        }));
-      }))
-    );
-  });
 
   // assets/js/components/Toaster.tsx
-  var import_jsx_runtime3 = __toESM(require_jsx_runtime());
-  function Toaster3() {
-    return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
-      Toaster,
+  var import_react2 = __toESM(require_react());
+  var import_jsx_runtime4 = __toESM(require_jsx_runtime());
+  var alertClasses = {
+    success: "alert-success",
+    error: "alert-error",
+    info: "alert-info",
+    warning: "alert-warning"
+  };
+  function Toaster() {
+    const { toasts, addToast, removeToast } = useToast();
+    (0, import_react2.useEffect)(() => {
+      const handler = (e) => {
+        addToast(e.detail.message, e.detail.type);
+      };
+      window.addEventListener("toast", handler);
+      return () => window.removeEventListener("toast", handler);
+    }, [addToast]);
+    if (toasts.length === 0) return null;
+    return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "toast toast-top toast-end z-50", children: toasts.map((t) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+      "div",
       {
-        position: "top-right",
-        toastOptions: {
-          className: "toast",
-          style: {
-            background: "hsl(var(--b2))",
-            color: "hsl(var(--bc))",
-            border: "1px solid hsl(var(--b3))"
-          }
-        }
-      }
-    );
+        className: `alert ${alertClasses[t.type]} cursor-pointer`,
+        onClick: () => removeToast(t.id),
+        children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: t.message })
+      },
+      t.id
+    )) });
   }
 
   // assets/js/components/PlanEditor.tsx
-  var import_react37 = __toESM(require_react());
+  var import_react38 = __toESM(require_react());
 
   // node_modules/lucide-react/dist/esm/createLucideIcon.js
-  var import_react3 = __toESM(require_react());
+  var import_react4 = __toESM(require_react());
 
   // node_modules/lucide-react/dist/esm/shared/src/utils.js
   var toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
@@ -25675,7 +24641,7 @@
   };
 
   // node_modules/lucide-react/dist/esm/Icon.js
-  var import_react2 = __toESM(require_react());
+  var import_react3 = __toESM(require_react());
 
   // node_modules/lucide-react/dist/esm/defaultAttributes.js
   var defaultAttributes = {
@@ -25691,7 +24657,7 @@
   };
 
   // node_modules/lucide-react/dist/esm/Icon.js
-  var Icon = (0, import_react2.forwardRef)(
+  var Icon = (0, import_react3.forwardRef)(
     ({
       color = "currentColor",
       size = 24,
@@ -25701,7 +24667,7 @@
       children,
       iconNode,
       ...rest
-    }, ref) => (0, import_react2.createElement)(
+    }, ref) => (0, import_react3.createElement)(
       "svg",
       {
         ref,
@@ -25715,7 +24681,7 @@
         ...rest
       },
       [
-        ...iconNode.map(([tag, attrs]) => (0, import_react2.createElement)(tag, attrs)),
+        ...iconNode.map(([tag, attrs]) => (0, import_react3.createElement)(tag, attrs)),
         ...Array.isArray(children) ? children : [children]
       ]
     )
@@ -25723,8 +24689,8 @@
 
   // node_modules/lucide-react/dist/esm/createLucideIcon.js
   var createLucideIcon = (iconName, iconNode) => {
-    const Component2 = (0, import_react3.forwardRef)(
-      ({ className, ...props }, ref) => (0, import_react3.createElement)(Icon, {
+    const Component2 = (0, import_react4.forwardRef)(
+      ({ className, ...props }, ref) => (0, import_react4.createElement)(Icon, {
         ref,
         iconNode,
         className: mergeClasses(
@@ -25857,7 +24823,7 @@
   var X = createLucideIcon("x", __iconNode12);
 
   // assets/js/components/DatePicker.tsx
-  var import_react36 = __toESM(require_react());
+  var import_react37 = __toESM(require_react());
 
   // node_modules/@date-fns/tz/tzName/index.js
   function tzName(timeZone, date, format2 = "long") {
@@ -30054,55 +29020,55 @@
   });
 
   // node_modules/react-day-picker/dist/esm/components/Button.js
-  var import_react4 = __toESM(require_react(), 1);
+  var import_react5 = __toESM(require_react(), 1);
   function Button(props) {
-    return import_react4.default.createElement("button", { ...props });
+    return import_react5.default.createElement("button", { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/CaptionLabel.js
-  var import_react5 = __toESM(require_react(), 1);
+  var import_react6 = __toESM(require_react(), 1);
   function CaptionLabel(props) {
-    return import_react5.default.createElement("span", { ...props });
+    return import_react6.default.createElement("span", { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/Chevron.js
-  var import_react6 = __toESM(require_react(), 1);
+  var import_react7 = __toESM(require_react(), 1);
   function Chevron(props) {
     const { size = 24, orientation = "left", className } = props;
     return (
       // biome-ignore lint/a11y/noSvgWithoutTitle: handled by the parent component
-      import_react6.default.createElement(
+      import_react7.default.createElement(
         "svg",
         { className, width: size, height: size, viewBox: "0 0 24 24" },
-        orientation === "up" && import_react6.default.createElement("polygon", { points: "6.77 17 12.5 11.43 18.24 17 20 15.28 12.5 8 5 15.28" }),
-        orientation === "down" && import_react6.default.createElement("polygon", { points: "6.77 8 12.5 13.57 18.24 8 20 9.72 12.5 17 5 9.72" }),
-        orientation === "left" && import_react6.default.createElement("polygon", { points: "16 18.112 9.81111111 12 16 5.87733333 14.0888889 4 6 12 14.0888889 20" }),
-        orientation === "right" && import_react6.default.createElement("polygon", { points: "8 18.112 14.18888889 12 8 5.87733333 9.91111111 4 18 12 9.91111111 20" })
+        orientation === "up" && import_react7.default.createElement("polygon", { points: "6.77 17 12.5 11.43 18.24 17 20 15.28 12.5 8 5 15.28" }),
+        orientation === "down" && import_react7.default.createElement("polygon", { points: "6.77 8 12.5 13.57 18.24 8 20 9.72 12.5 17 5 9.72" }),
+        orientation === "left" && import_react7.default.createElement("polygon", { points: "16 18.112 9.81111111 12 16 5.87733333 14.0888889 4 6 12 14.0888889 20" }),
+        orientation === "right" && import_react7.default.createElement("polygon", { points: "8 18.112 14.18888889 12 8 5.87733333 9.91111111 4 18 12 9.91111111 20" })
       )
     );
   }
 
   // node_modules/react-day-picker/dist/esm/components/Day.js
-  var import_react7 = __toESM(require_react(), 1);
+  var import_react8 = __toESM(require_react(), 1);
   function Day(props) {
     const { day, modifiers, ...tdProps } = props;
-    return import_react7.default.createElement("td", { ...tdProps });
+    return import_react8.default.createElement("td", { ...tdProps });
   }
 
   // node_modules/react-day-picker/dist/esm/components/DayButton.js
-  var import_react8 = __toESM(require_react(), 1);
+  var import_react9 = __toESM(require_react(), 1);
   function DayButton(props) {
     const { day, modifiers, ...buttonProps } = props;
-    const ref = import_react8.default.useRef(null);
-    import_react8.default.useEffect(() => {
+    const ref = import_react9.default.useRef(null);
+    import_react9.default.useEffect(() => {
       if (modifiers.focused)
         ref.current?.focus();
     }, [modifiers.focused]);
-    return import_react8.default.createElement("button", { ref, ...buttonProps });
+    return import_react9.default.createElement("button", { ref, ...buttonProps });
   }
 
   // node_modules/react-day-picker/dist/esm/components/Dropdown.js
-  var import_react9 = __toESM(require_react(), 1);
+  var import_react10 = __toESM(require_react(), 1);
 
   // node_modules/react-day-picker/dist/esm/UI.js
   var UI;
@@ -30164,65 +29130,65 @@
     const { options, className, components: components2, classNames, ...selectProps } = props;
     const cssClassSelect = [classNames[UI.Dropdown], className].join(" ");
     const selectedOption = options?.find(({ value }) => value === selectProps.value);
-    return import_react9.default.createElement(
+    return import_react10.default.createElement(
       "span",
       { "data-disabled": selectProps.disabled, className: classNames[UI.DropdownRoot] },
-      import_react9.default.createElement(components2.Select, { className: cssClassSelect, ...selectProps }, options?.map(({ value, label, disabled }) => import_react9.default.createElement(components2.Option, { key: value, value, disabled }, label))),
-      import_react9.default.createElement(
+      import_react10.default.createElement(components2.Select, { className: cssClassSelect, ...selectProps }, options?.map(({ value, label, disabled }) => import_react10.default.createElement(components2.Option, { key: value, value, disabled }, label))),
+      import_react10.default.createElement(
         "span",
         { className: classNames[UI.CaptionLabel], "aria-hidden": true },
         selectedOption?.label,
-        import_react9.default.createElement(components2.Chevron, { orientation: "down", size: 18, className: classNames[UI.Chevron] })
+        import_react10.default.createElement(components2.Chevron, { orientation: "down", size: 18, className: classNames[UI.Chevron] })
       )
     );
   }
 
   // node_modules/react-day-picker/dist/esm/components/DropdownNav.js
-  var import_react10 = __toESM(require_react(), 1);
-  function DropdownNav(props) {
-    return import_react10.default.createElement("div", { ...props });
-  }
-
-  // node_modules/react-day-picker/dist/esm/components/Footer.js
   var import_react11 = __toESM(require_react(), 1);
-  function Footer(props) {
+  function DropdownNav(props) {
     return import_react11.default.createElement("div", { ...props });
   }
 
-  // node_modules/react-day-picker/dist/esm/components/Month.js
+  // node_modules/react-day-picker/dist/esm/components/Footer.js
   var import_react12 = __toESM(require_react(), 1);
+  function Footer(props) {
+    return import_react12.default.createElement("div", { ...props });
+  }
+
+  // node_modules/react-day-picker/dist/esm/components/Month.js
+  var import_react13 = __toESM(require_react(), 1);
   function Month(props) {
     const { calendarMonth, displayIndex, ...divProps } = props;
-    return import_react12.default.createElement("div", { ...divProps }, props.children);
+    return import_react13.default.createElement("div", { ...divProps }, props.children);
   }
 
   // node_modules/react-day-picker/dist/esm/components/MonthCaption.js
-  var import_react13 = __toESM(require_react(), 1);
+  var import_react14 = __toESM(require_react(), 1);
   function MonthCaption(props) {
     const { calendarMonth, displayIndex, ...divProps } = props;
-    return import_react13.default.createElement("div", { ...divProps });
+    return import_react14.default.createElement("div", { ...divProps });
   }
 
   // node_modules/react-day-picker/dist/esm/components/MonthGrid.js
-  var import_react14 = __toESM(require_react(), 1);
+  var import_react15 = __toESM(require_react(), 1);
   function MonthGrid(props) {
-    return import_react14.default.createElement("table", { ...props });
+    return import_react15.default.createElement("table", { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/Months.js
-  var import_react15 = __toESM(require_react(), 1);
+  var import_react16 = __toESM(require_react(), 1);
   function Months(props) {
-    return import_react15.default.createElement("div", { ...props });
+    return import_react16.default.createElement("div", { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/MonthsDropdown.js
-  var import_react17 = __toESM(require_react(), 1);
+  var import_react18 = __toESM(require_react(), 1);
 
   // node_modules/react-day-picker/dist/esm/useDayPicker.js
-  var import_react16 = __toESM(require_react(), 1);
-  var dayPickerContext = (0, import_react16.createContext)(void 0);
+  var import_react17 = __toESM(require_react(), 1);
+  var dayPickerContext = (0, import_react17.createContext)(void 0);
   function useDayPicker() {
-    const context = (0, import_react16.useContext)(dayPickerContext);
+    const context = (0, import_react17.useContext)(dayPickerContext);
     if (context === void 0) {
       throw new Error("useDayPicker() must be used within a custom component.");
     }
@@ -30232,124 +29198,124 @@
   // node_modules/react-day-picker/dist/esm/components/MonthsDropdown.js
   function MonthsDropdown(props) {
     const { components: components2 } = useDayPicker();
-    return import_react17.default.createElement(components2.Dropdown, { ...props });
+    return import_react18.default.createElement(components2.Dropdown, { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/Nav.js
-  var import_react18 = __toESM(require_react(), 1);
+  var import_react19 = __toESM(require_react(), 1);
   function Nav(props) {
     const { onPreviousClick, onNextClick, previousMonth, nextMonth, ...navProps } = props;
     const { components: components2, classNames, labels: { labelPrevious: labelPrevious2, labelNext: labelNext2 } } = useDayPicker();
-    const handleNextClick = (0, import_react18.useCallback)((e) => {
+    const handleNextClick = (0, import_react19.useCallback)((e) => {
       if (nextMonth) {
         onNextClick?.(e);
       }
     }, [nextMonth, onNextClick]);
-    const handlePreviousClick = (0, import_react18.useCallback)((e) => {
+    const handlePreviousClick = (0, import_react19.useCallback)((e) => {
       if (previousMonth) {
         onPreviousClick?.(e);
       }
     }, [previousMonth, onPreviousClick]);
-    return import_react18.default.createElement(
+    return import_react19.default.createElement(
       "nav",
       { ...navProps },
-      import_react18.default.createElement(
+      import_react19.default.createElement(
         components2.PreviousMonthButton,
         { type: "button", className: classNames[UI.PreviousMonthButton], tabIndex: previousMonth ? void 0 : -1, "aria-disabled": previousMonth ? void 0 : true, "aria-label": labelPrevious2(previousMonth), onClick: handlePreviousClick },
-        import_react18.default.createElement(components2.Chevron, { disabled: previousMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: "left" })
+        import_react19.default.createElement(components2.Chevron, { disabled: previousMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: "left" })
       ),
-      import_react18.default.createElement(
+      import_react19.default.createElement(
         components2.NextMonthButton,
         { type: "button", className: classNames[UI.NextMonthButton], tabIndex: nextMonth ? void 0 : -1, "aria-disabled": nextMonth ? void 0 : true, "aria-label": labelNext2(nextMonth), onClick: handleNextClick },
-        import_react18.default.createElement(components2.Chevron, { disabled: nextMonth ? void 0 : true, orientation: "right", className: classNames[UI.Chevron] })
+        import_react19.default.createElement(components2.Chevron, { disabled: nextMonth ? void 0 : true, orientation: "right", className: classNames[UI.Chevron] })
       )
     );
   }
 
   // node_modules/react-day-picker/dist/esm/components/NextMonthButton.js
-  var import_react19 = __toESM(require_react(), 1);
+  var import_react20 = __toESM(require_react(), 1);
   function NextMonthButton(props) {
     const { components: components2 } = useDayPicker();
-    return import_react19.default.createElement(components2.Button, { ...props });
+    return import_react20.default.createElement(components2.Button, { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/Option.js
-  var import_react20 = __toESM(require_react(), 1);
+  var import_react21 = __toESM(require_react(), 1);
   function Option(props) {
-    return import_react20.default.createElement("option", { ...props });
+    return import_react21.default.createElement("option", { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/PreviousMonthButton.js
-  var import_react21 = __toESM(require_react(), 1);
+  var import_react22 = __toESM(require_react(), 1);
   function PreviousMonthButton(props) {
     const { components: components2 } = useDayPicker();
-    return import_react21.default.createElement(components2.Button, { ...props });
+    return import_react22.default.createElement(components2.Button, { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/Root.js
-  var import_react22 = __toESM(require_react(), 1);
+  var import_react23 = __toESM(require_react(), 1);
   function Root(props) {
     const { rootRef, ...rest } = props;
-    return import_react22.default.createElement("div", { ...rest, ref: rootRef });
+    return import_react23.default.createElement("div", { ...rest, ref: rootRef });
   }
 
   // node_modules/react-day-picker/dist/esm/components/Select.js
-  var import_react23 = __toESM(require_react(), 1);
+  var import_react24 = __toESM(require_react(), 1);
   function Select(props) {
-    return import_react23.default.createElement("select", { ...props });
+    return import_react24.default.createElement("select", { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/Week.js
-  var import_react24 = __toESM(require_react(), 1);
+  var import_react25 = __toESM(require_react(), 1);
   function Week(props) {
     const { week, ...trProps } = props;
-    return import_react24.default.createElement("tr", { ...trProps });
+    return import_react25.default.createElement("tr", { ...trProps });
   }
 
   // node_modules/react-day-picker/dist/esm/components/Weekday.js
-  var import_react25 = __toESM(require_react(), 1);
+  var import_react26 = __toESM(require_react(), 1);
   function Weekday(props) {
-    return import_react25.default.createElement("th", { ...props });
+    return import_react26.default.createElement("th", { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/Weekdays.js
-  var import_react26 = __toESM(require_react(), 1);
+  var import_react27 = __toESM(require_react(), 1);
   function Weekdays(props) {
-    return import_react26.default.createElement(
+    return import_react27.default.createElement(
       "thead",
       { "aria-hidden": true },
-      import_react26.default.createElement("tr", { ...props })
+      import_react27.default.createElement("tr", { ...props })
     );
   }
 
   // node_modules/react-day-picker/dist/esm/components/WeekNumber.js
-  var import_react27 = __toESM(require_react(), 1);
+  var import_react28 = __toESM(require_react(), 1);
   function WeekNumber(props) {
     const { week, ...thProps } = props;
-    return import_react27.default.createElement("th", { ...thProps });
+    return import_react28.default.createElement("th", { ...thProps });
   }
 
   // node_modules/react-day-picker/dist/esm/components/WeekNumberHeader.js
-  var import_react28 = __toESM(require_react(), 1);
+  var import_react29 = __toESM(require_react(), 1);
   function WeekNumberHeader(props) {
-    return import_react28.default.createElement("th", { ...props });
+    return import_react29.default.createElement("th", { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/Weeks.js
-  var import_react29 = __toESM(require_react(), 1);
+  var import_react30 = __toESM(require_react(), 1);
   function Weeks(props) {
-    return import_react29.default.createElement("tbody", { ...props });
+    return import_react30.default.createElement("tbody", { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/components/YearsDropdown.js
-  var import_react30 = __toESM(require_react(), 1);
+  var import_react31 = __toESM(require_react(), 1);
   function YearsDropdown(props) {
     const { components: components2 } = useDayPicker();
-    return import_react30.default.createElement(components2.Dropdown, { ...props });
+    return import_react31.default.createElement(components2.Dropdown, { ...props });
   }
 
   // node_modules/react-day-picker/dist/esm/DayPicker.js
-  var import_react35 = __toESM(require_react(), 1);
+  var import_react36 = __toESM(require_react(), 1);
 
   // node_modules/react-day-picker/dist/esm/utils/rangeIncludesDate.js
   function rangeIncludesDate(range, date, excludeEnds = false, dateLib = defaultDateLib) {
@@ -30952,7 +29918,7 @@
   }
 
   // node_modules/react-day-picker/dist/esm/useAnimation.js
-  var import_react31 = __toESM(require_react(), 1);
+  var import_react32 = __toESM(require_react(), 1);
   var asHtmlElement = (element) => {
     if (element instanceof HTMLElement)
       return element;
@@ -30967,10 +29933,10 @@
   var queryNavEl = (element) => asHtmlElement(element.querySelector("[data-animated-nav]"));
   var queryWeekdaysEl = (element) => asHtmlElement(element.querySelector("[data-animated-weekdays]"));
   function useAnimation(rootElRef, enabled, { classNames, months, focused, dateLib }) {
-    const previousRootElSnapshotRef = (0, import_react31.useRef)(null);
-    const previousMonthsRef = (0, import_react31.useRef)(months);
-    const animatingRef = (0, import_react31.useRef)(false);
-    (0, import_react31.useLayoutEffect)(() => {
+    const previousRootElSnapshotRef = (0, import_react32.useRef)(null);
+    const previousMonthsRef = (0, import_react32.useRef)(months);
+    const animatingRef = (0, import_react32.useRef)(false);
+    (0, import_react32.useLayoutEffect)(() => {
       const previousMonths = previousMonthsRef.current;
       previousMonthsRef.current = months;
       if (!enabled || !rootElRef.current || // safety check because the ref can be set to anything by consumers
@@ -31080,7 +30046,7 @@
   }
 
   // node_modules/react-day-picker/dist/esm/useCalendar.js
-  var import_react33 = __toESM(require_react(), 1);
+  var import_react34 = __toESM(require_react(), 1);
 
   // node_modules/react-day-picker/dist/esm/helpers/getDates.js
   function getDates(displayMonths, maxDate, props, dateLib) {
@@ -31275,9 +30241,9 @@
   }
 
   // node_modules/react-day-picker/dist/esm/helpers/useControlledValue.js
-  var import_react32 = __toESM(require_react(), 1);
+  var import_react33 = __toESM(require_react(), 1);
   function useControlledValue(defaultValue, controlledValue) {
-    const [uncontrolledValue, setValue] = (0, import_react32.useState)(defaultValue);
+    const [uncontrolledValue, setValue] = (0, import_react33.useState)(defaultValue);
     const value = controlledValue === void 0 ? uncontrolledValue : controlledValue;
     return [value, setValue];
   }
@@ -31292,11 +30258,11 @@
       // initialMonth is always computed from props.month if provided
       props.month ? initialMonth : void 0
     );
-    (0, import_react33.useEffect)(() => {
+    (0, import_react34.useEffect)(() => {
       const newInitialMonth = getInitialMonth(props, navStart, navEnd, dateLib);
       setFirstMonth(newInitialMonth);
     }, [props.timeZone]);
-    const { months, weeks, days, previousMonth, nextMonth } = (0, import_react33.useMemo)(() => {
+    const { months, weeks, days, previousMonth, nextMonth } = (0, import_react34.useMemo)(() => {
       const displayMonths = getDisplayMonths(firstMonth, navEnd, { numberOfMonths: props.numberOfMonths }, dateLib);
       const dates = getDates(displayMonths, props.endMonth ? endOfMonth2(props.endMonth) : void 0, {
         ISOWeek: props.ISOWeek,
@@ -31371,7 +30337,7 @@
   }
 
   // node_modules/react-day-picker/dist/esm/useFocus.js
-  var import_react34 = __toESM(require_react(), 1);
+  var import_react35 = __toESM(require_react(), 1);
 
   // node_modules/react-day-picker/dist/esm/helpers/calculateFocusTarget.js
   var FocusTargetPriority;
@@ -31451,9 +30417,9 @@
   // node_modules/react-day-picker/dist/esm/useFocus.js
   function useFocus(props, calendar, getModifiers, isSelected, dateLib) {
     const { autoFocus } = props;
-    const [lastFocused, setLastFocused] = (0, import_react34.useState)();
+    const [lastFocused, setLastFocused] = (0, import_react35.useState)();
     const focusTarget = calculateFocusTarget(calendar.days, getModifiers, isSelected || (() => false), lastFocused);
-    const [focusedDay, setFocused] = (0, import_react34.useState)(autoFocus ? focusTarget : void 0);
+    const [focusedDay, setFocused] = (0, import_react35.useState)(autoFocus ? focusTarget : void 0);
     const blur = () => {
       setLastFocused(focusedDay);
       setFocused(void 0);
@@ -31838,7 +30804,7 @@
         props.modifiers = nextModifiers;
       }
     }
-    const { components: components2, formatters: formatters2, labels, dateLib, locale, classNames } = (0, import_react35.useMemo)(() => {
+    const { components: components2, formatters: formatters2, labels, dateLib, locale, classNames } = (0, import_react36.useMemo)(() => {
       const locale2 = { ...enUS2, ...props.locale };
       const weekStartsOn = props.broadcastCalendar ? 1 : props.weekStartsOn;
       const noonOverrides = props.noonSafe && props.timeZone ? createNoonOverrides(props.timeZone, {
@@ -31890,21 +30856,21 @@
     const { isSelected, select, selected: selectedValue } = useSelection(props, dateLib) ?? {};
     const { blur, focused, isFocusTarget, moveFocus, setFocused } = useFocus(props, calendar, getModifiers, isSelected ?? (() => false), dateLib);
     const { labelDayButton: labelDayButton2, labelGridcell: labelGridcell2, labelGrid: labelGrid2, labelMonthDropdown: labelMonthDropdown2, labelNav: labelNav2, labelPrevious: labelPrevious2, labelNext: labelNext2, labelWeekday: labelWeekday2, labelWeekNumber: labelWeekNumber2, labelWeekNumberHeader: labelWeekNumberHeader2, labelYearDropdown: labelYearDropdown2 } = labels;
-    const weekdays = (0, import_react35.useMemo)(() => getWeekdays(dateLib, props.ISOWeek, props.broadcastCalendar, props.today), [dateLib, props.ISOWeek, props.broadcastCalendar, props.today]);
+    const weekdays = (0, import_react36.useMemo)(() => getWeekdays(dateLib, props.ISOWeek, props.broadcastCalendar, props.today), [dateLib, props.ISOWeek, props.broadcastCalendar, props.today]);
     const isInteractive = mode !== void 0 || onDayClick !== void 0;
-    const handlePreviousClick = (0, import_react35.useCallback)(() => {
+    const handlePreviousClick = (0, import_react36.useCallback)(() => {
       if (!previousMonth)
         return;
       goToMonth(previousMonth);
       onPrevClick?.(previousMonth);
     }, [previousMonth, goToMonth, onPrevClick]);
-    const handleNextClick = (0, import_react35.useCallback)(() => {
+    const handleNextClick = (0, import_react36.useCallback)(() => {
       if (!nextMonth)
         return;
       goToMonth(nextMonth);
       onNextClick?.(nextMonth);
     }, [goToMonth, nextMonth, onNextClick]);
-    const handleDayClick = (0, import_react35.useCallback)((day, m) => (e) => {
+    const handleDayClick = (0, import_react36.useCallback)((day, m) => (e) => {
       e.preventDefault();
       e.stopPropagation();
       setFocused(day);
@@ -31914,15 +30880,15 @@
       select?.(day.date, m, e);
       onDayClick?.(day.date, m, e);
     }, [select, onDayClick, setFocused]);
-    const handleDayFocus = (0, import_react35.useCallback)((day, m) => (e) => {
+    const handleDayFocus = (0, import_react36.useCallback)((day, m) => (e) => {
       setFocused(day);
       onDayFocus?.(day.date, m, e);
     }, [onDayFocus, setFocused]);
-    const handleDayBlur = (0, import_react35.useCallback)((day, m) => (e) => {
+    const handleDayBlur = (0, import_react36.useCallback)((day, m) => (e) => {
       blur();
       onDayBlur?.(day.date, m, e);
     }, [blur, onDayBlur]);
-    const handleDayKeyDown = (0, import_react35.useCallback)((day, modifiers) => (e) => {
+    const handleDayKeyDown = (0, import_react36.useCallback)((day, modifiers) => (e) => {
       const keyMap = {
         ArrowLeft: [
           e.shiftKey ? "month" : "day",
@@ -31947,28 +30913,28 @@
       }
       onDayKeyDown?.(day.date, modifiers, e);
     }, [moveFocus, onDayKeyDown, props.dir]);
-    const handleDayMouseEnter = (0, import_react35.useCallback)((day, modifiers) => (e) => {
+    const handleDayMouseEnter = (0, import_react36.useCallback)((day, modifiers) => (e) => {
       onDayMouseEnter?.(day.date, modifiers, e);
     }, [onDayMouseEnter]);
-    const handleDayMouseLeave = (0, import_react35.useCallback)((day, modifiers) => (e) => {
+    const handleDayMouseLeave = (0, import_react36.useCallback)((day, modifiers) => (e) => {
       onDayMouseLeave?.(day.date, modifiers, e);
     }, [onDayMouseLeave]);
-    const handleMonthChange = (0, import_react35.useCallback)((date) => (e) => {
+    const handleMonthChange = (0, import_react36.useCallback)((date) => (e) => {
       const selectedMonth = Number(e.target.value);
       const month = dateLib.setMonth(dateLib.startOfMonth(date), selectedMonth);
       goToMonth(month);
     }, [dateLib, goToMonth]);
-    const handleYearChange = (0, import_react35.useCallback)((date) => (e) => {
+    const handleYearChange = (0, import_react36.useCallback)((date) => (e) => {
       const selectedYear = Number(e.target.value);
       const month = dateLib.setYear(dateLib.startOfMonth(date), selectedYear);
       goToMonth(month);
     }, [dateLib, goToMonth]);
-    const { className, style } = (0, import_react35.useMemo)(() => ({
+    const { className, style } = (0, import_react36.useMemo)(() => ({
       className: [classNames[UI.Root], props.className].filter(Boolean).join(" "),
       style: { ...styles?.[UI.Root], ...props.style }
     }), [classNames, props.className, props.style, styles]);
     const dataAttributes = getDataAttributes(props);
-    const rootElRef = (0, import_react35.useRef)(null);
+    const rootElRef = (0, import_react36.useRef)(null);
     useAnimation(rootElRef, Boolean(props.animate), {
       classNames,
       months,
@@ -31991,18 +30957,18 @@
       labels,
       formatters: formatters2
     };
-    return import_react35.default.createElement(
+    return import_react36.default.createElement(
       dayPickerContext.Provider,
       { value: contextValue },
-      import_react35.default.createElement(
+      import_react36.default.createElement(
         components2.Root,
         { rootRef: props.animate ? rootElRef : void 0, className, style, dir: props.dir, id: props.id, lang: props.lang, nonce: props.nonce, title: props.title, role: props.role, "aria-label": props["aria-label"], "aria-labelledby": props["aria-labelledby"], ...dataAttributes },
-        import_react35.default.createElement(
+        import_react36.default.createElement(
           components2.Months,
           { className: classNames[UI.Months], style: styles?.[UI.Months] },
-          !props.hideNavigation && !navLayout && import_react35.default.createElement(components2.Nav, { "data-animated-nav": props.animate ? "true" : void 0, className: classNames[UI.Nav], style: styles?.[UI.Nav], "aria-label": labelNav2(), onPreviousClick: handlePreviousClick, onNextClick: handleNextClick, previousMonth, nextMonth }),
+          !props.hideNavigation && !navLayout && import_react36.default.createElement(components2.Nav, { "data-animated-nav": props.animate ? "true" : void 0, className: classNames[UI.Nav], style: styles?.[UI.Nav], "aria-label": labelNav2(), onPreviousClick: handlePreviousClick, onNextClick: handleNextClick, previousMonth, nextMonth }),
           months.map((calendarMonth, displayIndex) => {
-            return import_react35.default.createElement(
+            return import_react36.default.createElement(
               components2.Month,
               {
                 "data-animated-month": props.animate ? "true" : void 0,
@@ -32013,21 +30979,21 @@
                 displayIndex,
                 calendarMonth
               },
-              navLayout === "around" && !props.hideNavigation && displayIndex === 0 && import_react35.default.createElement(
+              navLayout === "around" && !props.hideNavigation && displayIndex === 0 && import_react36.default.createElement(
                 components2.PreviousMonthButton,
                 { type: "button", className: classNames[UI.PreviousMonthButton], tabIndex: previousMonth ? void 0 : -1, "aria-disabled": previousMonth ? void 0 : true, "aria-label": labelPrevious2(previousMonth), onClick: handlePreviousClick, "data-animated-button": props.animate ? "true" : void 0 },
-                import_react35.default.createElement(components2.Chevron, { disabled: previousMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: props.dir === "rtl" ? "right" : "left" })
+                import_react36.default.createElement(components2.Chevron, { disabled: previousMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: props.dir === "rtl" ? "right" : "left" })
               ),
-              import_react35.default.createElement(components2.MonthCaption, { "data-animated-caption": props.animate ? "true" : void 0, className: classNames[UI.MonthCaption], style: styles?.[UI.MonthCaption], calendarMonth, displayIndex }, captionLayout?.startsWith("dropdown") ? import_react35.default.createElement(
+              import_react36.default.createElement(components2.MonthCaption, { "data-animated-caption": props.animate ? "true" : void 0, className: classNames[UI.MonthCaption], style: styles?.[UI.MonthCaption], calendarMonth, displayIndex }, captionLayout?.startsWith("dropdown") ? import_react36.default.createElement(
                 components2.DropdownNav,
                 { className: classNames[UI.Dropdowns], style: styles?.[UI.Dropdowns] },
                 (() => {
-                  const monthControl = captionLayout === "dropdown" || captionLayout === "dropdown-months" ? import_react35.default.createElement(components2.MonthsDropdown, { key: "month", className: classNames[UI.MonthsDropdown], "aria-label": labelMonthDropdown2(), classNames, components: components2, disabled: Boolean(props.disableNavigation), onChange: handleMonthChange(calendarMonth.date), options: getMonthOptions(calendarMonth.date, navStart, navEnd, formatters2, dateLib), style: styles?.[UI.Dropdown], value: dateLib.getMonth(calendarMonth.date) }) : import_react35.default.createElement("span", { key: "month" }, formatMonthDropdown2(calendarMonth.date, dateLib));
-                  const yearControl = captionLayout === "dropdown" || captionLayout === "dropdown-years" ? import_react35.default.createElement(components2.YearsDropdown, { key: "year", className: classNames[UI.YearsDropdown], "aria-label": labelYearDropdown2(dateLib.options), classNames, components: components2, disabled: Boolean(props.disableNavigation), onChange: handleYearChange(calendarMonth.date), options: getYearOptions(navStart, navEnd, formatters2, dateLib, Boolean(props.reverseYears)), style: styles?.[UI.Dropdown], value: dateLib.getYear(calendarMonth.date) }) : import_react35.default.createElement("span", { key: "year" }, formatYearDropdown2(calendarMonth.date, dateLib));
+                  const monthControl = captionLayout === "dropdown" || captionLayout === "dropdown-months" ? import_react36.default.createElement(components2.MonthsDropdown, { key: "month", className: classNames[UI.MonthsDropdown], "aria-label": labelMonthDropdown2(), classNames, components: components2, disabled: Boolean(props.disableNavigation), onChange: handleMonthChange(calendarMonth.date), options: getMonthOptions(calendarMonth.date, navStart, navEnd, formatters2, dateLib), style: styles?.[UI.Dropdown], value: dateLib.getMonth(calendarMonth.date) }) : import_react36.default.createElement("span", { key: "month" }, formatMonthDropdown2(calendarMonth.date, dateLib));
+                  const yearControl = captionLayout === "dropdown" || captionLayout === "dropdown-years" ? import_react36.default.createElement(components2.YearsDropdown, { key: "year", className: classNames[UI.YearsDropdown], "aria-label": labelYearDropdown2(dateLib.options), classNames, components: components2, disabled: Boolean(props.disableNavigation), onChange: handleYearChange(calendarMonth.date), options: getYearOptions(navStart, navEnd, formatters2, dateLib, Boolean(props.reverseYears)), style: styles?.[UI.Dropdown], value: dateLib.getYear(calendarMonth.date) }) : import_react36.default.createElement("span", { key: "year" }, formatYearDropdown2(calendarMonth.date, dateLib));
                   const controls = dateLib.getMonthYearOrder() === "year-first" ? [yearControl, monthControl] : [monthControl, yearControl];
                   return controls;
                 })(),
-                import_react35.default.createElement("span", { role: "status", "aria-live": "polite", style: {
+                import_react36.default.createElement("span", { role: "status", "aria-live": "polite", style: {
                   border: 0,
                   clip: "rect(0 0 0 0)",
                   height: "1px",
@@ -32039,27 +31005,27 @@
                   whiteSpace: "nowrap",
                   wordWrap: "normal"
                 } }, formatCaption2(calendarMonth.date, dateLib.options, dateLib))
-              ) : import_react35.default.createElement(components2.CaptionLabel, { className: classNames[UI.CaptionLabel], role: "status", "aria-live": "polite" }, formatCaption2(calendarMonth.date, dateLib.options, dateLib))),
-              navLayout === "around" && !props.hideNavigation && displayIndex === numberOfMonths - 1 && import_react35.default.createElement(
+              ) : import_react36.default.createElement(components2.CaptionLabel, { className: classNames[UI.CaptionLabel], role: "status", "aria-live": "polite" }, formatCaption2(calendarMonth.date, dateLib.options, dateLib))),
+              navLayout === "around" && !props.hideNavigation && displayIndex === numberOfMonths - 1 && import_react36.default.createElement(
                 components2.NextMonthButton,
                 { type: "button", className: classNames[UI.NextMonthButton], tabIndex: nextMonth ? void 0 : -1, "aria-disabled": nextMonth ? void 0 : true, "aria-label": labelNext2(nextMonth), onClick: handleNextClick, "data-animated-button": props.animate ? "true" : void 0 },
-                import_react35.default.createElement(components2.Chevron, { disabled: nextMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: props.dir === "rtl" ? "left" : "right" })
+                import_react36.default.createElement(components2.Chevron, { disabled: nextMonth ? void 0 : true, className: classNames[UI.Chevron], orientation: props.dir === "rtl" ? "left" : "right" })
               ),
-              displayIndex === numberOfMonths - 1 && navLayout === "after" && !props.hideNavigation && import_react35.default.createElement(components2.Nav, { "data-animated-nav": props.animate ? "true" : void 0, className: classNames[UI.Nav], style: styles?.[UI.Nav], "aria-label": labelNav2(), onPreviousClick: handlePreviousClick, onNextClick: handleNextClick, previousMonth, nextMonth }),
-              import_react35.default.createElement(
+              displayIndex === numberOfMonths - 1 && navLayout === "after" && !props.hideNavigation && import_react36.default.createElement(components2.Nav, { "data-animated-nav": props.animate ? "true" : void 0, className: classNames[UI.Nav], style: styles?.[UI.Nav], "aria-label": labelNav2(), onPreviousClick: handlePreviousClick, onNextClick: handleNextClick, previousMonth, nextMonth }),
+              import_react36.default.createElement(
                 components2.MonthGrid,
                 { role: "grid", "aria-multiselectable": mode === "multiple" || mode === "range", "aria-label": labelGrid2(calendarMonth.date, dateLib.options, dateLib) || void 0, className: classNames[UI.MonthGrid], style: styles?.[UI.MonthGrid] },
-                !props.hideWeekdays && import_react35.default.createElement(
+                !props.hideWeekdays && import_react36.default.createElement(
                   components2.Weekdays,
                   { "data-animated-weekdays": props.animate ? "true" : void 0, className: classNames[UI.Weekdays], style: styles?.[UI.Weekdays] },
-                  showWeekNumber && import_react35.default.createElement(components2.WeekNumberHeader, { "aria-label": labelWeekNumberHeader2(dateLib.options), className: classNames[UI.WeekNumberHeader], style: styles?.[UI.WeekNumberHeader], scope: "col" }, formatWeekNumberHeader2()),
-                  weekdays.map((weekday) => import_react35.default.createElement(components2.Weekday, { "aria-label": labelWeekday2(weekday, dateLib.options, dateLib), className: classNames[UI.Weekday], key: String(weekday), style: styles?.[UI.Weekday], scope: "col" }, formatWeekdayName2(weekday, dateLib.options, dateLib)))
+                  showWeekNumber && import_react36.default.createElement(components2.WeekNumberHeader, { "aria-label": labelWeekNumberHeader2(dateLib.options), className: classNames[UI.WeekNumberHeader], style: styles?.[UI.WeekNumberHeader], scope: "col" }, formatWeekNumberHeader2()),
+                  weekdays.map((weekday) => import_react36.default.createElement(components2.Weekday, { "aria-label": labelWeekday2(weekday, dateLib.options, dateLib), className: classNames[UI.Weekday], key: String(weekday), style: styles?.[UI.Weekday], scope: "col" }, formatWeekdayName2(weekday, dateLib.options, dateLib)))
                 ),
-                import_react35.default.createElement(components2.Weeks, { "data-animated-weeks": props.animate ? "true" : void 0, className: classNames[UI.Weeks], style: styles?.[UI.Weeks] }, calendarMonth.weeks.map((week) => {
-                  return import_react35.default.createElement(
+                import_react36.default.createElement(components2.Weeks, { "data-animated-weeks": props.animate ? "true" : void 0, className: classNames[UI.Weeks], style: styles?.[UI.Weeks] }, calendarMonth.weeks.map((week) => {
+                  return import_react36.default.createElement(
                     components2.Week,
                     { className: classNames[UI.Week], key: week.weekNumber, style: styles?.[UI.Week], week },
-                    showWeekNumber && import_react35.default.createElement(components2.WeekNumber, { week, style: styles?.[UI.WeekNumber], "aria-label": labelWeekNumber2(week.weekNumber, {
+                    showWeekNumber && import_react36.default.createElement(components2.WeekNumber, { week, style: styles?.[UI.WeekNumber], "aria-label": labelWeekNumber2(week.weekNumber, {
                       locale
                     }), className: classNames[UI.WeekNumber], scope: "row", role: "rowheader" }, formatWeekNumber2(week.weekNumber, dateLib)),
                     week.days.map((day) => {
@@ -32076,7 +31042,7 @@
                       const style2 = getStyleForModifiers(modifiers, styles, props.modifiersStyles);
                       const className2 = getClassNamesForModifiers(modifiers, classNames, props.modifiersClassNames);
                       const ariaLabel = !isInteractive && !modifiers.hidden ? labelGridcell2(date, modifiers, dateLib.options, dateLib) : void 0;
-                      return import_react35.default.createElement(components2.Day, { key: `${day.isoDate}_${day.displayMonthId}`, day, modifiers, className: className2.join(" "), style: style2, role: "gridcell", "aria-selected": modifiers.selected || void 0, "aria-label": ariaLabel, "data-day": day.isoDate, "data-month": day.outside ? day.dateMonthId : void 0, "data-selected": modifiers.selected || void 0, "data-disabled": modifiers.disabled || void 0, "data-hidden": modifiers.hidden || void 0, "data-outside": day.outside || void 0, "data-focused": modifiers.focused || void 0, "data-today": modifiers.today || void 0 }, !modifiers.hidden && isInteractive ? import_react35.default.createElement(components2.DayButton, { className: classNames[UI.DayButton], style: styles?.[UI.DayButton], type: "button", day, modifiers, disabled: !modifiers.focused && modifiers.disabled || void 0, "aria-disabled": modifiers.focused && modifiers.disabled || void 0, tabIndex: isFocusTarget(day) ? 0 : -1, "aria-label": labelDayButton2(date, modifiers, dateLib.options, dateLib), onClick: handleDayClick(day, modifiers), onBlur: handleDayBlur(day, modifiers), onFocus: handleDayFocus(day, modifiers), onKeyDown: handleDayKeyDown(day, modifiers), onMouseEnter: handleDayMouseEnter(day, modifiers), onMouseLeave: handleDayMouseLeave(day, modifiers) }, formatDay2(date, dateLib.options, dateLib)) : !modifiers.hidden && formatDay2(day.date, dateLib.options, dateLib));
+                      return import_react36.default.createElement(components2.Day, { key: `${day.isoDate}_${day.displayMonthId}`, day, modifiers, className: className2.join(" "), style: style2, role: "gridcell", "aria-selected": modifiers.selected || void 0, "aria-label": ariaLabel, "data-day": day.isoDate, "data-month": day.outside ? day.dateMonthId : void 0, "data-selected": modifiers.selected || void 0, "data-disabled": modifiers.disabled || void 0, "data-hidden": modifiers.hidden || void 0, "data-outside": day.outside || void 0, "data-focused": modifiers.focused || void 0, "data-today": modifiers.today || void 0 }, !modifiers.hidden && isInteractive ? import_react36.default.createElement(components2.DayButton, { className: classNames[UI.DayButton], style: styles?.[UI.DayButton], type: "button", day, modifiers, disabled: !modifiers.focused && modifiers.disabled || void 0, "aria-disabled": modifiers.focused && modifiers.disabled || void 0, tabIndex: isFocusTarget(day) ? 0 : -1, "aria-label": labelDayButton2(date, modifiers, dateLib.options, dateLib), onClick: handleDayClick(day, modifiers), onBlur: handleDayBlur(day, modifiers), onFocus: handleDayFocus(day, modifiers), onKeyDown: handleDayKeyDown(day, modifiers), onMouseEnter: handleDayMouseEnter(day, modifiers), onMouseLeave: handleDayMouseLeave(day, modifiers) }, formatDay2(date, dateLib.options, dateLib)) : !modifiers.hidden && formatDay2(day.date, dateLib.options, dateLib));
                     })
                   );
                 }))
@@ -32084,13 +31050,13 @@
             );
           })
         ),
-        props.footer && import_react35.default.createElement(components2.Footer, { className: classNames[UI.Footer], style: styles?.[UI.Footer], role: "status", "aria-live": "polite" }, props.footer)
+        props.footer && import_react36.default.createElement(components2.Footer, { className: classNames[UI.Footer], style: styles?.[UI.Footer], role: "status", "aria-live": "polite" }, props.footer)
       )
     );
   }
 
   // assets/js/components/DatePicker.tsx
-  var import_jsx_runtime4 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
   function formatDisplayValue(date, dateType) {
     switch (dateType) {
       case "week":
@@ -32123,9 +31089,9 @@
     name,
     required
   }) {
-    const detailsRef = (0, import_react36.useRef)(null);
-    const [month, setMonth2] = (0, import_react36.useState)(value || /* @__PURE__ */ new Date());
-    (0, import_react36.useEffect)(() => {
+    const detailsRef = (0, import_react37.useRef)(null);
+    const [month, setMonth2] = (0, import_react37.useState)(value || /* @__PURE__ */ new Date());
+    (0, import_react37.useEffect)(() => {
       function handleClickOutside(event) {
         if (detailsRef.current && !detailsRef.current.contains(event.target)) {
           detailsRef.current.removeAttribute("open");
@@ -32165,12 +31131,12 @@
       if (!value || dateType !== "month") return false;
       return day.getMonth() === value.getMonth() && day.getFullYear() === value.getFullYear();
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("details", { className: "dropdown w-full", ref: detailsRef, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("summary", { className: "input input-bordered input-sm w-full text-left flex items-center gap-2 cursor-pointer list-none marker:hidden", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Calendar, { className: "h-4 w-4 opacity-70" }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { className: value ? "" : "opacity-50", children: value ? formatDisplayValue(value, dateType) : placeholder })
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("details", { className: "dropdown w-full", ref: detailsRef, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("summary", { className: "input input-bordered input-sm w-full text-left flex items-center gap-2 cursor-pointer list-none marker:hidden", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Calendar, { className: "h-4 w-4 opacity-70" }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { className: value ? "" : "opacity-50", children: value ? formatDisplayValue(value, dateType) : placeholder })
       ] }),
-      name && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+      name && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
         "input",
         {
           type: "hidden",
@@ -32179,7 +31145,7 @@
           required
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "dropdown-content bg-base-100 rounded-box shadow-xl z-[9999] p-2 mt-1", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "dropdown-content bg-base-100 rounded-box shadow-xl z-[9999] p-2 mt-1", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
         DayPicker,
         {
           mode: "single",
@@ -32201,9 +31167,9 @@
             today: "text-primary font-bold"
           },
           components: {
-            Chevron: ({ orientation }) => orientation === "left" ? /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(ChevronLeft, { className: "h-4 w-4" }) : /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(ChevronRight, { className: "h-4 w-4" }),
+            Chevron: ({ orientation }) => orientation === "left" ? /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ChevronLeft, { className: "h-4 w-4" }) : /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ChevronRight, { className: "h-4 w-4" }),
             // Custom week number - clickable to select week
-            WeekNumber: ({ week }) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+            WeekNumber: ({ week }) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
               "button",
               {
                 type: "button",
@@ -32218,8 +31184,8 @@
               }
             )
           },
-          footer: /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { className: "flex justify-center gap-2 pt-2 border-t border-base-300 mt-2", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+          footer: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "flex justify-center gap-2 pt-2 border-t border-base-300 mt-2", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
               "button",
               {
                 type: "button",
@@ -32228,7 +31194,7 @@
                 children: "Today"
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
               "button",
               {
                 type: "button",
@@ -32247,7 +31213,7 @@
   }
 
   // assets/js/components/PlanEditor.tsx
-  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime6 = __toESM(require_jsx_runtime());
   function formatDateForStorage(date, dateType) {
     switch (dateType) {
       case "week":
@@ -32312,8 +31278,8 @@
     initialTitle = "",
     buttonText = "Create Plan"
   }) => {
-    const [title, setTitle] = (0, import_react37.useState)(initialTitle);
-    const [readings, setReadings] = (0, import_react37.useState)(() => {
+    const [title, setTitle] = (0, import_react38.useState)(initialTitle);
+    const [readings, setReadings] = (0, import_react38.useState)(() => {
       if (initialReadings.length > 0) {
         return initialReadings.map((r) => ({
           ...r,
@@ -32329,9 +31295,9 @@
         content: ""
       }];
     });
-    const lastAddedIdRef = (0, import_react37.useRef)(null);
-    const inputRefs = (0, import_react37.useRef)({});
-    (0, import_react37.useEffect)(() => {
+    const lastAddedIdRef = (0, import_react38.useRef)(null);
+    const inputRefs = (0, import_react38.useRef)({});
+    (0, import_react38.useEffect)(() => {
       if (lastAddedIdRef.current && inputRefs.current[lastAddedIdRef.current]) {
         inputRefs.current[lastAddedIdRef.current]?.focus();
         lastAddedIdRef.current = null;
@@ -32373,10 +31339,10 @@
       setReadings(readings.filter((r) => r.id !== id));
     };
     const hasValidReadings = readings.some((r) => r.content.trim() !== "");
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "card bg-base-200 shadow-xl", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "card-body", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "form-control w-full mb-6", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { className: "label-text font-bold", children: "Plan Title" }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "card bg-base-200 shadow-xl", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "card-body", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "form-control w-full mb-6", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("label", { className: "label", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "label-text font-bold", children: "Plan Title" }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
           "input",
           {
             type: "text",
@@ -32389,14 +31355,14 @@
           }
         )
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "overflow-visible", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("table", { className: "table w-full", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("tr", { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("th", { className: "w-52", children: "Date" }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("th", { children: "Reading Content" }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("th", { className: "w-16" })
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "overflow-visible", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("table", { className: "table w-full", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("tr", { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("th", { className: "w-52", children: "Date" }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("th", { children: "Reading Content" }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("th", { className: "w-16" })
         ] }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("tbody", { children: readings.map((reading) => /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("tr", { className: "hover:bg-base-300/50 transition-colors", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("td", { className: "overflow-visible align-top", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("tbody", { children: readings.map((reading) => /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("tr", { className: "hover:bg-base-300/50 transition-colors", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("td", { className: "overflow-visible align-top", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
             DatePicker,
             {
               value: parseStoredDate(reading.date, reading.dateType),
@@ -32405,7 +31371,7 @@
               placeholder: "Select date"
             }
           ) }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("td", { className: "align-top", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("td", { className: "align-top", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
             "input",
             {
               ref: (el) => {
@@ -32422,7 +31388,7 @@
               autoComplete: "off"
             }
           ) }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("td", { className: "align-top", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("td", { className: "align-top", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
             "button",
             {
               type: "button",
@@ -32430,24 +31396,24 @@
               className: "btn btn-ghost btn-xs text-error",
               "aria-label": "Remove reading",
               disabled: readings.length === 1 && !reading.content,
-              children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(X, { className: "h-4 w-4" })
+              children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(X, { className: "h-4 w-4" })
             }
           ) })
         ] }, reading.id)) })
       ] }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "mt-4", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "mt-4", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
         "button",
         {
           type: "button",
           onClick: addReading,
           className: "btn btn-ghost btn-sm gap-2",
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Plus, { className: "h-4 w-4" }),
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Plus, { className: "h-4 w-4" }),
             "Add Reading"
           ]
         }
       ) }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
         "input",
         {
           type: "hidden",
@@ -32455,16 +31421,16 @@
           value: JSON.stringify(readings.filter((r) => r.content.trim() !== ""))
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { className: "card-actions justify-end mt-6", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("a", { href: "/plans", className: "btn btn-ghost", children: "Cancel" }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "card-actions justify-end mt-6", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("a", { href: "/plans", className: "btn btn-ghost", children: "Cancel" }),
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
           "button",
           {
             type: "submit",
             className: "btn btn-primary gap-2",
             disabled: !hasValidReadings || !title,
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Save, { className: "h-4 w-4" }),
+              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Save, { className: "h-4 w-4" }),
               buttonText
             ]
           }
@@ -32474,7 +31440,7 @@
   };
 
   // assets/js/components/NotificationBell.tsx
-  var import_react38 = __toESM(require_react());
+  var import_react39 = __toESM(require_react());
 
   // assets/js/hooks/useCsrf.ts
   function getCsrfToken() {
@@ -32483,13 +31449,13 @@
   }
 
   // assets/js/components/NotificationBell.tsx
-  var import_jsx_runtime6 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime7 = __toESM(require_jsx_runtime());
   var NotificationBell = ({
     initialCount = 0,
     pollInterval = 6e4
   }) => {
-    const [isOpen, setIsOpen] = (0, import_react38.useState)(false);
-    const dropdownRef = (0, import_react38.useRef)(null);
+    const [isOpen, setIsOpen] = (0, import_react39.useState)(false);
+    const dropdownRef = (0, import_react39.useRef)(null);
     const { data: countData } = useQuery({
       queryKey: ["notifications", "count"],
       queryFn: async () => {
@@ -32516,7 +31482,7 @@
     });
     const count = countData?.count ?? 0;
     const readings = readingsData?.readings ?? [];
-    (0, import_react38.useEffect)(() => {
+    (0, import_react39.useEffect)(() => {
       const handleClickOutside = (event) => {
         if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
           setIsOpen(false);
@@ -32532,42 +31498,42 @@
         refetch();
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "dropdown dropdown-end", ref: dropdownRef, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "dropdown dropdown-end", ref: dropdownRef, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
         "button",
         {
           type: "button",
           className: "btn btn-ghost btn-circle",
           onClick: handleToggle,
           "aria-label": "Notifications",
-          children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "indicator", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Bell, { className: "h-5 w-5" }),
-            count > 0 && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "badge badge-sm badge-primary indicator-item", children: count > 99 ? "99+" : count })
+          children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "indicator", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Bell, { className: "h-5 w-5" }),
+            count > 0 && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "badge badge-sm badge-primary indicator-item", children: count > 99 ? "99+" : count })
           ] })
         }
       ),
-      isOpen && /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "dropdown-content menu bg-base-200 rounded-box z-50 w-80 p-2 shadow-lg mt-2", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "px-2 py-1 font-semibold border-b border-base-300 mb-2", children: "Today's Readings" }),
-        isLoading ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "flex justify-center py-4", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "loading loading-spinner loading-sm" }) }) : readings.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "text-center py-4 text-base-content/60", children: "No readings for today" }) : /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("ul", { className: "max-h-64 overflow-y-auto", children: readings.map((reading) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
+      isOpen && /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "dropdown-content menu bg-base-200 rounded-box z-50 w-80 p-2 shadow-lg mt-2", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "px-2 py-1 font-semibold border-b border-base-300 mb-2", children: "Today's Readings" }),
+        isLoading ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "flex justify-center py-4", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "loading loading-spinner loading-sm" }) }) : readings.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "text-center py-4 text-base-content/60", children: "No readings for today" }) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("ul", { className: "max-h-64 overflow-y-auto", children: readings.map((reading) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("li", { children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
           "a",
           {
             href: `/plans/${reading.plan?.id}`,
             className: "flex flex-col items-start gap-1",
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "text-sm font-medium truncate w-full", children: reading.content }),
-              reading.plan && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "text-xs opacity-60", children: reading.plan.title })
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "text-sm font-medium truncate w-full", children: reading.content }),
+              reading.plan && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "text-xs opacity-60", children: reading.plan.title })
             ]
           }
         ) }, reading.id)) }),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { className: "border-t border-base-300 mt-2 pt-2", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("a", { href: "/dashboard", className: "btn btn-ghost btn-sm w-full", children: "View Dashboard" }) })
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { className: "border-t border-base-300 mt-2 pt-2", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("a", { href: "/dashboard", className: "btn btn-ghost btn-sm w-full", children: "View Dashboard" }) })
       ] })
     ] });
   };
 
   // assets/js/components/ConfirmModal.tsx
-  var import_react39 = __toESM(require_react());
-  var import_jsx_runtime7 = __toESM(require_jsx_runtime());
-  var ConfirmModal = (0, import_react39.forwardRef)(({
+  var import_react40 = __toESM(require_react());
+  var import_jsx_runtime8 = __toESM(require_jsx_runtime());
+  var ConfirmModal = (0, import_react40.forwardRef)(({
     id,
     title,
     message: message2,
@@ -32577,9 +31543,9 @@
     onSuccess,
     variant = "error"
   }, ref) => {
-    const [loading, setLoading] = (0, import_react39.useState)(false);
-    const dialogRef = (0, import_react39.useRef)(null);
-    (0, import_react39.useImperativeHandle)(ref, () => ({
+    const [loading, setLoading] = (0, import_react40.useState)(false);
+    const dialogRef = (0, import_react40.useRef)(null);
+    (0, import_react40.useImperativeHandle)(ref, () => ({
       showModal: () => dialogRef.current?.showModal(),
       close: () => dialogRef.current?.close()
     }));
@@ -32606,47 +31572,47 @@
         setLoading(false);
       }
     };
-    (0, import_react39.useEffect)(() => {
+    (0, import_react40.useEffect)(() => {
       const element = document.getElementById(id);
       if (element) {
         element.showModal = () => dialogRef.current?.showModal();
       }
     }, [id]);
     const buttonClass = variant === "error" ? "btn btn-error" : variant === "warning" ? "btn btn-warning" : "btn btn-primary";
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("dialog", { ref: dialogRef, id, className: "modal", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "modal-box", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h3", { className: "font-bold text-lg", children: title }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { className: "py-4", children: message2 }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { className: "modal-action", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("form", { method: "dialog", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { className: "btn", children: "Cancel" }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("dialog", { ref: dialogRef, id, className: "modal", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "modal-box", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h3", { className: "font-bold text-lg", children: title }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { className: "py-4", children: message2 }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "modal-action", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("form", { method: "dialog", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { className: "btn", children: "Cancel" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
             "button",
             {
               className: buttonClass,
               onClick: handleConfirm,
               disabled: loading,
               children: [
-                loading && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("span", { className: "loading loading-spinner loading-sm" }),
+                loading && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "loading loading-spinner loading-sm" }),
                 confirmText
               ]
             }
           )
         ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("form", { method: "dialog", className: "modal-backdrop", children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { children: "close" }) })
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("form", { method: "dialog", className: "modal-backdrop", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { children: "close" }) })
     ] });
   });
   ConfirmModal.displayName = "ConfirmModal";
 
   // assets/js/components/ReadingList.tsx
-  var import_react40 = __toESM(require_react());
-  var import_jsx_runtime8 = __toESM(require_jsx_runtime());
+  var import_react41 = __toESM(require_react());
+  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
   var ReadingList = ({
     readings: initialReadings,
     showPlanTitle = true,
     actionType
   }) => {
-    const [readings, setReadings] = (0, import_react40.useState)(initialReadings);
+    const [readings, setReadings] = (0, import_react41.useState)(initialReadings);
     const queryClient2 = useQueryClient();
     const mutation = useMutation({
       mutationFn: async (readingId) => {
@@ -32672,22 +31638,22 @@
       }
     });
     if (readings.length === 0) {
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "text-center py-8 text-base-content/60", children: actionType === "complete" ? "No pending readings" : "No completed readings" });
+      return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "text-center py-8 text-base-content/60", children: actionType === "complete" ? "No pending readings" : "No completed readings" });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "space-y-4", children: readings.map((reading) => {
+    return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "space-y-4", children: readings.map((reading) => {
       const isLoading = mutation.isPending && mutation.variables === reading.id;
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
         "div",
         {
           className: "card bg-base-200 shadow-sm",
-          children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { className: "card-body p-4", children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex items-center justify-between gap-4", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex-1 min-w-0", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { className: "font-medium truncate", children: reading.content }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { className: "flex gap-2 text-sm text-base-content/60 mt-1", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { children: reading.date }),
-                showPlanTitle && reading.plan && /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(import_jsx_runtime8.Fragment, { children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { children: "\u2022" }),
-                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+          children: /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: "card-body p-4", children: /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex items-center justify-between gap-4", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex-1 min-w-0", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "font-medium truncate", children: reading.content }),
+              /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "flex gap-2 text-sm text-base-content/60 mt-1", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: reading.date }),
+                showPlanTitle && reading.plan && /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { children: "\u2022" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
                     "a",
                     {
                       href: `/plans/${reading.plan.id}`,
@@ -32698,18 +31664,18 @@
                 ] })
               ] })
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
               "button",
               {
                 type: "button",
                 onClick: () => mutation.mutate(reading.id),
                 disabled: isLoading,
                 className: `btn btn-sm ${actionType === "complete" ? "btn-primary" : "btn-ghost"}`,
-                children: isLoading ? /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("span", { className: "loading loading-spinner loading-xs" }) : actionType === "complete" ? /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(import_jsx_runtime8.Fragment, { children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Check, { className: "h-4 w-4" }),
+                children: isLoading ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("span", { className: "loading loading-spinner loading-xs" }) : actionType === "complete" ? /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Check, { className: "h-4 w-4" }),
                   "Complete"
-                ] }) : /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(import_jsx_runtime8.Fragment, { children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Undo2, { className: "h-4 w-4" }),
+                ] }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)(import_jsx_runtime9.Fragment, { children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Undo2, { className: "h-4 w-4" }),
                   "Undo"
                 ] })
               }
@@ -32722,15 +31688,15 @@
   };
 
   // assets/js/components/PasswordInput.tsx
-  var import_react41 = __toESM(require_react());
-  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
-  var PasswordInput = (0, import_react41.forwardRef)(
+  var import_react42 = __toESM(require_react());
+  var import_jsx_runtime10 = __toESM(require_jsx_runtime());
+  var PasswordInput = (0, import_react42.forwardRef)(
     ({ label, error, className = "", id, ...props }, ref) => {
-      const [visible, setVisible] = (0, import_react41.useState)(false);
-      return /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("div", { className: "space-y-1", children: [
-        label && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("label", { htmlFor: id, className: "text-sm font-medium", children: label }),
-        /* @__PURE__ */ (0, import_jsx_runtime9.jsxs)("label", { className: "input input-bordered flex items-center gap-2 pr-0 w-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+      const [visible, setVisible] = (0, import_react42.useState)(false);
+      return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "space-y-1", children: [
+        label && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("label", { htmlFor: id, className: "text-sm font-medium", children: label }),
+        /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("label", { className: "input input-bordered flex items-center gap-2 pr-0 w-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "input",
             {
               ref,
@@ -32740,27 +31706,27 @@
               ...props
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
             "button",
             {
               type: "button",
               className: "btn btn-ghost btn-sm btn-circle",
               onClick: () => setVisible(!visible),
               "aria-label": visible ? "Hide password" : "Show password",
-              children: visible ? /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(EyeOff, { className: "h-5 w-5 opacity-70" }) : /* @__PURE__ */ (0, import_jsx_runtime9.jsx)(Eye, { className: "h-5 w-5 opacity-70" })
+              children: visible ? /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(EyeOff, { className: "h-5 w-5 opacity-70" }) : /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(Eye, { className: "h-5 w-5 opacity-70" })
             }
           )
         ] }),
-        error && /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("p", { className: "text-sm text-error", children: error })
+        error && /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("p", { className: "text-sm text-error", children: error })
       ] });
     }
   );
   PasswordInput.displayName = "PasswordInput";
 
   // assets/js/components/ErrorBoundary.tsx
-  var import_react42 = __toESM(require_react());
-  var import_jsx_runtime10 = __toESM(require_jsx_runtime());
-  var ErrorBoundary = class extends import_react42.Component {
+  var import_react43 = __toESM(require_react());
+  var import_jsx_runtime11 = __toESM(require_jsx_runtime());
+  var ErrorBoundary = class extends import_react43.Component {
     constructor() {
       super(...arguments);
       this.state = { hasError: false };
@@ -32773,9 +31739,9 @@
     }
     render() {
       if (this.state.hasError) {
-        return this.props.fallback ?? /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "alert alert-error", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(TriangleAlert, { className: "h-5 w-5" }),
-          /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("span", { children: "Something went wrong. Please refresh the page." })
+        return this.props.fallback ?? /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "alert alert-error", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(TriangleAlert, { className: "h-5 w-5" }),
+          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { children: "Something went wrong. Please refresh the page." })
         ] });
       }
       return this.props.children;
@@ -32783,12 +31749,12 @@
   };
 
   // assets/js/components/DashboardReadings.tsx
-  var import_react43 = __toESM(require_react());
-  var import_jsx_runtime11 = __toESM(require_jsx_runtime());
+  var import_react44 = __toESM(require_react());
+  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
   var DashboardReadings = ({
     planGroups: initialPlanGroups
   }) => {
-    const [planGroups, setPlanGroups] = (0, import_react43.useState)(initialPlanGroups);
+    const [planGroups, setPlanGroups] = (0, import_react44.useState)(initialPlanGroups);
     const queryClient2 = useQueryClient();
     const mutation = useMutation({
       mutationFn: async (readingId) => {
@@ -32812,6 +31778,7 @@
           })).filter((group) => group.readings.length > 0)
         );
         toast.success("Reading completed!");
+        document.body.dispatchEvent(new Event("stats-updated"));
         queryClient2.invalidateQueries({ queryKey: ["notifications"] });
       },
       onError: () => {
@@ -32819,48 +31786,48 @@
       }
     });
     if (planGroups.length === 0) {
-      return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "hero bg-base-200 rounded-box py-12", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "hero-content text-center", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "max-w-md", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "mx-auto w-24 h-24 mb-4 opacity-20 text-base-content", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className: "w-full h-full", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("path", { d: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20" }),
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("path", { d: "M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" })
+      return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "hero bg-base-200 rounded-box py-12", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "hero-content text-center", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "max-w-md", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "mx-auto w-24 h-24 mb-4 opacity-20 text-base-content", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", className: "w-full h-full", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { d: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20" }),
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { d: "M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" })
         ] }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("h3", { className: "text-2xl font-bold", children: "All caught up!" }),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "py-6", children: "No readings scheduled for today. You can relax or check your reading plans." }),
-        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("a", { href: "/plans", className: "btn btn-primary", children: "View Plans" })
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h3", { className: "text-2xl font-bold", children: "All caught up!" }),
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "py-6", children: "No readings scheduled for today. You can relax or check your reading plans." }),
+        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("a", { href: "/plans", className: "btn btn-primary", children: "View Plans" })
       ] }) }) });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "space-y-4", children: planGroups.map((group) => /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "space-y-4", children: planGroups.map((group) => /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
       "div",
       {
         className: `card bg-base-200 shadow-xl ${group.hasOverdue ? "card-border border-error" : ""}`,
-        children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "card-body p-0", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex items-center gap-2 p-6 pb-0", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("h3", { className: "card-title flex-1", children: group.plan.title }),
-            group.hasOverdue && /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "badge badge-error gap-2", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("svg", { xmlns: "http://www.w3.org/2000/svg", className: "inline-block h-4 w-4 stroke-current", fill: "none", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M6 18L18 6M6 6l12 12" }) }),
+        children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "card-body p-0", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center gap-2 p-6 pb-0", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("h3", { className: "card-title flex-1", children: group.plan.title }),
+            group.hasOverdue && /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "badge badge-error gap-2", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("svg", { xmlns: "http://www.w3.org/2000/svg", className: "inline-block h-4 w-4 stroke-current", fill: "none", viewBox: "0 0 24 24", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M6 18L18 6M6 6l12 12" }) }),
               "Overdue"
             ] })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "divide-y divide-base-300", children: group.readings.map((reading) => {
+          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "divide-y divide-base-300", children: group.readings.map((reading) => {
             const isLoading = mutation.isPending && mutation.variables === reading.id;
-            return /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "p-6", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex items-start gap-3", children: [
-              reading.isOverdue && /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("div", { className: "text-error mt-1", title: "Overdue", children: /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(TriangleAlert, { className: "h-5 w-5" }) }),
-              /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex-1", children: [
-                /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("p", { className: "leading-relaxed", children: reading.content }),
-                /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex items-center justify-between mt-4", children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)("div", { className: "flex items-center gap-2 text-sm opacity-75", children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Calendar, { className: "h-4 w-4" }),
-                    /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { children: reading.date })
+            return /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "p-6", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-start gap-3", children: [
+              reading.isOverdue && /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("div", { className: "text-error mt-1", title: "Overdue", children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(TriangleAlert, { className: "h-5 w-5" }) }),
+              /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex-1", children: [
+                /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("p", { className: "leading-relaxed", children: reading.content }),
+                /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center justify-between mt-4", children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)("div", { className: "flex items-center gap-2 text-sm opacity-75", children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Calendar, { className: "h-4 w-4" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("span", { children: reading.date })
                   ] }),
-                  /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(
+                  /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(
                     "button",
                     {
                       type: "button",
                       onClick: () => mutation.mutate(reading.id),
                       disabled: isLoading,
                       className: "btn btn-primary btn-sm gap-2",
-                      children: isLoading ? /* @__PURE__ */ (0, import_jsx_runtime11.jsx)("span", { className: "loading loading-spinner loading-xs" }) : /* @__PURE__ */ (0, import_jsx_runtime11.jsxs)(import_jsx_runtime11.Fragment, { children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime11.jsx)(Check, { className: "h-5 w-5" }),
+                      children: isLoading ? /* @__PURE__ */ (0, import_jsx_runtime12.jsx)("span", { className: "loading loading-spinner loading-xs" }) : /* @__PURE__ */ (0, import_jsx_runtime12.jsxs)(import_jsx_runtime12.Fragment, { children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Check, { className: "h-5 w-5" }),
                         "Complete"
                       ] })
                     }
@@ -32876,7 +31843,7 @@
   };
 
   // assets/js/index.tsx
-  var import_jsx_runtime12 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime13 = __toESM(require_jsx_runtime());
   var components = {
     "PlanEditor": PlanEditor,
     "NotificationBell": NotificationBell,
@@ -32893,7 +31860,7 @@
     document.body.appendChild(globalRoot);
     const globalReactRoot = (0, import_client.createRoot)(globalRoot);
     globalReactRoot.render(
-      /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Toaster3, {}) })
+      /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(ToastProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Toaster, {}) }) })
     );
     const mounts = document.querySelectorAll("[data-react-component]");
     mounts.forEach((mount) => {
@@ -32904,7 +31871,7 @@
         const props = propsJson ? JSON.parse(propsJson) : {};
         const root = (0, import_client.createRoot)(mount);
         root.render(
-          /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ (0, import_jsx_runtime12.jsx)(Component2, { ...props }) })
+          /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(ToastProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(QueryClientProvider, { client: queryClient, children: /* @__PURE__ */ (0, import_jsx_runtime13.jsx)(Component2, { ...props }) }) })
         );
       } else if (componentName) {
         console.warn(`React component '${componentName}' not found in registry.`);

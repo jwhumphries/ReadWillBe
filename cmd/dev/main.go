@@ -4,7 +4,6 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io"
 	"log"
@@ -17,6 +16,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 )
 
 const (
@@ -35,14 +35,14 @@ type Service struct {
 	Command string
 	Args    []string
 	Color   string
-	Port    string // Optional check for readiness
+	cmd     *exec.Cmd
+	mu      sync.Mutex
 }
 
 func main() {
-	log.SetFlags(0) // No timestamps in main log, we'll handle them
+	log.SetFlags(0)
 
-	// 1. Define Services
-	services := []Service{
+	services := []*Service{
 		{
 			Name:    "GO",
 			Command: "air",
@@ -75,57 +75,110 @@ func main() {
 		},
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	var wg sync.WaitGroup
 
-	// 2. Start Services
+	// Start services
 	for _, svc := range services {
 		wg.Add(1)
-		go func(s Service) {
+		go func(s *Service) {
 			defer wg.Done()
-			runService(ctx, s)
+			runService(s)
 		}(svc)
 	}
 
-	// 3. Start Proxy Server
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		startProxy()
-	}()
+	// Start proxy
+	server := startProxy()
 
-	// 4. Handle Signals
+	// Handle signals
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	<-sigChan
-	fmt.Println("\nStopping development environment...")
-	cancel()
-	wg.Wait()
+	fmt.Println("\n" + ColorYellow + "Shutting down gracefully..." + ColorReset)
+
+	// Shutdown proxy first
+	server.Close()
+
+	// Send SIGTERM to all services
+	for _, svc := range services {
+		svc.mu.Lock()
+		if svc.cmd != nil && svc.cmd.Process != nil {
+			fmt.Printf("%s[%s] Sending SIGTERM...%s\n", svc.Color, svc.Name, ColorReset)
+			svc.cmd.Process.Signal(syscall.SIGTERM)
+		}
+		svc.mu.Unlock()
+	}
+
+	// Wait for services to exit with timeout
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		fmt.Println(ColorGreen + "All services stopped cleanly." + ColorReset)
+	case <-time.After(5 * time.Second):
+		fmt.Println(ColorRed + "Timeout waiting for services, forcing shutdown..." + ColorReset)
+		for _, svc := range services {
+			svc.mu.Lock()
+			if svc.cmd != nil && svc.cmd.Process != nil {
+				svc.cmd.Process.Kill()
+			}
+			svc.mu.Unlock()
+		}
+	}
 }
 
-func runService(ctx context.Context, s Service) {
-	cmd := exec.CommandContext(ctx, s.Command, s.Args...)
+func runService(s *Service) {
+	cmd := exec.Command(s.Command, s.Args...)
 
-	// Create pipes for stdout/stderr
-	stdout, _ := cmd.StdoutPipe()
-	stderr, _ := cmd.StderrPipe()
+	s.mu.Lock()
+	s.cmd = cmd
+	s.mu.Unlock()
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Printf("%s[%s] Error creating stdout pipe: %v%s\n", s.Color, s.Name, err, ColorReset)
+		return
+	}
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Printf("%s[%s] Error creating stderr pipe: %v%s\n", s.Color, s.Name, err, ColorReset)
+		return
+	}
 
 	if err := cmd.Start(); err != nil {
 		log.Printf("%s[%s] Error starting: %v%s\n", s.Color, s.Name, err, ColorReset)
 		return
 	}
 
-	// Stream logs
-	go streamLogs(stdout, s.Name, s.Color)
-	go streamLogs(stderr, s.Name, s.Color)
+	var logWg sync.WaitGroup
+	logWg.Add(2)
+	go func() {
+		defer logWg.Done()
+		streamLogs(stdout, s.Name, s.Color)
+	}()
+	go func() {
+		defer logWg.Done()
+		streamLogs(stderr, s.Name, s.Color)
+	}()
 
-	// Wait for exit
-	err := cmd.Wait()
-	if err != nil && ctx.Err() == nil {
-		// Only log error if not cancelled
+	err = cmd.Wait()
+	logWg.Wait() // Wait for logs to flush
+
+	if err != nil {
+		// Check if it was killed by signal (expected during shutdown)
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+				if status.Signaled() {
+					fmt.Printf("%s[%s] Stopped%s\n", s.Color, s.Name, ColorReset)
+					return
+				}
+			}
+		}
 		log.Printf("%s[%s] Exited with error: %v%s\n", s.Color, s.Name, err, ColorReset)
 	}
 }
@@ -134,36 +187,31 @@ func streamLogs(r io.Reader, name, color string) {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := scanner.Text()
-		// Clean up some common noisy logs if needed
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
 		fmt.Printf("%s[%s] %s%s\n", color, name, line, ColorReset)
 	}
+	if err := scanner.Err(); err != nil {
+		log.Printf("%s[%s] Log stream error: %v%s\n", color, name, err, ColorReset)
+	}
 }
 
-func startProxy() {
-	// Targets
+func startProxy() *http.Server {
 	templTarget, _ := url.Parse("http://127.0.0.1:7332")
 	goTarget, _ := url.Parse("http://127.0.0.1:8080")
 
-	// Proxy Handler
 	proxy := &httputil.ReverseProxy{
 		Rewrite: func(r *httputil.ProxyRequest) {
-			// By default forward to Templ
 			r.SetURL(templTarget)
-			r.Out.Host = r.In.Host // Keep original host header
+			r.Out.Host = r.In.Host
 
-			// Check if it's a static asset
 			path := r.In.URL.Path
-			if strings.HasPrefix(path, "/static/") || strings.HasPrefix(path, "/serviceWorker.js") {
-				// Forward directly to Go server, bypassing Templ
+			if strings.HasPrefix(path, "/static/") || path == "/serviceWorker.js" {
 				r.SetURL(goTarget)
-				// fmt.Printf("Proxying static asset %s to Go server\n", path)
 			}
 		},
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
-			// Suppress errors during startup/restart
 			if !strings.Contains(err.Error(), "connection refused") {
 				log.Printf("Proxy error: %v", err)
 			}
@@ -176,11 +224,16 @@ func startProxy() {
 		Handler: proxy,
 	}
 
-	fmt.Println("\n🚀 Dev Server running at http://localhost:7331")
-	fmt.Println("   - Static assets -> Go Server (8080)")
-	fmt.Println("   - Other requests -> Templ Proxy (7332) -> Go Server (8080)")
+	go func() {
+		fmt.Println("\n🚀 Dev Server running at http://localhost:7331")
+		fmt.Println("   - Static assets -> Go Server (8080)")
+		fmt.Println("   - Other requests -> Templ Proxy (7332) -> Go Server (8080)")
+		fmt.Println("   - Press Ctrl+C to stop\n")
 
-	if err := server.ListenAndServe(); err != http.ErrServerClosed {
-		log.Printf("Proxy server failed: %v", err)
-	}
+		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+			log.Printf("Proxy server error: %v", err)
+		}
+	}()
+
+	return server
 }

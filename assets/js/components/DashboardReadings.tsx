@@ -62,6 +62,10 @@ export const DashboardReadings: React.FC<DashboardReadingsProps> = ({
           .filter(group => group.readings.length > 0)
       );
       toast.success('Reading completed!');
+
+      // Trigger HTMX to refresh stats
+      document.body.dispatchEvent(new Event('stats-updated'));
+
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: () => {

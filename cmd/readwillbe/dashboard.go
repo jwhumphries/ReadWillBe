@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"readwillbe/types"
 	"readwillbe/views"
+	"readwillbe/views/partials"
 )
 
 func dashboardHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
@@ -79,4 +80,26 @@ func groupReadingsByPlan(readings []types.Reading) []types.PlanGroup {
 	})
 
 	return groups
+}
+
+// dashboardStatsPartial returns just the stats section for HTMX updates
+func dashboardStatsPartial(db *gorm.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user, ok := GetSessionUser(c)
+		if !ok {
+			return c.NoContent(http.StatusUnauthorized)
+		}
+
+		weeklyCount, err := GetWeeklyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "Failed to load weekly stats")
+		}
+
+		monthlyCount, err := GetMonthlyCompletedReadingsCount(db.WithContext(c.Request().Context()), user.ID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "Failed to load monthly stats")
+		}
+
+		return render(c, http.StatusOK, partials.DashboardStats(weeklyCount, monthlyCount))
+	}
 }

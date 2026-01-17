@@ -116,7 +116,7 @@ export function useSaveDraft() {
       if (!response.ok) throw new Error('Failed to save draft');
     },
     onSuccess: () => {
-      toast.success('Draft saved', { duration: 2000 });
+      toast.success('Draft saved');
     },
     onError: () => {
       toast.error('Failed to save draft');

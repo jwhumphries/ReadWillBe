@@ -15,31 +15,45 @@ const triggerReload = () => {
         path: '/_templ/reload',
         method: 'POST',
         timeout: 100
-    }, (res) => {
-        // console.log(`Reload triggered: ${res.statusCode}`);
+    }, () => {});
+
+    req.on('error', () => {
+        // Ignore errors (proxy might not be up yet)
     });
-    
-    req.on('error', (e) => {
-        // Ignore errors
-    });
-    
+
     req.end();
 };
 
-// Watch the output file
-let debounceTimer;
-fs.watch('static/css/main.css', (eventType, filename) => {
-    if (filename && eventType === 'change') {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            console.log('CSS changed, triggering reload...');
-            triggerReload();
-        }, 100);
-    }
-});
+// Wait for file to exist before watching
+const cssPath = 'static/css/main.css';
+const startWatching = () => {
+    let debounceTimer;
+    fs.watch(cssPath, (eventType, filename) => {
+        if (filename && eventType === 'change') {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                console.log('CSS changed, triggering reload...');
+                triggerReload();
+            }, 100);
+        }
+    });
+    console.log('Watching CSS for changes...');
+};
 
-// Handle exit
-process.on('SIGINT', () => {
-    tailwind.kill();
-    process.exit();
-});
+// Poll for file existence
+const waitForFile = () => {
+    if (fs.existsSync(cssPath)) {
+        startWatching();
+    } else {
+        setTimeout(waitForFile, 500);
+    }
+};
+waitForFile();
+
+// Handle exit signals
+const cleanup = () => {
+    tailwind.kill('SIGTERM');
+    process.exit(0);
+};
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);

@@ -19,6 +19,7 @@ templ Layout(cfg types.Config, user *types.User, title string) {
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>{ title }</title>
 			<link href={ versionedPath("/static/css/main.css") } rel="stylesheet"/>
+			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
 			<script src={ versionedPath("/static/push-setup.js") }></script>
 			<script src={ versionedPath("/static/js/bundle.js") } defer></script>
 		</head>
@@ -89,9 +90,9 @@ templ Layout(cfg types.Config, user *types.User, title string) {
 										Settings
 									</a>
 								</li>
-								<li class="[&>form]:w-full [&>form>button]:w-full [&>form>button]:justify-start">
-									<form method="POST" action="/auth/sign-out">
-										<button type="submit">
+								<li>
+									<form method="POST" action="/auth/sign-out" class="w-full">
+										<button type="submit" class="flex items-center gap-3 w-full text-left">
 											@SignOutIcon()
 											Sign Out
 										</button>

@@ -62,25 +62,24 @@ tasks:
     desc: Start development environment with hot reload
     deps: [build-dev]
     cmds:
-      - defer:
-          echo '{{if eq .EXIT_CODE 2}}Docker stopped.{{else}}Exited with - {{.EXIT_CODE}}{{end}}'
-      - defer: { task: clean }
-      - docker run --rm
-        --name {{.APP_NAME}}-dev
-        -p 8080:8080 -p 7331:7331
-        -v {{.ROOT_DIR}}:/app
-        -v go-mod-cache:/go/pkg/mod
-        -v go-build-cache:/go-build-cache
-        -e READWILLBE_PORT=:8080
-        -e READWILLBE_DB_PATH=/app/data/readwillbe.db
-        -e READWILLBE_COOKIE_SECRET=dev-only-local-secret-min-32-chars
-        -e READWILLBE_SEED_DB=true
-        -e READWILLBE_ALLOW_SIGNUP=true
-        -e READWILLBE_LOG_LEVEL=debug
-        -e TEMPL_EXPERIMENT=rawgo
-        -e READWILLBE_HOSTNAME=localhost:7331
-        {{.DEV_IMAGE}}
-        sh -c "bun install && /develop.sh"
+      # Use exec to replace Task with Docker so Ctrl+C goes directly to the container
+      - |
+        exec docker run --rm -it \
+          --name {{.APP_NAME}}-dev \
+          -p 8080:8080 -p 7331:7331 \
+          -v {{.ROOT_DIR}}:/app \
+          -v go-mod-cache:/go/pkg/mod \
+          -v go-build-cache:/go-build-cache \
+          -e READWILLBE_PORT=:8080 \
+          -e READWILLBE_DB_PATH=/app/data/readwillbe.db \
+          -e READWILLBE_COOKIE_SECRET=dev-only-local-secret-min-32-chars \
+          -e READWILLBE_SEED_DB=true \
+          -e READWILLBE_ALLOW_SIGNUP=true \
+          -e READWILLBE_LOG_LEVEL=debug \
+          -e TEMPL_EXPERIMENT=rawgo \
+          -e READWILLBE_HOSTNAME=localhost:7331 \
+          {{.DEV_IMAGE}} \
+          sh -c "bun install && /develop.sh"
     silent: true
 
   dev-stop:

@@ -89,6 +89,20 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 	e := echo.New()
 
+	// Disable caching for static assets in dev mode
+	if !cfg.IsProduction() {
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				if strings.HasPrefix(c.Request().URL.Path, "/static/") {
+					c.Response().Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+					c.Response().Header().Set("Pragma", "no-cache")
+					c.Response().Header().Set("Expires", "0")
+				}
+				return next(c)
+			}
+		})
+	}
+
 	e.StaticFS("/static", static.FS)
 	e.GET("/serviceWorker.js", func(c echo.Context) error {
 		data, readErr := fs.ReadFile(static.FS, "serviceWorker.js")
@@ -223,6 +237,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	e.POST("/auth/sign-out", signOut(), generalRateLimiter)
 
 	e.GET("/dashboard", dashboardHandler(cfg, db))
+	e.GET("/partials/dashboard-stats", dashboardStatsPartial(db))
 	e.GET("/history", historyHandler(cfg, db))
 	e.GET("/plans", plansListHandler(cfg, db))
 	e.GET("/plans/create", createPlanForm(cfg, db))

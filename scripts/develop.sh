@@ -6,8 +6,6 @@ echo "Starting development environment (with dev-runner)..."
 # Create necessary directories
 mkdir -p data tmp
 
-# Run the Go-based dev runner
-
-# This handles Air, Templ, JS, CSS, and the Proxy
-
-go run -tags dev ./cmd/dev
+# Use exec to replace shell with Go process
+# This ensures signals (SIGINT, SIGTERM) go directly to the Go dev runner
+exec go run -tags dev ./cmd/dev
