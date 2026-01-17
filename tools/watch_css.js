@@ -11,7 +11,7 @@ const tailwind = spawn('bun', ['run', 'dev'], {
 const triggerReload = () => {
     const req = http.request({
         hostname: 'localhost',
-        port: 7331,
+        port: 7332,
         path: '/_templ/reload',
         method: 'POST',
         timeout: 100
