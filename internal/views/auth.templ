@@ -1,0 +1,102 @@
+package views
+
+import (
+	"readwillbe/internal/views/components"
+	"readwillbe/internal/model"
+)
+
+templ SignInPage(cfg model.Config, csrf string, err error) {
+	@Layout(cfg, nil, "Sign In - ReadWillBe") {
+		@SignInForm(cfg, csrf, err)
+	}
+}
+
+templ SignInForm(config model.Config, csrf string, err error) {
+	<div class="flex flex-col items-center justify-center min-h-screen p-8">
+		<h1 class="text-5xl font-bold text-center mb-12">ReadWillBe</h1>
+		<div class="card w-full max-w-md bg-base-200 shadow-xl">
+			<form method="POST" action="/auth/sign-in">
+				<input type="hidden" name="_csrf" value={ csrf }/>
+				<div class="card-body space-y-4">
+					<h2 class="card-title text-center justify-center text-2xl">Sign In</h2>
+					<div class="space-y-1">
+						<label for="signin-email" class="text-sm font-medium">Email</label>
+						<input type="email" name="email" id="signin-email" autocomplete="email" required placeholder="email@example.com" class="input input-bordered w-full"/>
+					</div>
+					<div class="space-y-1">
+						<label for="signin-password" class="text-sm font-medium">Password</label>
+						@React("PasswordInput", map[string]interface{}{
+							"id":          "signin-password",
+							"name":        "password",
+							"required":    true,
+							"placeholder": "••••••••",
+						})
+					</div>
+					if err != nil {
+						@components.AlertError(err.Error())
+					}
+					<div class="card-actions">
+						<button type="submit" class="btn btn-primary w-full">
+							Sign In
+						</button>
+					</div>
+					if config.AllowSignup {
+						<div class="text-sm text-center">
+							Need an account?
+							<a href="/auth/sign-up" class="link link-primary">Sign Up</a>
+						</div>
+					}
+				</div>
+			</form>
+		</div>
+	</div>
+}
+
+templ SignUpPage(cfg model.Config, csrf string, err error) {
+	@Layout(cfg, nil, "Sign Up - ReadWillBe") {
+		@SignUpForm(csrf, err)
+	}
+}
+
+templ SignUpForm(csrf string, err error) {
+	<div class="flex flex-col items-center justify-center min-h-screen p-8">
+		<h1 class="text-5xl font-bold text-center mb-12">ReadWillBe</h1>
+		<div class="card w-full max-w-md bg-base-200 shadow-xl">
+			<form method="POST" action="/auth/sign-up">
+				<input type="hidden" name="_csrf" value={ csrf }/>
+				<div class="card-body space-y-4">
+					<h2 class="card-title text-center justify-center text-2xl">Create Account</h2>
+					<div class="space-y-1">
+						<label for="signup-name" class="text-sm font-medium">Name</label>
+						<input type="text" name="name" id="signup-name" autocomplete="name" required placeholder="Jane Doe" class="input input-bordered w-full"/>
+					</div>
+					<div class="space-y-1">
+						<label for="signup-email" class="text-sm font-medium">Email</label>
+						<input type="email" name="email" id="signup-email" autocomplete="email" required placeholder="email@example.com" class="input input-bordered w-full"/>
+					</div>
+					<div class="space-y-1">
+						<label for="signup-password" class="text-sm font-medium">Password</label>
+						@React("PasswordInput", map[string]interface{}{
+							"id":          "signup-password",
+							"name":        "password",
+							"required":    true,
+							"placeholder": "••••••••",
+						})
+					</div>
+					if err != nil {
+						@components.AlertError(err.Error())
+					}
+					<div class="card-actions">
+						<button type="submit" class="btn btn-primary w-full">
+							Create Account
+						</button>
+					</div>
+					<div class="text-sm text-center">
+						Already have an account?
+						<a href="/auth/sign-in" class="link link-primary">Sign In</a>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+}

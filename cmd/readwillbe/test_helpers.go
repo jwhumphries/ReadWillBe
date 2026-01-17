@@ -7,14 +7,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"readwillbe/types"
+	"readwillbe/internal/model"
 )
 
-func createTestUser(t *testing.T, db *gorm.DB, email string, password string) *types.User {
+func createTestUser(t *testing.T, db *gorm.DB, email string, password string) *model.User {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), BcryptCost)
 	require.NoError(t, err)
 
-	user := &types.User{
+	user := &model.User{
 		Name:      "Test User",
 		Email:     email,
 		Password:  string(hash),
@@ -27,8 +27,8 @@ func createTestUser(t *testing.T, db *gorm.DB, email string, password string) *t
 	return user
 }
 
-func createTestPlan(t *testing.T, db *gorm.DB, user *types.User, title string) *types.Plan {
-	plan := &types.Plan{
+func createTestPlan(t *testing.T, db *gorm.DB, user *model.User, title string) *model.Plan {
+	plan := &model.Plan{
 		Title:  title,
 		UserID: user.ID,
 		Status: "active",
@@ -40,13 +40,13 @@ func createTestPlan(t *testing.T, db *gorm.DB, user *types.User, title string) *
 	return plan
 }
 
-func createTestReading(t *testing.T, db *gorm.DB, plan *types.Plan, content string, date time.Time) *types.Reading {
-	reading := &types.Reading{
+func createTestReading(t *testing.T, db *gorm.DB, plan *model.Plan, content string, date time.Time) *model.Reading {
+	reading := &model.Reading{
 		PlanID:   plan.ID,
 		Content:  content,
 		Date:     date,
-		DateType: types.DateTypeDay,
-		Status:   types.StatusPending,
+		DateType: model.DateTypeDay,
+		Status:   model.StatusPending,
 	}
 
 	err := db.Create(reading).Error

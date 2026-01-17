@@ -20,8 +20,11 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/time/rate"
 
+	"readwillbe/internal/cache"
+	mw "readwillbe/internal/middleware"
+	"readwillbe/internal/model"
+	"readwillbe/internal/service/push"
 	"readwillbe/static"
-	"readwillbe/types"
 
 	_ "github.com/ncruces/go-sqlite3/embed"
 	sqlite "github.com/ncruces/go-sqlite3/gormlite"
@@ -40,11 +43,6 @@ func render(ctx echo.Context, status int, t templ.Component) error {
 	return nil
 }
 
-func htmxRedirect(c echo.Context, url string) error {
-	c.Response().Header().Set("HX-Redirect", url)
-	return c.NoContent(http.StatusOK)
-}
-
 func runServer(cmd *cobra.Command, args []string) error {
 	configureLogging()
 
@@ -57,12 +55,26 @@ func runServer(cmd *cobra.Command, args []string) error {
 		time.Local = loc
 	}
 
-	cfg, err := types.ConfigFromViper()
+	cfg, err := model.ConfigFromViper()
 	if err != nil {
 		return errors.Wrap(err, "loading config from viper")
 	}
 
 	e := echo.New()
+
+	// Disable caching for static assets in dev mode
+	if !cfg.IsProduction() {
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c echo.Context) error {
+				if strings.HasPrefix(c.Request().URL.Path, "/static/") {
+					c.Response().Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+					c.Response().Header().Set("Pragma", "no-cache")
+					c.Response().Header().Set("Expires", "0")
+				}
+				return next(c)
+			}
+		})
+	}
 
 	e.StaticFS("/static", static.FS)
 	e.GET("/serviceWorker.js", func(c echo.Context) error {
@@ -81,6 +93,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 	e.Use(middleware.RequestID())
 	e.Use(middleware.BodyLimit("11M"))
+	e.Pre(mw.MethodOverride()) // Must use Pre() to run before routing
 
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 		Skipper:           middleware.DefaultSkipper,
@@ -118,7 +131,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 		TokenLookup:    "form:_csrf,header:X-CSRF-Token",
 		CookiePath:     "/",
 		CookieSecure:   cfg.IsProduction(),
-		CookieHTTPOnly: false, // Must be false so JavaScript (HTMX) can read the token for AJAX requests
+		CookieHTTPOnly: false, // Must be false so JavaScript can read the token for AJAX requests
 		CookieSameSite: http.SameSiteStrictMode,
 		Skipper: func(c echo.Context) bool {
 			return c.Path() == "/healthz"
@@ -158,25 +171,25 @@ func runServer(cmd *cobra.Command, args []string) error {
 	sqlDB.SetMaxOpenConns(1)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	err = db.AutoMigrate(&types.User{}, &types.Plan{}, &types.Reading{}, &types.PushSubscription{})
+	err = db.AutoMigrate(&model.User{}, &model.Plan{}, &model.Reading{}, &model.PushSubscription{})
 	if err != nil {
 		return errors.Wrap(err, "failed to migrate")
 	}
 
 	if cfg.SeedDB {
-		fs := afero.NewOsFs()
-		if err := seedDatabase(db, fs); err != nil {
+		appFS := afero.NewOsFs()
+		if err := seedDatabase(db, appFS); err != nil {
 			return errors.Wrap(err, "seeding database")
 		}
 	}
 
-	_ = startNotificationWorker(cfg, db)
+	_ = push.StartNotificationWorker(cfg, db)
 
 	store := sessions.NewCookieStore(cfg.CookieSecret)
-	store.Options = getSecureSessionOptions(cfg)
+	store.Options = mw.GetSecureSessionOptions(cfg)
 	e.Use(session.Middleware(store))
-	userCache := NewUserCache(5*time.Minute, 10*time.Minute)
-	e.Use(UserMiddleware(db, userCache, cfg))
+	userCache := cache.NewUserCache(5*time.Minute, 10*time.Minute)
+	e.Use(mw.UserMiddleware(db, userCache, cfg))
 
 	appFS := afero.NewOsFs()
 
@@ -197,6 +210,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	e.POST("/auth/sign-out", signOut(), generalRateLimiter)
 
 	e.GET("/dashboard", dashboardHandler(cfg, db))
+	e.GET("/partials/dashboard-stats", dashboardStatsPartial(db))
 	e.GET("/history", historyHandler(cfg, db))
 	e.GET("/plans", plansListHandler(cfg, db))
 	e.GET("/plans/create", createPlanForm(cfg, db))
@@ -222,6 +236,12 @@ func runServer(cmd *cobra.Command, args []string) error {
 	e.GET("/notifications/count", notificationCount(db))
 	e.GET("/notifications/dropdown", notificationDropdown(db))
 
+	// JSON API endpoints for React components
+	e.GET("/api/notifications/count", apiNotificationCount(db))
+	e.GET("/api/notifications/readings", apiNotificationReadings(db))
+	e.GET("/api/plans/:id/status", apiPlanStatus(db))
+	e.PUT("/plans/draft", apiSaveDraft(), generalRateLimiter)
+
 	e.POST("/push/subscribe", saveSubscription(db), generalRateLimiter)
 	e.POST("/push/unsubscribe", removeSubscription(db), generalRateLimiter)
 	e.POST("/push/unsubscribe-all", removeAllSubscriptions(db), generalRateLimiter)
@@ -241,84 +261,4 @@ func configureLogging() {
 	} else {
 		logrus.SetLevel(parsedLevel)
 	}
-}
-
-func getSecureSessionOptions(cfg types.Config) *sessions.Options {
-	return &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600 * 24, // 24 hours
-		HttpOnly: true,
-		Secure:   cfg.IsProduction(),
-		SameSite: http.SameSiteStrictMode,
-	}
-}
-
-func UserMiddleware(db *gorm.DB, cache *UserCache, cfg types.Config) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			sess, err := session.Get(SessionKey, c)
-			if err != nil {
-				logrus.Warnf("Failed to get session: %v", err)
-				return next(c)
-			}
-			if sess.Values[SessionUserIDKey] != nil {
-				userID, ok := sess.Values[SessionUserIDKey].(uint)
-				if !ok {
-					return next(c)
-				}
-
-				user, found := cache.Get(userID)
-				if !found {
-					var err error
-					user, err = getUserByID(db.WithContext(c.Request().Context()), userID)
-					if err != nil {
-						if errors.Is(err, gorm.ErrRecordNotFound) {
-							delete(sess.Values, SessionUserIDKey)
-							_ = sess.Save(c.Request(), c.Response())
-							return next(c)
-						}
-						return errors.Wrap(err, "getting user by id")
-					}
-					cache.Set(user)
-				}
-
-				c.Set(UserKey, user)
-
-				shouldSave := false
-
-				if sess.Values[SessionUserIDKey] != user.ID {
-					sess.Values[SessionUserIDKey] = user.ID
-					shouldSave = true
-				}
-
-				lastSeen, ok := sess.Values[SessionLastSeenKey].(int64)
-				now := time.Now().Unix()
-				if !ok || now-lastSeen > SessionRefreshInterval {
-					sess.Values[SessionLastSeenKey] = now
-					shouldSave = true
-				}
-
-				if shouldSave {
-					sess.Options = getSecureSessionOptions(cfg)
-					if err := sess.Save(c.Request(), c.Response()); err != nil {
-						return errors.Wrap(err, "saving session")
-					}
-				}
-			}
-			return next(c)
-		}
-	}
-}
-
-func GetSessionUser(c echo.Context) (types.User, bool) {
-	u := c.Get(UserKey)
-	if u != nil {
-		user, ok := u.(types.User)
-		if !ok {
-			return types.User{}, false
-		}
-		logrus.Debugf("Found session user ID=%d", user.ID)
-		return user, true
-	}
-	return types.User{}, false
 }

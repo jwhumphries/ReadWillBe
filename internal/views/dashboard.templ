@@ -1,0 +1,63 @@
+package views
+
+import "readwillbe/internal/model"
+import "readwillbe/internal/views/partials"
+
+// ReactPlanGroup represents a plan group for the React component
+type ReactPlanGroup struct {
+	Plan       ReactPlan      `json:"plan"`
+	Readings   []ReactReading `json:"readings"`
+	HasOverdue bool           `json:"hasOverdue"`
+}
+
+type ReactPlan struct {
+	ID    uint   `json:"id"`
+	Title string `json:"title"`
+}
+
+type ReactReading struct {
+	ID        uint   `json:"id"`
+	Date      string `json:"date"`
+	Content   string `json:"content"`
+	Status    string `json:"status"`
+	IsOverdue bool   `json:"isOverdue"`
+}
+
+func toReactPlanGroups(groups []model.PlanGroup) []ReactPlanGroup {
+	result := make([]ReactPlanGroup, len(groups))
+	for i, g := range groups {
+		readings := make([]ReactReading, len(g.Readings))
+		for j, r := range g.Readings {
+			readings[j] = ReactReading{
+				ID:        r.ID,
+				Date:      r.FormattedDate(),
+				Content:   r.Content,
+				Status:    string(r.Status),
+				IsOverdue: r.IsOverdue(),
+			}
+		}
+		result[i] = ReactPlanGroup{
+			Plan: ReactPlan{
+				ID:    g.Plan.ID,
+				Title: g.Plan.Title,
+			},
+			Readings:   readings,
+			HasOverdue: g.HasOverdue(),
+		}
+	}
+	return result
+}
+
+templ Dashboard(cfg model.Config, user *model.User, planGroups []model.PlanGroup, weeklyCount int64, monthlyCount int64) {
+	@Layout(cfg, user, "Dashboard - ReadWillBe") {
+		<div class="space-y-8">
+			@partials.DashboardStats(weeklyCount, monthlyCount)
+			<div>
+				<h2 class="text-3xl font-bold mb-6">Today's Reading</h2>
+				@React("DashboardReadings", map[string]interface{}{
+					"planGroups": toReactPlanGroups(planGroups),
+				})
+			</div>
+		</div>
+	}
+}

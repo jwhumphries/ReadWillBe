@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/gob"
 
-	"readwillbe/views"
+	"readwillbe/internal/views"
 )
 
 func init() {

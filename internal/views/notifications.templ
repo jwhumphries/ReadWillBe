@@ -1,0 +1,44 @@
+package views
+
+import "readwillbe/internal/model"
+import "fmt"
+
+templ NotificationBell(count int) {
+	@React("NotificationBell", map[string]interface{}{
+		"initialCount": count,
+		"pollInterval": 60000,
+	})
+}
+
+templ NotificationDropdown(readings []model.Reading) {
+	if len(readings) == 0 {
+		<div class="p-4 text-center">
+			<div class="mx-auto w-12 h-12 mb-2 opacity-10">
+				@BellIcon("w-full h-full")
+			</div>
+			<div class="text-sm font-bold">All caught up!</div>
+			<div class="text-xs opacity-70">No readings due today</div>
+		</div>
+	} else {
+		<div class="p-2">
+			<div class="px-2 py-1 text-sm font-bold opacity-70 border-b border-base-300 mb-2">
+				You have { fmt.Sprintf("%d", len(readings)) } reading(s) due today
+			</div>
+			<ul class="space-y-1">
+				for _, reading := range readings {
+					<li>
+						<a href="/dashboard" class="flex items-start gap-2 p-2 hover:bg-base-300 rounded">
+							@BookIcon("h-5 w-5 shrink-0 opacity-75")
+							<div class="flex-1 min-w-0">
+								<div class="font-medium truncate" title={ reading.Plan.Title }>{ reading.Plan.Title }</div>
+								<div class="text-sm opacity-70 truncate" title={ reading.Content }>{ reading.Content }</div>
+							</div>
+						</a>
+					</li>
+				}
+			</ul>
+			<div class="divider my-2"></div>
+			<a href="/dashboard" class="btn btn-sm btn-block btn-ghost">View Dashboard</a>
+		</div>
+	}
+}

@@ -10,7 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
-	"readwillbe/types"
+	"readwillbe/internal/model"
+	"readwillbe/internal/repository"
 )
 
 func TestGetUserByID(t *testing.T) {
@@ -19,7 +20,7 @@ func TestGetUserByID(t *testing.T) {
 	plan := createTestPlan(t, db, user, "Test Plan")
 
 	t.Run("existing user with plans", func(t *testing.T) {
-		result, err := getUserByID(db, user.ID)
+		result, err := repository.GetUserByID(db, user.ID)
 		require.NoError(t, err)
 		assert.Equal(t, user.Email, result.Email)
 		assert.Len(t, result.Plans, 1)
@@ -27,7 +28,7 @@ func TestGetUserByID(t *testing.T) {
 	})
 
 	t.Run("non-existent user", func(t *testing.T) {
-		_, err := getUserByID(db, 9999)
+		_, err := repository.GetUserByID(db, 9999)
 		assert.Error(t, err)
 	})
 }
@@ -37,19 +38,19 @@ func TestUserExists(t *testing.T) {
 	user := createTestUser(t, db, "existing@example.com", "password123")
 
 	t.Run("existing user", func(t *testing.T) {
-		exists := userExists(user.Email, db)
+		exists := repository.UserExists(user.Email, db)
 		assert.True(t, exists)
 	})
 
 	t.Run("non-existent user", func(t *testing.T) {
-		exists := userExists("nonexistent@example.com", db)
+		exists := repository.UserExists("nonexistent@example.com", db)
 		assert.False(t, exists)
 	})
 }
 
 func TestSignUpWithEmailAndPassword(t *testing.T) {
 	db := setupTestDB(t)
-	cfg := types.Config{AllowSignup: true}
+	cfg := model.Config{AllowSignup: true}
 
 	t.Run("successful signup", func(t *testing.T) {
 		e := echo.New()
@@ -67,7 +68,7 @@ func TestSignUpWithEmailAndPassword(t *testing.T) {
 		err := handler(c)
 		require.NoError(t, err)
 
-		var user types.User
+		var user model.User
 		err = db.First(&user, "email = ?", "john@example.com").Error
 		require.NoError(t, err)
 		assert.Equal(t, "John Doe", user.Name)
@@ -153,7 +154,7 @@ func TestSignUpWithEmailAndPassword(t *testing.T) {
 
 func TestSignInWithEmailAndPassword(t *testing.T) {
 	db := setupTestDB(t)
-	cfg := types.Config{}
+	cfg := model.Config{}
 	createTestUser(t, db, "login@example.com", "correctpassword123")
 
 	t.Run("successful login", func(t *testing.T) {

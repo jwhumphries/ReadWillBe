@@ -7,14 +7,15 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"readwillbe/types"
+	mw "readwillbe/internal/middleware"
+	"readwillbe/internal/model"
 )
 
 // MaxContentLength is defined in plans.go
 
 func completeReading(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -24,7 +25,7 @@ func completeReading(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "Invalid reading ID")
 		}
 
-		var reading types.Reading
+		var reading model.Reading
 		if err := db.WithContext(c.Request().Context()).
 			Preload("Plan").
 			Joins("JOIN plans ON plans.id = readings.plan_id").
@@ -34,20 +35,20 @@ func completeReading(db *gorm.DB) echo.HandlerFunc {
 		}
 
 		now := time.Now()
-		reading.Status = types.StatusCompleted
+		reading.Status = model.StatusCompleted
 		reading.CompletedAt = &now
 
 		if err := db.WithContext(c.Request().Context()).Save(&reading).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to update reading")
 		}
 
-		return htmxRedirect(c, "/dashboard")
+		return c.Redirect(http.StatusFound, "/dashboard")
 	}
 }
 
 func uncompleteReading(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -57,7 +58,7 @@ func uncompleteReading(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "Invalid reading ID")
 		}
 
-		var reading types.Reading
+		var reading model.Reading
 		if err := db.WithContext(c.Request().Context()).
 			Preload("Plan").
 			Joins("JOIN plans ON plans.id = readings.plan_id").
@@ -66,20 +67,20 @@ func uncompleteReading(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusNotFound, "Reading not found")
 		}
 
-		reading.Status = types.StatusPending
+		reading.Status = model.StatusPending
 		reading.CompletedAt = nil
 
 		if err := db.WithContext(c.Request().Context()).Save(&reading).Error; err != nil {
 			return c.String(http.StatusInternalServerError, "Failed to update reading")
 		}
 
-		return htmxRedirect(c, "/history")
+		return c.Redirect(http.StatusFound, "/history")
 	}
 }
 
 func updateReading(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -89,7 +90,7 @@ func updateReading(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "Invalid reading ID")
 		}
 
-		var reading types.Reading
+		var reading model.Reading
 		if err := db.WithContext(c.Request().Context()).
 			Preload("Plan").
 			Joins("JOIN plans ON plans.id = readings.plan_id").
@@ -113,6 +114,6 @@ func updateReading(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Failed to update reading")
 		}
 
-		return htmxRedirect(c, "/plans")
+		return c.Redirect(http.StatusFound, "/plans")
 	}
 }

@@ -10,8 +10,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
-	"readwillbe/types"
-	"readwillbe/views"
+
+	mw "readwillbe/internal/middleware"
+	"readwillbe/internal/model"
+	emailservice "readwillbe/internal/service/email"
+	"readwillbe/internal/views"
 )
 
 var timeFormatRegex = regexp.MustCompile(`^([01][0-9]|2[0-3]):[0-5][0-9]$`)
@@ -21,9 +24,9 @@ func isValidEmail(email string) bool {
 	return err == nil
 }
 
-func accountHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
+func accountHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -34,7 +37,7 @@ func accountHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 
 func updateSettings(db *gorm.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
@@ -65,13 +68,13 @@ func updateSettings(db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-func sendTestEmailHandler(cfg types.Config) echo.HandlerFunc {
+func sendTestEmailHandler(cfg model.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		if !cfg.EmailEnabled() {
 			return c.String(http.StatusServiceUnavailable, "Email not configured")
 		}
 
-		user, ok := GetSessionUser(c)
+		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
 		}
@@ -84,7 +87,7 @@ func sendTestEmailHandler(cfg types.Config) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, "Invalid email address")
 		}
 
-		emailService := NewEmailService(cfg)
+		emailService := emailservice.NewService(cfg)
 		if err := emailService.SendTestEmail(to, cfg.Hostname); err != nil {
 			logrus.Errorf("Failed to send test email: %v", err)
 			return c.String(http.StatusInternalServerError, "Failed to send test email: "+err.Error())

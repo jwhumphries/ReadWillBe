@@ -1,0 +1,128 @@
+package views
+
+import (
+	"fmt"
+	"readwillbe/internal/model"
+	"readwillbe/version"
+	"strings"
+)
+
+func versionedPath(path string) string {
+	return fmt.Sprintf("%s?version=%s", path, version.Tag)
+}
+
+templ Layout(cfg model.Config, user *model.User, title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ title }</title>
+			<link href={ versionedPath("/static/css/main.css") } rel="stylesheet"/>
+			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+			<script src={ versionedPath("/static/push-setup.js") }></script>
+			<script src={ versionedPath("/static/js/bundle.js") } defer></script>
+		</head>
+		<body class="flex flex-col min-h-screen" data-theme="booky">
+			<a href="#main-content" class="btn btn-sm btn-primary absolute top-2 left-2 z-[100] -translate-y-[200%] focus:translate-y-0 focus:ring-4 focus:ring-primary transition-transform">Skip to content</a>
+			if user != nil && user.IsSet() {
+				<div class="drawer lg:drawer-open">
+					<input id="drawer" type="checkbox" class="drawer-toggle"/>
+					<div class="drawer-content flex flex-col">
+						<header class="navbar bg-base-200 border-b border-base-300">
+							<div class="flex-none lg:hidden">
+								<label for="drawer" class="btn btn-square btn-ghost" aria-label="Open sidebar">
+									@MenuIcon()
+								</label>
+							</div>
+							<div class="flex-1 text-center lg:text-left">
+								<a href="/dashboard" class="text-3xl font-bold link link-hover">ReadWillBe</a>
+							</div>
+							<div class="flex-none">
+								@NotificationBell(0)
+							</div>
+						</header>
+						<main id="main-content" class="flex-1 p-8 bg-base-100">
+							{ children... }
+						</main>
+						<footer class="footer footer-center p-4 bg-base-200 text-base-content border-t border-base-300">
+							<aside>
+								<p class="text-sm">Version: { version.Tag }</p>
+							</aside>
+						</footer>
+					</div>
+					<div class="drawer-side">
+						<label for="drawer" class="drawer-overlay"></label>
+						<div class="w-64 min-h-full bg-base-200 flex flex-col">
+							<div class="p-4 text-center border-b border-base-300">
+								<div class="avatar placeholder">
+									<div class="bg-neutral text-neutral-content w-12 rounded-full">
+										<span class="text-xl">{ string([]rune(user.Name)[0:1]) }</span>
+									</div>
+								</div>
+								<h2 class="text-lg font-bold mt-2">{ user.Name }</h2>
+								<p class="text-sm opacity-70">{ user.Email }</p>
+							</div>
+							<ul class="menu flex-1">
+								<li>
+									<a href="/dashboard" class={ templ.Classes(templ.KV("active", strings.HasPrefix(title, "Dashboard"))) }>
+										@DashboardIcon()
+										Dashboard
+									</a>
+								</li>
+								<li>
+									<a href="/history" class={ templ.Classes(templ.KV("active", strings.HasPrefix(title, "History"))) }>
+										@HistoryIcon("h-5 w-5 opacity-75")
+										History
+									</a>
+								</li>
+								<li>
+									<a href="/plans" class={ templ.Classes(templ.KV("active", strings.Contains(title, "Plan"))) }>
+										@PlansIcon("h-5 w-5 opacity-75")
+										Plans
+									</a>
+								</li>
+							</ul>
+							<ul class="menu">
+								<li>
+									<a href="/account" class={ templ.Classes(templ.KV("active", strings.HasPrefix(title, "Account"))) }>
+										@SettingsIcon()
+										Settings
+									</a>
+								</li>
+								<li>
+									<form method="POST" action="/auth/sign-out" class="w-full">
+										<button type="submit" class="flex items-center gap-3 w-full text-left">
+											@SignOutIcon()
+											Sign Out
+										</button>
+									</form>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			} else {
+				<main class="flex-1 flex flex-col">
+					{ children... }
+				</main>
+			}
+			@modalTriggerScript()
+		</body>
+	</html>
+}
+
+script modalTriggerScript() {
+	document.body.addEventListener("click", function (evt) {
+		const trigger = evt.target.closest(".modal-trigger");
+		if (trigger) {
+			const modalId = trigger.getAttribute("data-modal-id");
+			if (modalId) {
+				const modal = document.getElementById(modalId);
+				if (modal) {
+					modal.showModal();
+				}
+			}
+		}
+	});
+}

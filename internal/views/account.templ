@@ -1,0 +1,175 @@
+package views
+
+import (
+	"readwillbe/internal/views/components"
+	"readwillbe/internal/model"
+)
+
+templ Account(cfg model.Config, user *model.User) {
+	@Layout(cfg, user, "Account - ReadWillBe") {
+		<div class="max-w-2xl mx-auto space-y-6">
+			<h1 class="text-3xl font-bold">Account Settings</h1>
+			<div class="card bg-base-200 shadow-xl">
+				<div class="card-body">
+					<h2 class="card-title">Profile</h2>
+					<ul class="list">
+						<li class="list-row">
+							<div class="flex items-center gap-2">
+								@UserIcon()
+								<span class="text-sm opacity-70">Name</span>
+							</div>
+							<span class="font-bold">{ user.Name }</span>
+						</li>
+						<li class="list-row">
+							<div class="flex items-center gap-2">
+								@EmailIcon()
+								<span class="text-sm opacity-70">Email</span>
+							</div>
+							<span class="font-bold">{ user.Email }</span>
+						</li>
+					</ul>
+				</div>
+			</div>
+			<div class="card bg-base-200 shadow-xl">
+				<form method="POST" action="/account/settings">
+					<div class="card-body space-y-4">
+						<h2 class="card-title">Notification Settings</h2>
+						<label class="flex items-start gap-4 cursor-pointer" for="notifications_enabled">
+							<input
+								type="checkbox"
+								id="notifications_enabled"
+								name="notifications_enabled"
+								checked?={ user.NotificationsEnabled }
+								class="toggle toggle-primary mt-1"
+							/>
+							<div>
+								<span class="font-bold">Enable daily reading notifications</span>
+								<p class="text-sm opacity-70">Receive reminders for your daily readings</p>
+							</div>
+						</label>
+						<div class="divider"></div>
+						<div class="space-y-1">
+							<div class="flex justify-between items-center">
+								<label for="notification_time" class="text-sm font-medium">Notification Time</label>
+								<span class="text-xs opacity-70">When should we remind you?</span>
+							</div>
+							<input
+								type="time"
+								id="notification_time"
+								name="notification_time"
+								value={ user.NotificationTime }
+								class="input input-bordered w-full"
+							/>
+						</div>
+						<div class="card-actions justify-end">
+							<button type="submit" class="btn btn-primary gap-2">
+								@SaveIcon("h-5 w-5")
+								Save Settings
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="card bg-base-200 shadow-xl" data-vapid-key={ cfg.VAPIDPublicKey }>
+				<div class="card-body space-y-4">
+					<h2 class="card-title">Browser Push Notifications</h2>
+					@components.AlertInfo("Enable browser notifications to receive alerts even when the app is closed.")
+					<div id="push-subscription-status">
+						<div class="flex items-center gap-2">
+							<span class="badge badge-neutral" id="subscription-badge">Checking...</span>
+						</div>
+					</div>
+					<div class="card-actions justify-end gap-2">
+						<button
+							type="button"
+							id="enable-push-btn"
+							onclick="enablePushNotifications()"
+							class="btn btn-primary hidden"
+						>
+							@BellIcon("h-5 w-5")
+							Enable Browser Notifications
+						</button>
+						<button
+							type="button"
+							id="disable-push-btn"
+							onclick="disablePushNotifications()"
+							class="btn btn-ghost hidden"
+						>
+							Disable Browser Notifications
+						</button>
+					</div>
+				</div>
+			</div>
+			if cfg.EmailEnabled() {
+				<div class="card bg-base-200 shadow-xl">
+					<div class="card-body space-y-4">
+						<h2 class="card-title">Email Notifications</h2>
+						@components.AlertInfo("Receive your daily readings via email at your scheduled notification time.")
+						<form method="POST" action="/account/settings" class="space-y-4">
+							<input type="hidden" name="notifications_enabled" value={ boolToOnOff(user.NotificationsEnabled) }/>
+							<input type="hidden" name="notification_time" value={ user.NotificationTime }/>
+							<label class="flex items-start gap-4 cursor-pointer" for="email_notifications_enabled">
+								<input
+									type="checkbox"
+									id="email_notifications_enabled"
+									name="email_notifications_enabled"
+									checked?={ user.EmailNotificationsEnabled }
+									class="toggle toggle-primary mt-1"
+								/>
+								<div>
+									<span class="font-bold">Enable email notifications</span>
+									<p class="text-sm opacity-70">Get your daily readings delivered to your inbox</p>
+								</div>
+							</label>
+							<div class="divider"></div>
+							<div class="space-y-1">
+								<label for="notification_email" class="text-sm font-medium">Notification Email</label>
+								<input
+									type="email"
+									id="notification_email"
+									name="notification_email"
+									value={ user.NotificationEmail }
+									placeholder={ user.Email }
+									class="input input-bordered w-full"
+								/>
+								<p class="text-xs opacity-70">Leave blank to use your account email</p>
+							</div>
+							<div class="card-actions justify-end">
+								<button type="submit" class="btn btn-primary gap-2">
+									@SaveIcon("h-5 w-5")
+									Save Email Settings
+								</button>
+							</div>
+						</form>
+						<div class="divider"></div>
+						<div>
+							<h3 class="font-bold mb-2">Test Email</h3>
+							<form method="POST" action="/account/test-email" class="flex gap-2 items-end">
+								<div class="flex-1 space-y-1">
+									<label for="test-email-input" class="text-sm font-medium">Send test to</label>
+									<input
+										type="email"
+										id="test-email-input"
+										name="email"
+										value={ user.GetNotificationEmail() }
+										class="input input-bordered input-sm w-full"
+									/>
+								</div>
+								<button type="submit" class="btn btn-outline btn-sm">
+									Send Test
+								</button>
+							</form>
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+	}
+}
+
+func boolToOnOff(b bool) string {
+	if b {
+		return "on"
+	}
+	return ""
+}
