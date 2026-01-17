@@ -1,3 +1,5 @@
+//go:build dev
+
 package main
 
 import (
@@ -98,7 +100,7 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	<-	sigChan
+	<-sigChan
 	fmt.Println("\nStopping development environment...")
 	cancel()
 	wg.Wait()
@@ -106,7 +108,7 @@ func main() {
 
 func runService(ctx context.Context, s Service) {
 	cmd := exec.CommandContext(ctx, s.Command, s.Args...)
-	
+
 	// Create pipes for stdout/stderr
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
