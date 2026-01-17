@@ -62,9 +62,8 @@ func (m *Readwillbe) Build(
 		return nil, fmt.Errorf("test failed: %w", err)
 	}
 
-	// Build CSS and React together
-	assetsDir := m.BuildAssets(source)
-	buildSource := templSource.WithDirectory("static", assetsDir)
+	cssDir := m.BuildCss(source)
+	buildSource := templSource.WithDirectory("static/css", cssDir)
 
 	return m.BuildBinary(buildSource, version), nil
 }
@@ -79,16 +78,6 @@ func (m *Readwillbe) lintSource(ctx context.Context, source *dagger.Directory) (
 		WithModuleCache(dag.CacheVolume("go-mod-cache")).
 		WithLinterCache(dag.CacheVolume("golangci-lint-cache")).
 		Run(source).
-		Stdout(ctx)
-}
-
-func (m *Readwillbe) Typecheck(ctx context.Context, source *dagger.Directory) (string, error) {
-	return dag.Container().
-		From("ghcr.io/jwhumphries/frontend:latest").
-		WithDirectory("/app", source).
-		WithWorkdir("/app").
-		WithExec([]string{"bun", "install"}).
-		WithExec([]string{"bun", "run", "typecheck"}).
 		Stdout(ctx)
 }
 
@@ -110,16 +99,14 @@ func (m *Readwillbe) testSource(ctx context.Context, source *dagger.Directory) (
 		Stdout(ctx)
 }
 
-// BuildAssets compiles both CSS (Tailwind) and React/TypeScript in one step
-func (m *Readwillbe) BuildAssets(source *dagger.Directory) *dagger.Directory {
+func (m *Readwillbe) BuildCss(source *dagger.Directory) *dagger.Directory {
 	return dag.Container().
 		From("ghcr.io/jwhumphries/frontend:latest").
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithExec([]string{"bun", "install"}).
-		WithExec([]string{"bun", "run", "build"}).    // CSS
-		WithExec([]string{"bun", "run", "build:js"}). // React
-		Directory("/app/static")
+		WithExec([]string{"bun", "run", "build"}).
+		Directory("/app/static/css")
 }
 
 func (m *Readwillbe) TemplGenerate(source *dagger.Directory) *dagger.Directory {
@@ -172,13 +159,13 @@ func (m *Readwillbe) Release(
 	return dag.Container().
 		From("alpine:3.23").
 		WithExec([]string{"apk", "add", "--no-cache", "tzdata", "ca-certificates"}).
-		WithFile("/usr/local/bin/readwillbe", binary).
+		WithFile("/readwillbe", binary).
 		WithExec([]string{"sh", "-c", "echo 'nonroot:x:10001:10001:NonRoot User:/:/sbin/nologin' >> /etc/passwd"}).
 		WithEnvVariable("TZ", "America/New_York").
 		WithEnvVariable("PORT", ":8080").
 		WithExposedPort(8080).
 		WithUser("10001").
-		WithEntrypoint([]string{"/usr/local/bin/readwillbe"}), nil
+		WithEntrypoint([]string{"/readwillbe"}), nil
 }
 
 func (m *Readwillbe) Fmt(source *dagger.Directory) *dagger.Directory {

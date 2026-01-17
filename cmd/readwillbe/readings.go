@@ -41,7 +41,7 @@ func completeReading(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Failed to update reading")
 		}
 
-		return c.Redirect(http.StatusFound, "/dashboard")
+		return htmxRedirect(c, "/dashboard")
 	}
 }
 
@@ -73,7 +73,7 @@ func uncompleteReading(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Failed to update reading")
 		}
 
-		return c.Redirect(http.StatusFound, "/history")
+		return htmxRedirect(c, "/history")
 	}
 }
 
@@ -113,6 +113,6 @@ func updateReading(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Failed to update reading")
 		}
 
-		return c.Redirect(http.StatusFound, "/plans")
+		return htmxRedirect(c, "/plans")
 	}
 }

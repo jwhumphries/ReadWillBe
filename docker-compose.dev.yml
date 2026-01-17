@@ -1,0 +1,90 @@
+services:
+  templ:
+    image: readwillbe:dev
+    working_dir: /app
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+    ports:
+      - "7331:7331"
+    command: >
+      templ generate --watch
+      --proxy="http://app:8080"
+      --proxyport=7331
+      --proxybind="0.0.0.0"
+      --open-browser=false
+    depends_on:
+      app:
+        condition: service_started
+    networks:
+      - devnet
+
+  tailwind:
+    image: ghcr.io/jwhumphries/frontend:latest@sha256:682cee3e8392ecaf2e6bfdf2d4f6886e95a3fdea7efe06398d924a50e9017690
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "bun install && bun run init && exec bun run dev"
+    stdin_open: true
+    tty: true
+    networks:
+      - devnet
+
+  css-reload:
+    image: readwillbe:dev
+    working_dir: /app
+    volumes:
+      - ./static/css:/app/static/css
+    environment:
+      - TEMPL_EXPERIMENT=rawgo
+    command: >
+      air
+      --build.cmd "templ generate --notify-proxy"
+      --build.bin "true"
+      --build.include_ext "css"
+      --build.include_dir "static/css"
+      --build.exclude_dir ""
+      --build.delay 100
+    depends_on:
+      - templ
+      - tailwind
+    networks:
+      - devnet
+
+  app:
+    image: readwillbe:dev
+    working_dir: /app
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
+    environment:
+      - READWILLBE_PORT=:8080
+      - READWILLBE_DB_PATH=/app/data/readwillbe.db
+      - READWILLBE_COOKIE_SECRET=${READWILLBE_COOKIE_SECRET:-dev-only-local-secret-min-32-chars}
+      - READWILLBE_SEED_DB=true
+      - READWILLBE_ALLOW_SIGNUP=true
+      - READWILLBE_LOG_LEVEL=debug
+      - TEMPL_EXPERIMENT=rawgo
+      - READWILLBE_VAPID_PUBLIC_KEY=${READWILLBE_VAPID_PUBLIC_KEY}
+      - READWILLBE_VAPID_PRIVATE_KEY=${READWILLBE_VAPID_PRIVATE_KEY}
+      - READWILLBE_HOSTNAME=localhost:7331
+    command: sh -c "go mod download && mkdir -p tmp data && air"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - devnet
+
+volumes:
+  go-mod-cache:
+  go-build-cache:
+
+networks:
+  devnet:
+    driver: bridge

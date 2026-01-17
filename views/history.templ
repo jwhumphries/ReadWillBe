@@ -40,8 +40,8 @@ templ CompletedReadingCard(reading types.Reading) {
 			<p class="leading-relaxed">{ reading.Content }</p>
 			<div class="flex flex-wrap gap-2 mt-2">
 				<div class="badge badge-outline gap-2">
-					@CalendarIcon()
-					Scheduled: { reading.FormattedDate() }
+					@CalendarIcon("h-4 w-4 opacity-70")
+					Scheduled: { reading.Date.Format("Jan 2, 2006") }
 				</div>
 				if reading.CompletedAt != nil {
 					<div class="badge badge-success gap-2">
@@ -51,9 +51,10 @@ templ CompletedReadingCard(reading types.Reading) {
 				}
 			</div>
 			<div class="card-actions justify-end mt-4">
-				<form method="POST" action={ templ.SafeURL(fmt.Sprintf("/reading/%d/uncomplete", reading.ID)) }>
+				<form hx-post={ fmt.Sprintf("/reading/%d/uncomplete", reading.ID) } hx-target="body" hx-disabled-elt="find button" class="group">
 					<button type="submit" class="btn btn-outline btn-sm gap-2">
-						@CloseIcon("h-4 w-4")
+						<span class="loading loading-spinner loading-xs hidden group-[.htmx-request]:inline-block"></span>
+						@CloseIcon("h-4 w-4 group-[.htmx-request]:hidden")
 						Mark Incomplete
 					</button>
 				</form>

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -32,19 +31,9 @@ func plansListHandler(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 		}
 
 		var plans []types.Plan
-		db.WithContext(c.Request().Context()).Preload("Readings").Where("user_id = ?", user.ID).Order("title ASC").Find(&plans)
+		db.WithContext(c.Request().Context()).Preload("Readings").Where("user_id = ?", user.ID).Find(&plans)
 
-		// Separate into in-progress and completed plans
-		var inProgressPlans, completedPlans []types.Plan
-		for _, plan := range plans {
-			if plan.IsComplete() {
-				completedPlans = append(completedPlans, plan)
-			} else {
-				inProgressPlans = append(inProgressPlans, plan)
-			}
-		}
-
-		return render(c, 200, views.PlansList(cfg, &user, inProgressPlans, completedPlans))
+		return render(c, 200, views.PlansList(cfg, &user, plans))
 	}
 }
 
@@ -312,7 +301,7 @@ func deleteDraft() echo.HandlerFunc {
 		if err := clearDraftData(c); err != nil {
 			return c.NoContent(http.StatusInternalServerError)
 		}
-		return c.Redirect(http.StatusFound, "/plans")
+		return htmxRedirect(c, "/plans")
 	}
 }
 
@@ -323,24 +312,9 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
 		}
 
-		// Get title from form
-		title := c.FormValue("title")
-
-		// Get readings from JSON (React form submission)
-		readingsJSON := c.FormValue("readingsJSON")
-		var formReadings []struct {
-			ID      string `json:"id"`
-			Date    string `json:"date"`
-			Content string `json:"content"`
-		}
-		if err := json.Unmarshal([]byte(readingsJSON), &formReadings); err != nil {
-			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, nil, fmt.Errorf("invalid readings data")))
-		}
-
-		// Convert to ManualReading for error display
-		draftReadings := make([]views.ManualReading, len(formReadings))
-		for i, r := range formReadings {
-			draftReadings[i] = views.ManualReading{ID: r.ID, Date: r.Date, Content: r.Content}
+		title, draftReadings, err := getDraftData(c)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
 		}
 
 		if title == "" {
@@ -351,14 +325,14 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("title cannot start with formula characters (=, +, -, @)")))
 		}
 
-		if len(formReadings) == 0 {
+		if len(draftReadings) == 0 {
 			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, fmt.Errorf("at least one reading is required")))
 		}
 
-		readings := make([]types.Reading, 0, len(formReadings))
-		for _, mr := range formReadings {
+		readings := make([]types.Reading, 0, len(draftReadings))
+		for _, mr := range draftReadings {
 			parsedDate, dateType, parseErr := parseDate(mr.Date)
-			if parseErr != nil {
+			if err != nil {
 				return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, errors.Wrap(parseErr, fmt.Sprintf("invalid date: %s", mr.Date))))
 			}
 			readings = append(readings, types.Reading{
@@ -375,8 +349,8 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			Status: "active",
 		}
 
-		txErr := db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
-			if err := tx.Create(&plan).Error; err != nil {
+		err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
+			if txErr := tx.Create(&plan).Error; txErr != nil {
 				return err
 			}
 
@@ -384,18 +358,19 @@ func createManualPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 				readings[i].PlanID = plan.ID
 			}
 
-			if err := tx.Create(&readings).Error; err != nil {
+			if txErr := tx.Create(&readings).Error; txErr != nil {
 				return err
 			}
 
 			return nil
 		})
 
-		if txErr != nil {
-			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, errors.Wrap(txErr, "failed to create plan")))
+		if err != nil {
+			return render(c, 422, views.ManualPlanCreate(cfg, &user, title, draftReadings, errors.Wrap(err, "failed to create plan")))
 		}
 
-		return c.Redirect(http.StatusFound, "/plans")
+		_ = clearDraftData(c)
+		return htmxRedirect(c, "/plans")
 	}
 }
 
@@ -522,7 +497,7 @@ func createPlan(fs afero.Fs, db *gorm.DB) echo.HandlerFunc {
 			}
 		}(plan, tempPath, fs, db)
 
-		return c.Redirect(http.StatusFound, "/plans")
+		return htmxRedirect(c, "/plans")
 	}
 }
 
@@ -559,7 +534,7 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Failed to update plan")
 		}
 
-		return c.Redirect(http.StatusFound, "/plans")
+		return htmxRedirect(c, "/plans")
 	}
 }
 
@@ -584,7 +559,7 @@ func deletePlan(db *gorm.DB) echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, "Failed to delete plan")
 		}
 
-		return c.Redirect(http.StatusFound, "/plans")
+		return htmxRedirect(c, "/plans")
 	}
 }
 
@@ -636,14 +611,9 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 
 		plan.Title = title
 
-		readingsJSON := c.FormValue("readingsJSON")
-		var formReadings []struct {
-			ID      string `json:"id"`
-			Date    string `json:"date"`
-			Content string `json:"content"`
-		}
-		if jsonErr := json.Unmarshal([]byte(readingsJSON), &formReadings); jsonErr != nil {
-			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("invalid readings data")))
+		params, err := c.FormParams()
+		if err != nil {
+			return render(c, 422, views.EditPlan(cfg, &user, plan, fmt.Errorf("failed to parse form data")))
 		}
 
 		err = db.WithContext(c.Request().Context()).Transaction(func(tx *gorm.DB) error {
@@ -651,58 +621,25 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 				return txErr
 			}
 
-			processedIDs := make(map[uint]bool)
+			for _, reading := range plan.Readings {
+				dateKey := fmt.Sprintf("readings[%d][date]", reading.ID)
+				contentKey := fmt.Sprintf("readings[%d][content]", reading.ID)
 
-			for _, fr := range formReadings {
-				parsedDate, dateType, parseErr := parseDate(fr.Date)
-				if parseErr != nil {
-					return errors.Wrap(parseErr, fmt.Sprintf("invalid date: %s", fr.Date))
+				if dateStr, ok := params[dateKey]; ok && len(dateStr) > 0 {
+					dateValue := dateStr[0]
+					parsedDate, _, parseErr := parseDate(dateValue)
+					if parseErr != nil {
+						return errors.Wrap(parseErr, "Failed to parse date")
+					}
+					reading.Date = parsedDate
 				}
 
-				// Try to parse ID as uint to check if it's an existing reading
-				readingID, parseIDErr := strconv.ParseUint(fr.ID, 10, 32)
-				var existingReading *types.Reading
-
-				// If ID is valid uint, check if it belongs to this plan
-				if parseIDErr == nil {
-					for i := range plan.Readings {
-						if plan.Readings[i].ID == uint(readingID) {
-							existingReading = &plan.Readings[i]
-							break
-						}
-					}
+				if content, ok := params[contentKey]; ok && len(content) > 0 {
+					reading.Content = content[0]
 				}
 
-				if existingReading != nil {
-					// Update existing
-					existingReading.Date = parsedDate
-					existingReading.DateType = dateType
-					existingReading.Content = fr.Content
-					if saveErr := tx.Save(existingReading).Error; saveErr != nil {
-						return saveErr
-					}
-					processedIDs[existingReading.ID] = true
-				} else {
-					// Create new
-					newReading := types.Reading{
-						PlanID:   plan.ID,
-						Date:     parsedDate,
-						DateType: dateType,
-						Content:  fr.Content,
-						Status:   types.StatusPending,
-					}
-					if createErr := tx.Create(&newReading).Error; createErr != nil {
-						return createErr
-					}
-				}
-			}
-
-			// Delete readings that were not in the form data
-			for _, r := range plan.Readings {
-				if !processedIDs[r.ID] {
-					if delErr := tx.Delete(&r).Error; delErr != nil {
-						return delErr
-					}
+				if txErr := tx.Save(&reading).Error; txErr != nil {
+					return txErr
 				}
 			}
 
@@ -713,88 +650,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			return render(c, 422, views.EditPlan(cfg, &user, plan, errors.Wrap(err, "Failed to update plan")))
 		}
 
-		return c.Redirect(http.StatusFound, "/plans")
-	}
-}
-
-// JSON API endpoint for plan status (used by React polling)
-func apiPlanStatus(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		user, ok := GetSessionUser(c)
-		if !ok {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
-		}
-
-		id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid plan ID"})
-		}
-
-		var plan types.Plan
-		if err := db.WithContext(c.Request().Context()).First(&plan, "id = ? AND user_id = ?", id, user.ID).Error; err != nil {
-			return c.JSON(http.StatusNotFound, map[string]string{"error": "plan not found"})
-		}
-
-		return c.JSON(http.StatusOK, map[string]string{"status": plan.Status})
-	}
-}
-
-// JSON API endpoint for saving draft (used by React PlanEditor)
-func apiSaveDraft() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		_, ok := GetSessionUser(c)
-		if !ok {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
-		}
-
-		var body struct {
-			Title    string `json:"title"`
-			Readings []struct {
-				Date    string `json:"date"`
-				Content string `json:"content"`
-			} `json:"readings"`
-		}
-
-		if err := c.Bind(&body); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request body"})
-		}
-
-		title, readings, err := getDraftData(c)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to get draft"})
-		}
-
-		// Update title if provided
-		if body.Title != "" {
-			if len(body.Title) > MaxTitleLength {
-				return c.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("title exceeds maximum length of %d characters", MaxTitleLength)})
-			}
-			if isFormulaInjection(body.Title) {
-				return c.JSON(http.StatusBadRequest, map[string]string{"error": "title cannot start with formula characters"})
-			}
-			title = body.Title
-		}
-
-		// Update readings if provided
-		if body.Readings != nil {
-			readings = make([]views.ManualReading, len(body.Readings))
-			for i, r := range body.Readings {
-				if len(r.Content) > MaxContentLength {
-					return c.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("reading content exceeds maximum length of %d characters", MaxContentLength)})
-				}
-				readings[i] = views.ManualReading{
-					ID:      fmt.Sprintf("%d", i+1),
-					Date:    r.Date,
-					Content: r.Content,
-				}
-			}
-		}
-
-		if err := saveDraftData(c, title, readings); err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to save draft"})
-		}
-
-		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+		return htmxRedirect(c, "/plans")
 	}
 }
 

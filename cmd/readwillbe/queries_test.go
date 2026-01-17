@@ -52,8 +52,7 @@ func TestGetActiveReadingsCount(t *testing.T) {
 	createTestReading(t, db, plan, "Active 1", now)
 
 	// Active today but different time
-	// Active today but different time
-	createTestReading(t, db, plan, "Active 2", now)
+	createTestReading(t, db, plan, "Active 2", now.Add(time.Hour))
 
 	// Past (not active today)
 	createTestReading(t, db, plan, "Past", now.AddDate(0, 0, -2))
@@ -73,8 +72,7 @@ func TestGetActiveReadings(t *testing.T) {
 
 	now := time.Now()
 	createTestReading(t, db, plan, "Active 1", now)
-	// Active today but different time
-	createTestReading(t, db, plan, "Active 2", now)
+	createTestReading(t, db, plan, "Active 2", now.Add(time.Hour))
 	createTestReading(t, db, plan, "Past", now.AddDate(0, 0, -2))
 
 	readings, err := GetActiveReadings(db, user.ID, 0)
@@ -85,65 +83,6 @@ func TestGetActiveReadings(t *testing.T) {
 	readingsLimit, err := GetActiveReadings(db, user.ID, 1)
 	require.NoError(t, err)
 	assert.Len(t, readingsLimit, 1)
-}
-
-func TestGetWeeklyCompletedReadingsCount(t *testing.T) {
-	db := setupTestDB(t)
-	user := createTestUser(t, db, "weekly@example.com", "password")
-	plan := createTestPlan(t, db, user, "Test Plan")
-
-	now := time.Now()
-
-	// Completed this week
-	r1 := createTestReading(t, db, plan, "Completed 1", now)
-	r1.Status = types.StatusCompleted
-	completedAt1 := now
-	r1.CompletedAt = &completedAt1
-	db.Save(r1)
-
-	// Completed but last week
-	// Use -14 days to be safely outside the current week regardless of day of week
-	r2 := createTestReading(t, db, plan, "Completed 2", now.AddDate(0, 0, -14))
-	r2.Status = types.StatusCompleted
-	completedAt2 := now.AddDate(0, 0, -14)
-	r2.CompletedAt = &completedAt2
-	db.Save(r2)
-
-	// Pending
-	createTestReading(t, db, plan, "Pending", now)
-
-	count, err := GetWeeklyCompletedReadingsCount(db, user.ID)
-	require.NoError(t, err)
-	assert.Equal(t, int64(1), count)
-}
-
-func TestGetMonthlyCompletedReadingsCount(t *testing.T) {
-	db := setupTestDB(t)
-	user := createTestUser(t, db, "monthly@example.com", "password")
-	plan := createTestPlan(t, db, user, "Test Plan")
-
-	now := time.Now()
-
-	// Completed this month
-	r1 := createTestReading(t, db, plan, "Completed 1", now)
-	r1.Status = types.StatusCompleted
-	completedAt1 := now
-	r1.CompletedAt = &completedAt1
-	db.Save(r1)
-
-	// Completed but last month
-	r2 := createTestReading(t, db, plan, "Completed 2", now.AddDate(0, -2, 0))
-	r2.Status = types.StatusCompleted
-	completedAt2 := now.AddDate(0, -2, 0)
-	r2.CompletedAt = &completedAt2
-	db.Save(r2)
-
-	// Pending
-	createTestReading(t, db, plan, "Pending", now)
-
-	count, err := GetMonthlyCompletedReadingsCount(db, user.ID)
-	require.NoError(t, err)
-	assert.Equal(t, int64(1), count)
 }
 
 func TestDateHelpers(t *testing.T) {

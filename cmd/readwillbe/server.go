@@ -1,12 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"io/fs"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -43,31 +40,9 @@ func render(ctx echo.Context, status int, t templ.Component) error {
 	return nil
 }
 
-// MethodOverride middleware handles _method form field for DELETE operations
-func MethodOverride() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			if c.Request().Method == "POST" {
-				contentType := c.Request().Header.Get("Content-Type")
-				if strings.HasPrefix(contentType, "application/x-www-form-urlencoded") {
-					// Read body and restore it
-					body, err := io.ReadAll(c.Request().Body)
-					if err == nil {
-						// Restore the body for later use
-						c.Request().Body = io.NopCloser(bytes.NewReader(body))
-						// Parse form values from body
-						values, err := url.ParseQuery(string(body))
-						if err == nil {
-							if method := values.Get("_method"); method == "DELETE" {
-								c.Request().Method = "DELETE"
-							}
-						}
-					}
-				}
-			}
-			return next(c)
-		}
-	}
+func htmxRedirect(c echo.Context, url string) error {
+	c.Response().Header().Set("HX-Redirect", url)
+	return c.NoContent(http.StatusOK)
 }
 
 func runServer(cmd *cobra.Command, args []string) error {
@@ -106,7 +81,6 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 	e.Use(middleware.RequestID())
 	e.Use(middleware.BodyLimit("11M"))
-	e.Pre(MethodOverride()) // Must use Pre() to run before routing
 
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 		Skipper:           middleware.DefaultSkipper,
@@ -144,7 +118,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 		TokenLookup:    "form:_csrf,header:X-CSRF-Token",
 		CookiePath:     "/",
 		CookieSecure:   cfg.IsProduction(),
-		CookieHTTPOnly: false, // Must be false so JavaScript can read the token for AJAX requests
+		CookieHTTPOnly: false, // Must be false so JavaScript (HTMX) can read the token for AJAX requests
 		CookieSameSite: http.SameSiteStrictMode,
 		Skipper: func(c echo.Context) bool {
 			return c.Path() == "/healthz"
@@ -247,12 +221,6 @@ func runServer(cmd *cobra.Command, args []string) error {
 
 	e.GET("/notifications/count", notificationCount(db))
 	e.GET("/notifications/dropdown", notificationDropdown(db))
-
-	// JSON API endpoints for React components
-	e.GET("/api/notifications/count", apiNotificationCount(db))
-	e.GET("/api/notifications/readings", apiNotificationReadings(db))
-	e.GET("/api/plans/:id/status", apiPlanStatus(db))
-	e.PUT("/plans/draft", apiSaveDraft(), generalRateLimiter)
 
 	e.POST("/push/subscribe", saveSubscription(db), generalRateLimiter)
 	e.POST("/push/unsubscribe", removeSubscription(db), generalRateLimiter)
