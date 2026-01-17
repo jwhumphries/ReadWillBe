@@ -43,10 +43,11 @@ tasks:
 
   clean:
     desc: Remove generated files and Docker images
-    deps: [clean:bun, docker:clean-images]
+    deps: [clean:bun]
     cmds:
       - rm -rf ./tmp ./bin
     silent: true
+    ignore_error: true
 
   build-dev:
     internal: true
@@ -57,11 +58,14 @@ tasks:
           DOCKER_TARGET: dev
           DOCKER_IMAGE: '{{.DEV_IMAGE}}'
 
-  dev-start:
+  dev:
     desc: Start development environment with hot reload
     deps: [build-dev]
     cmds:
-      - docker run -d --rm
+      - defer:
+          echo '{{if eq .EXIT_CODE 2}}Docker stopped.{{else}}Exited with - {{.EXIT_CODE}}{{end}}'
+      - defer: { task: clean }
+      - docker run --rm
         --name {{.APP_NAME}}-dev
         -p 8080:8080 -p 7331:7331
         -v {{.ROOT_DIR}}:/app
