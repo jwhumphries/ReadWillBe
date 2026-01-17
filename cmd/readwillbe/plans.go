@@ -654,7 +654,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 			processedIDs := make(map[uint]bool)
 
 			for _, fr := range formReadings {
-				parsedDate, _, parseErr := parseDate(fr.Date)
+				parsedDate, dateType, parseErr := parseDate(fr.Date)
 				if parseErr != nil {
 					return errors.Wrap(parseErr, fmt.Sprintf("invalid date: %s", fr.Date))
 				}
@@ -676,6 +676,7 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 				if existingReading != nil {
 					// Update existing
 					existingReading.Date = parsedDate
+					existingReading.DateType = dateType
 					existingReading.Content = fr.Content
 					if saveErr := tx.Save(existingReading).Error; saveErr != nil {
 						return saveErr
@@ -684,10 +685,11 @@ func editPlan(cfg types.Config, db *gorm.DB) echo.HandlerFunc {
 				} else {
 					// Create new
 					newReading := types.Reading{
-						PlanID:  plan.ID,
-						Date:    parsedDate,
-						Content: fr.Content,
-						Status:  types.StatusPending,
+						PlanID:   plan.ID,
+						Date:     parsedDate,
+						DateType: dateType,
+						Content:  fr.Content,
+						Status:   types.StatusPending,
 					}
 					if createErr := tx.Create(&newReading).Error; createErr != nil {
 						return createErr

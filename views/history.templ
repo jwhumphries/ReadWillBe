@@ -41,7 +41,7 @@ templ CompletedReadingCard(reading types.Reading) {
 			<div class="flex flex-wrap gap-2 mt-2">
 				<div class="badge badge-outline gap-2">
 					@CalendarIcon()
-					Scheduled: { reading.Date.Format("Jan 2, 2006") }
+					Scheduled: { reading.FormattedDate() }
 				</div>
 				if reading.CompletedAt != nil {
 					<div class="badge badge-success gap-2">

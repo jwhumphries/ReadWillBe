@@ -30,7 +30,7 @@ func toReactPlanGroups(groups []types.PlanGroup) []ReactPlanGroup {
 		for j, r := range g.Readings {
 			readings[j] = ReactReading{
 				ID:        r.ID,
-				Date:      r.Date.Format("January 2, 2006"),
+				Date:      r.FormattedDate(),
 				Content:   r.Content,
 				Status:    string(r.Status),
 				IsOverdue: r.IsOverdue(),
