@@ -16,3 +16,7 @@
 ## 2026-01-15 - Semantic Labels for Forms
 **Learning:** Many form inputs were labeled with `span` elements instead of proper `<label>` tags, making them inaccessible to screen readers and preventing click-to-focus. Playwright's `get_by_label` fails on these, highlighting the issue.
 **Action:** Always use `<label for="id">` for visible labels, and ensure the corresponding input has the matching `id`. For inputs without visible labels, use `aria-label`.
+
+## 2026-01-20 - Accessibility for Icon-Only Buttons
+**Learning:** Icon-only buttons (like pagination controls) create barriers for screen reader users when they lack `aria-label`. Combining `aria-label` with DaisyUI's `tooltip` class provides a dual benefit: accessible names for assistive technology and visual cues for mouse users, without cluttering the UI.
+**Action:** When creating icon-only buttons, always accept an `ariaLabel` prop and apply it to `aria-label` and `data-tip` (with the `tooltip` class).
