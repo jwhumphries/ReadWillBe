@@ -16,28 +16,28 @@ templ Pagination(id string, props PaginationProps) {
 		{ children... }
 		<!-- -->
 		<div class="join">
-			@PaginationButton(id, props.URL, 1, props.Page == 1) {
+			@PaginationButton(id, props.URL, 1, props.Page == 1, "Go to first page") {
 				@AnglesLeft()
 			}
-			@PaginationButton(id, props.URL, props.Page-1, props.Page == 1) {
+			@PaginationButton(id, props.URL, props.Page-1, props.Page == 1, "Go to previous page") {
 				@ChevronLeft()
 			}
 			for i := props.Low; i <= props.High; i++ {
-				@PaginationButton(id, props.URL, i+1, props.Page == i+1) {
+				@PaginationButton(id, props.URL, i+1, props.Page == i+1, fmt.Sprintf("Go to page %d", i+1)) {
 					{ fmt.Sprintf("%d", i+1) }
 				}
 			}
-			@PaginationButton(id, props.URL, props.Page+1, props.Page == props.MaxPages) {
+			@PaginationButton(id, props.URL, props.Page+1, props.Page == props.MaxPages, "Go to next page") {
 				@ChevronRight()
 			}
-			@PaginationButton(id, props.URL, props.MaxPages, props.Page == props.MaxPages) {
+			@PaginationButton(id, props.URL, props.MaxPages, props.Page == props.MaxPages, "Go to last page") {
 				@AnglesRight()
 			}
 		</div>
 	</div>
 }
 
-templ PaginationButton(id, url string, urlPage int, disabled bool) {
+templ PaginationButton(id, url string, urlPage int, disabled bool, ariaLabel string) {
 	<button
 		if url != "" {
 			hx-get={ fmt.Sprintf("%s?page=%d", url, urlPage) }
@@ -45,9 +45,11 @@ templ PaginationButton(id, url string, urlPage int, disabled bool) {
 			hx-swap="outerHTML"
 		}
 		class={
-			"join-item btn btn-square disabled:opacity-40",
+			"join-item btn btn-square disabled:opacity-40 tooltip",
 			templ.KV("btn-disabled", disabled),
 		}
+		aria-label={ ariaLabel }
+		data-tip={ ariaLabel }
 		if disabled {
 			disabled
 		}
