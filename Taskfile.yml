@@ -82,14 +82,6 @@ tasks:
           sh -c "bun install && /develop.sh"
     silent: true
 
-  dev-stop:
-    desc: Stop development environment
-    cmds:
-      - docker stop {{.APP_NAME}}-dev || true
-      - task: clean:bun
-      - rm -rf ./tmp ./bin
-    silent: true
-
   build:
     desc: Build production Docker image
     cmds:
