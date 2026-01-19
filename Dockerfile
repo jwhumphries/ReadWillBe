@@ -1,5 +1,5 @@
 # Stage 1: Go Base & Tool Builder
-FROM golang:1.25-alpine@sha256:e6898559d553d81b245eb8eadafcb3ca38ef320a9e26674df59d4f07a4fd0b07 AS gobase
+FROM golang:1.25-alpine@sha256:d9b2e14101f27ec8d09674cd01186798d227bb0daec90e032aeb1cd22ac0f029 AS gobase
 RUN apk add --no-cache git
 # Install Air and Templ
 RUN go install github.com/air-verse/air@latest && \
