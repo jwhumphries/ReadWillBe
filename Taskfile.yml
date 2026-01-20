@@ -99,7 +99,7 @@ tasks:
   templ-fmt:
     desc: Auto-format templ files
     cmds:
-      - for file in $(find ./views -type f -name '*.templ'); do templ fmt $file; done
+      - for file in $(find ./internal/views -type f -name '*.templ'); do templ fmt $file; done
 
   lint:
     desc: Run linter

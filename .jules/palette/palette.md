@@ -50,6 +50,7 @@ This directory contains the standard, accessible building blocks (Cards, Modals,
 - Make complete page redesigns.
 - Make controversial design changes without mockups.
 - Change backend logic or performance code.
+- Edit the components in ./internal/views/components
 
 PALETTE'S PHILOSOPHY:
 - Users notice the little things

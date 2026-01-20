@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/ncruces/go-sqlite3/gormlite"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
@@ -177,49 +177,47 @@ func TestDeletePlan(t *testing.T) {
 
 	t.Run("successfully delete plan", func(t *testing.T) {
 		e := echo.New()
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				c.Set(mw.UserKey, *user)
+				return next(c)
+			}
+		})
+		e.DELETE("/plans/:id", deletePlan(db))
+
 		req := httptest.NewRequest("DELETE", fmt.Sprintf("/plans/%d", plan.ID), nil)
 		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-		c.SetParamNames("id")
-		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
-		c.Set(mw.UserKey, *user)
-
-		handler := deletePlan(db)
-		err := handler(c)
-		assert.NoError(t, err)
+		e.ServeHTTP(rec, req)
 
 		var deletedPlan model.Plan
-		err = db.First(&deletedPlan, plan.ID).Error
+		err := db.First(&deletedPlan, plan.ID).Error
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, gorm.ErrRecordNotFound)
 	})
 
 	t.Run("delete non-existent plan", func(t *testing.T) {
 		e := echo.New()
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				c.Set(mw.UserKey, *user)
+				return next(c)
+			}
+		})
+		e.DELETE("/plans/:id", deletePlan(db))
+
 		req := httptest.NewRequest("DELETE", "/plans/99999", nil)
 		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-		c.SetParamNames("id")
-		c.SetParamValues("99999")
-		c.Set(mw.UserKey, *user)
-
-		handler := deletePlan(db)
-		err := handler(c)
-		assert.NoError(t, err)
+		e.ServeHTTP(rec, req)
 		assert.Equal(t, 404, rec.Code)
 	})
 
 	t.Run("unauthenticated request", func(t *testing.T) {
 		e := echo.New()
+		e.DELETE("/plans/:id", deletePlan(db))
+
 		req := httptest.NewRequest("DELETE", fmt.Sprintf("/plans/%d", plan.ID), nil)
 		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-		c.SetParamNames("id")
-		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
-
-		handler := deletePlan(db)
-		err := handler(c)
-		assert.NoError(t, err)
+		e.ServeHTTP(rec, req)
 		assert.Equal(t, 302, rec.Code)
 	})
 }
@@ -231,18 +229,19 @@ func TestRenamePlan(t *testing.T) {
 
 	t.Run("successfully rename plan", func(t *testing.T) {
 		e := echo.New()
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				c.Set(mw.UserKey, *user)
+				return next(c)
+			}
+		})
+		e.POST("/plans/:id/rename", renamePlan(db))
+
 		form := fmt.Sprintf("title=%s", "New Title")
 		req := httptest.NewRequest("POST", fmt.Sprintf("/plans/%d/rename", plan.ID), strings.NewReader(form))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-		c.SetParamNames("id")
-		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
-		c.Set(mw.UserKey, *user)
-
-		handler := renamePlan(db)
-		err := handler(c)
-		assert.NoError(t, err)
+		e.ServeHTTP(rec, req)
 
 		var updated model.Plan
 		db.First(&updated, plan.ID)
@@ -251,35 +250,37 @@ func TestRenamePlan(t *testing.T) {
 
 	t.Run("rename with empty title", func(t *testing.T) {
 		e := echo.New()
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				c.Set(mw.UserKey, *user)
+				return next(c)
+			}
+		})
+		e.POST("/plans/:id/rename", renamePlan(db))
+
 		form := "title="
 		req := httptest.NewRequest("POST", fmt.Sprintf("/plans/%d/rename", plan.ID), strings.NewReader(form))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-		c.SetParamNames("id")
-		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
-		c.Set(mw.UserKey, *user)
-
-		handler := renamePlan(db)
-		err := handler(c)
-		assert.NoError(t, err)
+		e.ServeHTTP(rec, req)
 		assert.Equal(t, 400, rec.Code)
 	})
 
 	t.Run("rename non-existent plan", func(t *testing.T) {
 		e := echo.New()
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				c.Set(mw.UserKey, *user)
+				return next(c)
+			}
+		})
+		e.POST("/plans/:id/rename", renamePlan(db))
+
 		form := "title=New Title"
 		req := httptest.NewRequest("POST", "/plans/99999/rename", strings.NewReader(form))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-		c.SetParamNames("id")
-		c.SetParamValues("99999")
-		c.Set(mw.UserKey, *user)
-
-		handler := renamePlan(db)
-		err := handler(c)
-		assert.NoError(t, err)
+		e.ServeHTTP(rec, req)
 		assert.Equal(t, 404, rec.Code)
 	})
 }
@@ -298,6 +299,13 @@ func TestEditPlan(t *testing.T) {
 
 	t.Run("successfully update plan", func(t *testing.T) {
 		e := echo.New()
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				c.Set(mw.UserKey, *user)
+				return next(c)
+			}
+		})
+		e.POST("/plans/:id/edit", editPlan(model.Config{}, db))
 
 		// Prepare JSON payload for readings
 		// 1. Update Reading 1
@@ -316,14 +324,8 @@ func TestEditPlan(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/plans/%d/edit", plan.ID), strings.NewReader(form.Encode()))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-		c.SetParamNames("id")
-		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
-		c.Set(mw.UserKey, *user)
+		e.ServeHTTP(rec, req)
 
-		handler := editPlan(model.Config{}, db)
-		err := handler(c)
-		assert.NoError(t, err)
 		assert.Equal(t, http.StatusFound, rec.Code)
 		assert.Equal(t, "/plans", rec.Header().Get("Location"))
 
@@ -358,6 +360,14 @@ func TestEditPlan(t *testing.T) {
 
 	t.Run("invalid readings JSON", func(t *testing.T) {
 		e := echo.New()
+		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+			return func(c *echo.Context) error {
+				c.Set(mw.UserKey, *user)
+				return next(c)
+			}
+		})
+		e.POST("/plans/:id/edit", editPlan(model.Config{}, db))
+
 		form := make(url.Values)
 		form.Set("title", "Updated Title")
 		form.Set("readingsJSON", "invalid-json")
@@ -365,14 +375,7 @@ func TestEditPlan(t *testing.T) {
 		req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/plans/%d/edit", plan.ID), strings.NewReader(form.Encode()))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-		c.SetParamNames("id")
-		c.SetParamValues(fmt.Sprintf("%d", plan.ID))
-		c.Set(mw.UserKey, *user)
-
-		handler := editPlan(model.Config{}, db)
-		err := handler(c)
-		assert.NoError(t, err)
+		e.ServeHTTP(rec, req)
 		assert.Equal(t, 422, rec.Code)
 	})
 }

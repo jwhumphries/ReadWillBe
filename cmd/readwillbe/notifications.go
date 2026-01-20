@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"gorm.io/gorm"
 
 	mw "readwillbe/internal/middleware"
@@ -12,7 +12,7 @@ import (
 )
 
 func notificationCount(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
@@ -29,7 +29,7 @@ func notificationCount(db *gorm.DB) echo.HandlerFunc {
 }
 
 func notificationDropdown(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
@@ -47,7 +47,7 @@ func notificationDropdown(db *gorm.DB) echo.HandlerFunc {
 // JSON API handlers for React components
 
 func apiNotificationCount(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
@@ -75,7 +75,7 @@ type apiPlan struct {
 }
 
 func apiNotificationReadings(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})

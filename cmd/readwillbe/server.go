@@ -10,9 +10,8 @@ import (
 	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/labstack/gommon/log"
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -31,10 +30,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func render(ctx echo.Context, status int, t templ.Component) error {
-	ctx.Response().Writer.WriteHeader(status)
+func render(ctx *echo.Context, status int, t templ.Component) error {
+	ctx.Response().WriteHeader(status)
 
-	err := t.Render(ctx.Request().Context(), ctx.Response().Writer)
+	err := t.Render(ctx.Request().Context(), ctx.Response())
 	if err != nil {
 		logrus.Errorf("Failed to render template: %v", err)
 		return ctx.String(http.StatusInternalServerError, "failed to render response template")
@@ -65,7 +64,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	// Disable caching for static assets in dev mode
 	if !cfg.IsProduction() {
 		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-			return func(c echo.Context) error {
+			return func(c *echo.Context) error {
 				if strings.HasPrefix(c.Request().URL.Path, "/static/") {
 					c.Response().Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 					c.Response().Header().Set("Pragma", "no-cache")
@@ -77,7 +76,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	}
 
 	e.StaticFS("/static", static.FS)
-	e.GET("/serviceWorker.js", func(c echo.Context) error {
+	e.GET("/serviceWorker.js", func(c *echo.Context) error {
 		data, readErr := fs.ReadFile(static.FS, "serviceWorker.js")
 		if readErr != nil {
 			return readErr
@@ -86,29 +85,20 @@ func runServer(cmd *cobra.Command, args []string) error {
 	})
 
 	origErrHandler := e.HTTPErrorHandler
-	e.HTTPErrorHandler = func(err error, c echo.Context) {
+	e.HTTPErrorHandler = func(c *echo.Context, err error) {
 		logrus.Error(err)
-		origErrHandler(err, c)
+		origErrHandler(c, err)
 	}
 
 	e.Use(middleware.RequestID())
-	e.Use(middleware.BodyLimit("11M"))
-	e.Pre(mw.MethodOverride()) // Must use Pre() to run before routing
+	e.Use(middleware.BodyLimit(11 * 1024 * 1024)) // 11MB
+	e.Pre(mw.MethodOverride())                    // Must use Pre() to run before routing
 
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
 		Skipper:           middleware.DefaultSkipper,
 		StackSize:         4 << 10,
 		DisableStackAll:   false,
 		DisablePrintStack: false,
-		LogLevel:          log.ERROR,
-		LogErrorFunc: func(c echo.Context, err error, stack []byte) error {
-			logrus.Error(errors.Wrap(err, "recovered panic:"))
-			for _, l := range strings.Split(string(stack), "\n") {
-				logrus.Errorf("stack: %s", strings.ReplaceAll(l, "\t", "  "))
-			}
-			return nil
-		},
-		DisableErrorHandler: false,
 	}))
 
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
@@ -133,10 +123,10 @@ func runServer(cmd *cobra.Command, args []string) error {
 		CookieSecure:   cfg.IsProduction(),
 		CookieHTTPOnly: false, // Must be false so JavaScript can read the token for AJAX requests
 		CookieSameSite: http.SameSiteStrictMode,
-		Skipper: func(c echo.Context) bool {
+		Skipper: func(c *echo.Context) bool {
 			return c.Path() == "/healthz"
 		},
-		ErrorHandler: func(err error, c echo.Context) error {
+		ErrorHandler: func(c *echo.Context, err error) error {
 			if cfg.IsProduction() && c.Request().TLS == nil {
 				logrus.Error("CSRF validation failed: secure cookies are enabled (GO_ENV=production) but request is not HTTPS. Either use HTTPS or set GO_ENV to something other than 'production' or 'prod'")
 			}
@@ -148,10 +138,10 @@ func runServer(cmd *cobra.Command, args []string) error {
 		LogStatus: true,
 		LogURI:    true,
 		LogMethod: true,
-		Skipper: func(c echo.Context) bool {
+		Skipper: func(c *echo.Context) bool {
 			return c.Request().URL.Path == "/healthz"
 		},
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+		LogValuesFunc: func(c *echo.Context, v middleware.RequestLoggerValues) error {
 			fmt.Printf("method=%s, uri=%s, status=%d\n", v.Method, v.URI, v.Status)
 			return nil
 		},
@@ -194,12 +184,12 @@ func runServer(cmd *cobra.Command, args []string) error {
 	appFS := afero.NewOsFs()
 
 	e.GET("/", dashboardHandler(cfg, db))
-	e.GET("/healthz", func(c echo.Context) error {
+	e.GET("/healthz", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "ok")
 	})
 
-	authRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(5)))
-	generalRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(30)))
+	authRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(float64(rate.Limit(5))))
+	generalRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(float64(rate.Limit(30))))
 
 	e.GET("/auth/sign-in", signIn(cfg))
 	e.POST("/auth/sign-in", signInWithEmailAndPassword(db, cfg), authRateLimiter)

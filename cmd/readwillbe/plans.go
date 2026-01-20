@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -27,7 +27,7 @@ const (
 )
 
 func plansListHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -51,7 +51,7 @@ func plansListHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 }
 
 func createPlanForm(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -64,7 +64,7 @@ func createPlanForm(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 const DraftTitleKey = "draft-plan-title"
 const DraftReadingsKey = "draft-plan-readings"
 
-func getDraftData(c echo.Context) (string, []views.ManualReading, error) {
+func getDraftData(c *echo.Context) (string, []views.ManualReading, error) {
 	sess, err := session.Get(mw.SessionKey, c)
 	if err != nil {
 		logrus.Errorf("getDraftData: failed to get session: %v", err)
@@ -82,7 +82,7 @@ func getDraftData(c echo.Context) (string, []views.ManualReading, error) {
 	return title, readings, nil
 }
 
-func saveDraftData(c echo.Context, title string, readings []views.ManualReading) error {
+func saveDraftData(c *echo.Context, title string, readings []views.ManualReading) error {
 	sess, err := session.Get(mw.SessionKey, c)
 	if err != nil {
 		logrus.Errorf("saveDraftData: failed to get session: %v", err)
@@ -98,7 +98,7 @@ func saveDraftData(c echo.Context, title string, readings []views.ManualReading)
 	return nil
 }
 
-func clearDraftData(c echo.Context) error {
+func clearDraftData(c *echo.Context) error {
 	sess, err := session.Get(mw.SessionKey, c)
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func clearDraftData(c echo.Context) error {
 }
 
 func manualPlanForm(cfg model.Config) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -124,7 +124,7 @@ func manualPlanForm(cfg model.Config) echo.HandlerFunc {
 }
 
 func updateDraftTitle() echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
@@ -150,7 +150,7 @@ func updateDraftTitle() echo.HandlerFunc {
 }
 
 func addDraftReading() echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
@@ -187,7 +187,7 @@ func addDraftReading() echo.HandlerFunc {
 }
 
 func getDraftReading() echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
@@ -209,7 +209,7 @@ func getDraftReading() echo.HandlerFunc {
 }
 
 func getDraftReadingEdit() echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
@@ -231,7 +231,7 @@ func getDraftReadingEdit() echo.HandlerFunc {
 }
 
 func updateDraftReading() echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
@@ -277,7 +277,7 @@ func updateDraftReading() echo.HandlerFunc {
 }
 
 func deleteDraftReading() echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
@@ -305,7 +305,7 @@ func deleteDraftReading() echo.HandlerFunc {
 }
 
 func deleteDraft() echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
@@ -319,7 +319,7 @@ func deleteDraft() echo.HandlerFunc {
 }
 
 func createManualPlan(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -402,7 +402,7 @@ func createManualPlan(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 }
 
 func createPlan(fs afero.Fs, db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -529,7 +529,7 @@ func createPlan(fs afero.Fs, db *gorm.DB) echo.HandlerFunc {
 }
 
 func renamePlan(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -566,7 +566,7 @@ func renamePlan(db *gorm.DB) echo.HandlerFunc {
 }
 
 func deletePlan(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -591,7 +591,7 @@ func deletePlan(db *gorm.DB) echo.HandlerFunc {
 }
 
 func editPlanForm(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -612,7 +612,7 @@ func editPlanForm(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 }
 
 func editPlan(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -721,7 +721,7 @@ func editPlan(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 
 // JSON API endpoint for plan status (used by React polling)
 func apiPlanStatus(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
@@ -743,7 +743,7 @@ func apiPlanStatus(db *gorm.DB) echo.HandlerFunc {
 
 // JSON API endpoint for saving draft (used by React PlanEditor)
 func apiSaveDraft() echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		_, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
@@ -801,7 +801,7 @@ func apiSaveDraft() echo.HandlerFunc {
 }
 
 func deleteReading(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")

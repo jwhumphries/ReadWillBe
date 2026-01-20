@@ -6,13 +6,13 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // MethodOverride middleware handles _method form field for DELETE operations
 func MethodOverride() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			if c.Request().Method == "POST" {
 				contentType := c.Request().Header.Get("Content-Type")
 				if strings.HasPrefix(contentType, "application/x-www-form-urlencoded") {

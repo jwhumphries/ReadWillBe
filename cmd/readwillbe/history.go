@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"gorm.io/gorm"
 	mw "readwillbe/internal/middleware"
 	"readwillbe/internal/model"
@@ -11,7 +11,7 @@ import (
 )
 
 func historyHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")

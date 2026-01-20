@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
@@ -25,7 +25,7 @@ func isValidEmail(email string) bool {
 }
 
 func accountHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -36,7 +36,7 @@ func accountHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 }
 
 func updateSettings(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -69,7 +69,7 @@ func updateSettings(db *gorm.DB) echo.HandlerFunc {
 }
 
 func sendTestEmailHandler(cfg model.Config) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		if !cfg.EmailEnabled() {
 			return c.String(http.StatusServiceUnavailable, "Email not configured")
 		}
