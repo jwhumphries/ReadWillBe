@@ -16,3 +16,6 @@
 ## 2026-01-15 - Semantic Labels for Forms
 **Learning:** Many form inputs were labeled with `span` elements instead of proper `<label>` tags, making them inaccessible to screen readers and preventing click-to-focus. Playwright's `get_by_label` fails on these, highlighting the issue.
 **Action:** Always use `<label for="id">` for visible labels, and ensure the corresponding input has the matching `id`. For inputs without visible labels, use `aria-label`.
+## 2026-01-19 - Tooltips for Icon-Only Buttons
+**Learning:** Icon-only buttons (like "Remove" in a table row) can be ambiguous, even with `aria-label`. Sighted users benefit significantly from tooltips that clarify the action.
+**Action:** Always wrap icon-only buttons in a DaisyUI `tooltip` component (e.g., `<div class="tooltip" data-tip="...">`). For destructive actions, use `tooltip-error`. For placement near edges (like right-aligned table cells), use `tooltip-left` or `tooltip-bottom` to prevent clipping.
