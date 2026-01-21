@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"gorm.io/gorm"
 
 	mw "readwillbe/internal/middleware"
@@ -15,7 +15,7 @@ import (
 )
 
 func dashboardHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -87,7 +87,7 @@ func groupReadingsByPlan(readings []model.Reading) []model.PlanGroup {
 
 // dashboardStatsPartial returns just the stats section for HTMX updates
 func dashboardStatsPartial(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)

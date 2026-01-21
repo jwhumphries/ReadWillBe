@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"gorm.io/gorm"
 
 	mw "readwillbe/internal/middleware"
@@ -48,7 +48,7 @@ func validatePushSubscription(req PushSubscriptionRequest) error {
 }
 
 func saveSubscription(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
@@ -86,7 +86,7 @@ func saveSubscription(db *gorm.DB) echo.HandlerFunc {
 }
 
 func removeSubscription(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)
@@ -109,7 +109,7 @@ func removeSubscription(db *gorm.DB) echo.HandlerFunc {
 }
 
 func removeAllSubscriptions(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.NoContent(http.StatusUnauthorized)

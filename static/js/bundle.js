@@ -22592,7 +22592,7 @@
       }
     }
     async fetch(options, fetchOptions) {
-      if (this.state.fetchStatus !== "idle" && // If the promise in the retyer is already rejected, we have to definitely
+      if (this.state.fetchStatus !== "idle" && // If the promise in the retryer is already rejected, we have to definitely
       // re-start the fetch; there is a chance that the query is still in a
       // pending state when that happens
       this.#retryer?.status() !== "rejected") {
@@ -31954,7 +31954,7 @@ lucide-react/dist/esm/icons/undo-2.js:
 lucide-react/dist/esm/icons/x.js:
 lucide-react/dist/esm/lucide-react.js:
   (**
-   * @license lucide-react v0.511.0 - ISC
+   * @license lucide-react v0.562.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.

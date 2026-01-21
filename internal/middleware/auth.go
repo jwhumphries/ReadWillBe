@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -16,7 +16,7 @@ import (
 
 func UserMiddleware(db *gorm.DB, userCache *cache.UserCache, cfg model.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			sess, err := session.Get(SessionKey, c)
 			if err != nil {
 				logrus.Warnf("Failed to get session: %v", err)
@@ -71,7 +71,7 @@ func UserMiddleware(db *gorm.DB, userCache *cache.UserCache, cfg model.Config) e
 	}
 }
 
-func GetSessionUser(c echo.Context) (model.User, bool) {
+func GetSessionUser(c *echo.Context) (model.User, bool) {
 	u := c.Get(UserKey)
 	if u != nil {
 		user, ok := u.(model.User)

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,11 +21,11 @@ func TestGzipConfiguration(t *testing.T) {
 	}
 	e.Use(middleware.GzipWithConfig(gzipConfig))
 
-	e.GET("/short", func(c echo.Context) error {
+	e.GET("/short", func(c *echo.Context) error {
 		return c.String(http.StatusOK, "short response")
 	})
 
-	e.GET("/long", func(c echo.Context) error {
+	e.GET("/long", func(c *echo.Context) error {
 		return c.String(http.StatusOK, strings.Repeat("a", 1500))
 	})
 

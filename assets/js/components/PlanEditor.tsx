@@ -221,15 +221,17 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({
                                         />
                                     </td>
                                     <td className="align-top">
-                                        <button
-                                            type="button"
-                                            onClick={() => removeReading(reading.id)}
-                                            className="btn btn-ghost btn-xs text-error"
-                                            aria-label="Remove reading"
-                                            disabled={readings.length === 1 && !reading.content}
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </button>
+                                        <div className="tooltip tooltip-error tooltip-bottom" data-tip="Remove reading">
+                                            <button
+                                                type="button"
+                                                onClick={() => removeReading(reading.id)}
+                                                className="btn btn-ghost btn-xs text-error"
+                                                aria-label="Remove reading"
+                                                disabled={readings.length === 1 && !reading.content}
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

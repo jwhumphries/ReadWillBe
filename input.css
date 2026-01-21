@@ -3,6 +3,24 @@
 @plugin "@tailwindcss/typography";
 @source "./views/*.templ";
 
+/* ============================================================================
+   FLUID TYPOGRAPHY TOKENS
+   Scales smoothly from mobile (320px) to desktop (1280px)
+   Base: 16px → 18px
+   ============================================================================ */
+
+:root {
+  /* Fluid typography scale */
+  --text-xs: clamp(0.75rem, 0.71rem + 0.2vw, 0.875rem);      /* 12px → 14px */
+  --text-sm: clamp(0.875rem, 0.83rem + 0.2vw, 1rem);         /* 14px → 16px */
+  --text-base: clamp(1rem, 0.96rem + 0.21vw, 1.125rem);      /* 16px → 18px */
+  --text-lg: clamp(1.125rem, 1.06rem + 0.3vw, 1.25rem);      /* 18px → 20px */
+  --text-xl: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);        /* 20px → 24px */
+  --text-2xl: clamp(1.5rem, 1.4rem + 0.5vw, 1.75rem);        /* 24px → 28px */
+  --text-3xl: clamp(1.75rem, 1.55rem + 1vw, 2.25rem);        /* 28px → 36px */
+  --text-4xl: clamp(2.25rem, 2rem + 1.25vw, 2.75rem);        /* 36px → 44px */
+}
+
 @plugin "daisyui/theme" {
   name: "booky";
   default: true;
@@ -81,6 +99,70 @@
 @layer base {
   body {
     font-family: "Cardo", serif;
+    font-size: var(--text-base);
+  }
+
+  /* Fluid heading sizes */
+  h1 {
+    font-size: var(--text-4xl);
+  }
+
+  h2 {
+    font-size: var(--text-3xl);
+  }
+
+  h3 {
+    font-size: var(--text-2xl);
+  }
+
+  h4 {
+    font-size: var(--text-xl);
+  }
+
+  h5 {
+    font-size: var(--text-lg);
+  }
+
+  h6 {
+    font-size: var(--text-base);
+  }
+
+  /* Form elements use base size for readability */
+  input,
+  textarea,
+  select,
+  button {
+    font-size: var(--text-base);
+  }
+
+  /* Smaller helper text */
+  small,
+  .text-sm {
+    font-size: var(--text-sm);
+  }
+
+  .text-xs {
+    font-size: var(--text-xs);
+  }
+
+  .text-lg {
+    font-size: var(--text-lg);
+  }
+
+  .text-xl {
+    font-size: var(--text-xl);
+  }
+
+  .text-2xl {
+    font-size: var(--text-2xl);
+  }
+
+  .text-3xl {
+    font-size: var(--text-3xl);
+  }
+
+  .text-4xl {
+    font-size: var(--text-4xl);
   }
 }
 
@@ -98,7 +180,8 @@
 }
 
 .react-day-picker .rdp-caption_label {
-  @apply text-sm font-bold;
+  @apply font-bold;
+  font-size: var(--text-base);
 }
 
 .react-day-picker .rdp-nav {
@@ -115,7 +198,8 @@
 }
 
 .react-day-picker .rdp-weekdays {
-  @apply text-xs opacity-70;
+  @apply opacity-70;
+  font-size: var(--text-sm);
 }
 
 .react-day-picker .rdp-weekday {
@@ -130,7 +214,8 @@
 }
 
 .react-day-picker .rdp-day_button {
-  @apply w-9 h-9 rounded-lg text-sm hover:bg-base-300 transition-colors cursor-pointer;
+  @apply w-10 h-10 rounded-lg hover:bg-base-300 transition-colors cursor-pointer;
+  font-size: var(--text-sm);
 }
 
 .react-day-picker .rdp-day_button:disabled {

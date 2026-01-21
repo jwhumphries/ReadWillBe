@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"gorm.io/gorm"
 	mw "readwillbe/internal/middleware"
 	"readwillbe/internal/model"
@@ -14,7 +14,7 @@ import (
 // MaxContentLength is defined in plans.go
 
 func completeReading(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -47,7 +47,7 @@ func completeReading(db *gorm.DB) echo.HandlerFunc {
 }
 
 func uncompleteReading(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")
@@ -79,7 +79,7 @@ func uncompleteReading(db *gorm.DB) echo.HandlerFunc {
 }
 
 func updateReading(db *gorm.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
 			return c.Redirect(http.StatusFound, "/auth/sign-in")

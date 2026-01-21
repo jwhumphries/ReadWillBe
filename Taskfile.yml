@@ -82,14 +82,6 @@ tasks:
           sh -c "bun install && /develop.sh"
     silent: true
 
-  dev-stop:
-    desc: Stop development environment
-    cmds:
-      - docker stop {{.APP_NAME}}-dev || true
-      - task: clean:bun
-      - rm -rf ./tmp ./bin
-    silent: true
-
   build:
     desc: Build production Docker image
     cmds:
@@ -107,7 +99,7 @@ tasks:
   templ-fmt:
     desc: Auto-format templ files
     cmds:
-      - for file in $(find ./views -type f -name '*.templ'); do templ fmt $file; done
+      - for file in $(find ./internal/views -type f -name '*.templ'); do templ fmt $file; done
 
   lint:
     desc: Run linter

@@ -75,7 +75,9 @@ func (m *Readwillbe) Lint(ctx context.Context, source *dagger.Directory) (string
 }
 
 func (m *Readwillbe) lintSource(ctx context.Context, source *dagger.Directory) (string, error) {
-	return dag.GolangciLint().
+	return dag.GolangciLint(dagger.GolangciLintOpts{
+		Version: "v2.8.0",
+	}).
 		WithModuleCache(dag.CacheVolume("go-mod-cache")).
 		WithLinterCache(dag.CacheVolume("golangci-lint-cache")).
 		Run(source).

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -31,14 +31,14 @@ const (
 var dummyHash = []byte("$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/X4.qfTJ.l5NmY8S2e")
 
 func signUp(cfg model.Config) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		csrf, _ := c.Get("csrf").(string)
 		return render(c, 200, views.SignUpPage(cfg, csrf, nil))
 	}
 }
 
 func signUpWithEmailAndPassword(db *gorm.DB, cfg model.Config) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		name := c.FormValue("name")
 		email := c.FormValue("email")
 		password := c.FormValue("password")
@@ -101,14 +101,14 @@ func signUpWithEmailAndPassword(db *gorm.DB, cfg model.Config) echo.HandlerFunc 
 }
 
 func signIn(cfg model.Config) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		csrf, _ := c.Get("csrf").(string)
 		return render(c, 200, views.SignInPage(cfg, csrf, nil))
 	}
 }
 
 func signInWithEmailAndPassword(db *gorm.DB, cfg model.Config) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		email := c.FormValue("email")
 		password := c.FormValue("password")
 
@@ -156,7 +156,7 @@ func signInWithEmailAndPassword(db *gorm.DB, cfg model.Config) echo.HandlerFunc 
 }
 
 func signOut() echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		sess, _ := session.Get("session", c)
 		sess.Options.MaxAge = -1
 		err := sess.Save(c.Request(), c.Response())

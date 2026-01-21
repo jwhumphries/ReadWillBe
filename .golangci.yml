@@ -2,14 +2,8 @@ version: "2"
 
 run:
   timeout: 5m
-  skip-dirs:
-    - .dagger
-  skip-files:
-    - ".dagger/.*"
   modules-download-mode: readonly
   allow-parallel-runners: true
-  exclude-dirs:
-    - .dagger
 
 linters:
   default: none

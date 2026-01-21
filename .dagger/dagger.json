@@ -7,8 +7,8 @@
   "dependencies": [
     {
       "name": "golangci-lint",
-      "source": "github.com/sagikazarmark/daggerverse/golangci-lint@golangci-lint/v0.3.0",
-      "pin": "4341f097b207ddcb180817a6a3fe974947a47490"
+      "source": "github.com/sagikazarmark/daggerverse/golangci-lint@golangci-lint/v0.6.0",
+      "pin": "126b5fbbdad70dbf2a8689600baec2eb78c05ef4"
     }
   ]
 }
