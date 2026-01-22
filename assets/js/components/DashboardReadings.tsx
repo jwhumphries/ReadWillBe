@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, AlertTriangle, Calendar } from 'lucide-react';
+import { Check, AlertTriangle, Calendar, BookOpen } from 'lucide-react';
 import { getCsrfToken } from '../hooks/useCsrf';
 import { toast } from './Toaster';
 
@@ -79,10 +79,7 @@ export const DashboardReadings: React.FC<DashboardReadingsProps> = ({
         <div className="hero-content text-center">
           <div className="max-w-md">
             <div className="mx-auto w-24 h-24 mb-4 opacity-20 text-base-content">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-              </svg>
+              <BookOpen className="w-full h-full" aria-hidden="true" />
             </div>
             <h3 className="text-2xl font-bold">All caught up!</h3>
             <p className="py-6">No readings scheduled for today. You can relax or check your reading plans.</p>
@@ -105,9 +102,7 @@ export const DashboardReadings: React.FC<DashboardReadingsProps> = ({
               <h3 className="card-title flex-1">{group.plan.title}</h3>
               {group.hasOverdue && (
                 <div className="badge badge-error gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="inline-block h-4 w-4 stroke-current" fill="none" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <AlertTriangle className="h-4 w-4" aria-hidden="true" />
                   Overdue
                 </div>
               )}
@@ -121,27 +116,28 @@ export const DashboardReadings: React.FC<DashboardReadingsProps> = ({
                     <div className="flex items-start gap-3">
                       {reading.isOverdue && (
                         <div className="text-error mt-1" title="Overdue">
-                          <AlertTriangle className="h-5 w-5" />
+                          <AlertTriangle className="h-5 w-5" aria-hidden="true" />
                         </div>
                       )}
                       <div className="flex-1">
                         <p className="leading-relaxed">{reading.content}</p>
                         <div className="flex items-center justify-between mt-4">
                           <div className="flex items-center gap-2 text-sm opacity-75">
-                            <Calendar className="h-4 w-4" />
+                            <Calendar className="h-4 w-4" aria-hidden="true" />
                             <span>{reading.date}</span>
                           </div>
                           <button
                             type="button"
                             onClick={() => mutation.mutate(reading.id)}
                             disabled={isLoading}
+                            aria-label={`Mark reading "${reading.content}" as complete`}
                             className="btn btn-primary btn-sm gap-2"
                           >
                             {isLoading ? (
                               <span className="loading loading-spinner loading-xs" />
                             ) : (
                               <>
-                                <Check className="h-5 w-5" />
+                                <Check className="h-5 w-5" aria-hidden="true" />
                                 Complete
                               </>
                             )}

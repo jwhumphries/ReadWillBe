@@ -19,3 +19,7 @@
 ## 2026-01-19 - Tooltips for Icon-Only Buttons
 **Learning:** Icon-only buttons (like "Remove" in a table row) can be ambiguous, even with `aria-label`. Sighted users benefit significantly from tooltips that clarify the action.
 **Action:** Always wrap icon-only buttons in a DaisyUI `tooltip` component (e.g., `<div class="tooltip" data-tip="...">`). For destructive actions, use `tooltip-error`. For placement near edges (like right-aligned table cells), use `tooltip-left` or `tooltip-bottom` to prevent clipping.
+
+## 2026-01-22 - Contextual ARIA Labels & Standard Icons
+**Learning:** Generic action buttons (like "Complete") in lists fail accessibility checks because screen readers cannot distinguish them. Replacing raw inconsistent SVGs with standard library icons (Lucide) improves maintainability.
+**Action:** Always add `aria-label="Action [Item Name]"` to buttons in lists. Use `lucide-react` components instead of raw SVGs for icons to ensure visual consistency and easier maintenance.
