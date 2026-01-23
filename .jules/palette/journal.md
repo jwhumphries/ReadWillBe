@@ -19,3 +19,7 @@
 ## 2026-01-19 - Tooltips for Icon-Only Buttons
 **Learning:** Icon-only buttons (like "Remove" in a table row) can be ambiguous, even with `aria-label`. Sighted users benefit significantly from tooltips that clarify the action.
 **Action:** Always wrap icon-only buttons in a DaisyUI `tooltip` component (e.g., `<div class="tooltip" data-tip="...">`). For destructive actions, use `tooltip-error`. For placement near edges (like right-aligned table cells), use `tooltip-left` or `tooltip-bottom` to prevent clipping.
+
+## 2026-01-23 - Smoother Full-Page Redirects with HTMX
+**Learning:** When backend handlers redirect to a full page (e.g. after deletion), using `hx-target="body"` on the triggering element allows HTMX to swap the entire body content smoothly via AJAX, avoiding a jarring full browser reload.
+**Action:** For destructive actions that result in a page refresh, use `hx-delete` (or relevant verb) with `hx-target="body"` to provide a modern, app-like feel without changing backend redirect logic.
