@@ -25,7 +25,7 @@
     "@parcel/watcher": "2.5.4",
     "@tailwindcss/oxide": "4.1.18",
     "@tailwindcss/typography": "0.5.19",
-    "@types/react": "19.2.8",
+    "@types/react": "19.2.9",
     "@types/react-dom": "19.2.3",
     "daisyui": "5.5.14",
     "esbuild": "0.27.2",
