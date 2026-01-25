@@ -23,3 +23,7 @@
 ## 2026-01-23 - Smoother Full-Page Redirects with HTMX
 **Learning:** When backend handlers redirect to a full page (e.g. after deletion), using `hx-target="body"` on the triggering element allows HTMX to swap the entire body content smoothly via AJAX, avoiding a jarring full browser reload.
 **Action:** For destructive actions that result in a page refresh, use `hx-delete` (or relevant verb) with `hx-target="body"` to provide a modern, app-like feel without changing backend redirect logic.
+
+## 2026-01-24 - Contextual Labels for Repetitive Actions
+**Learning:** In list views (like dashboards), repetitive action buttons (e.g., "Complete") create a confusing experience for screen reader users when navigating by button, as they lack context.
+**Action:** Always verify repetitive buttons have dynamic `aria-label` attributes that include specific item context (e.g., "Mark [Plan Name] reading as complete") rather than just the action name.
