@@ -87,6 +87,7 @@ func (m *Readwillbe) lintSource(ctx context.Context, source *dagger.Directory) (
 func (m *Readwillbe) Typecheck(ctx context.Context, source *dagger.Directory) (string, error) {
 	return dag.Container().
 		From("ghcr.io/jwhumphries/frontend:latest").
+		WithMountedCache("/root/.bun/install/cache", dag.CacheVolume("bun-cache")).
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithExec([]string{"bun", "install"}).
@@ -116,6 +117,7 @@ func (m *Readwillbe) testSource(ctx context.Context, source *dagger.Directory) (
 func (m *Readwillbe) BuildAssets(source *dagger.Directory) *dagger.Directory {
 	return dag.Container().
 		From("ghcr.io/jwhumphries/frontend:latest").
+		WithMountedCache("/root/.bun/install/cache", dag.CacheVolume("bun-cache")).
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithExec([]string{"bun", "install"}).
