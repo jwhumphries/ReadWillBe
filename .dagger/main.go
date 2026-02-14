@@ -75,12 +75,14 @@ func (m *Readwillbe) Lint(ctx context.Context, source *dagger.Directory) (string
 }
 
 func (m *Readwillbe) lintSource(ctx context.Context, source *dagger.Directory) (string, error) {
-	return dag.GolangciLint(dagger.GolangciLintOpts{
-		Version: "v2.8.0",
-	}).
-		WithModuleCache(dag.CacheVolume("go-mod-cache")).
-		WithLinterCache(dag.CacheVolume("golangci-lint-cache")).
-		Run(source).
+	return dag.Container().
+		From("golangci/golangci-lint:v2.9.0-alpine@sha256:efea7fae4d772680c2c2dc3a067bde22c8c0344dde7e800d110589aaee6ce977").
+		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
+		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
+		WithMountedCache("/root/.cache/golangci-lint", dag.CacheVolume("golangci-lint-cache")).
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"golangci-lint", "run", "./..."}).
 		Stdout(ctx)
 }
 
@@ -102,7 +104,7 @@ func (m *Readwillbe) Test(ctx context.Context, source *dagger.Directory) (string
 
 func (m *Readwillbe) testSource(ctx context.Context, source *dagger.Directory) (string, error) {
 	return dag.Container().
-		From("golang:1.25-alpine").
+		From("golang:1.26-alpine").
 		WithEnvVariable("GOCACHE", "/go-build-cache").
 		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
 		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
@@ -128,7 +130,7 @@ func (m *Readwillbe) BuildAssets(source *dagger.Directory) *dagger.Directory {
 
 func (m *Readwillbe) TemplGenerate(source *dagger.Directory) *dagger.Directory {
 	return dag.Container().
-		From("golang:1.25-alpine").
+		From("golang:1.26-alpine").
 		WithEnvVariable("GOCACHE", "/go-build-cache").
 		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
 		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
@@ -143,7 +145,7 @@ func (m *Readwillbe) TemplGenerate(source *dagger.Directory) *dagger.Directory {
 
 func (m *Readwillbe) BuildBinary(source *dagger.Directory, version string) *dagger.Container {
 	return dag.Container().
-		From("golang:1.25-alpine").
+		From("golang:1.26-alpine").
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithEnvVariable("GOCACHE", "/go-build-cache").
@@ -187,7 +189,7 @@ func (m *Readwillbe) Release(
 
 func (m *Readwillbe) Fmt(source *dagger.Directory) *dagger.Directory {
 	return dag.Container().
-		From("golang:1.25-alpine").
+		From("golang:1.26-alpine").
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
 		WithExec([]string{"go", "fmt", "./..."}).
