@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"dagger/readwillbe/internal/dagger"
+
+	"golang.org/x/sync/errgroup"
 )
 
 type Readwillbe struct{}
@@ -116,6 +118,29 @@ func (m *Readwillbe) testSource(ctx context.Context, source *dagger.Directory) (
 		WithWorkdir("/app").
 		WithExec([]string{"go", "test", "-v", "./..."}).
 		Stdout(ctx)
+}
+
+// Check runs lint, typecheck, test, and build in parallel within a single Dagger session.
+func (m *Readwillbe) Check(ctx context.Context, source *dagger.Directory) (string, error) {
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		_, err := m.Lint(ctx, source)
+		return err
+	})
+	g.Go(func() error {
+		_, err := m.Typecheck(ctx, source)
+		return err
+	})
+	g.Go(func() error {
+		_, err := m.Test(ctx, source)
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
+		return "", fmt.Errorf("check failed: %w", err)
+	}
+	return "All checks passed", nil
 }
 
 // BuildAssets compiles both CSS (Tailwind) and React/TypeScript in one step
