@@ -6,7 +6,7 @@ require (
 	github.com/SherClockHolmes/webpush-go v1.4.0
 	github.com/a-h/templ v0.3.977
 	github.com/gorilla/sessions v1.4.0
-	github.com/labstack/echo-contrib v0.50.0
+	github.com/labstack/echo-contrib v0.50.1
 	github.com/labstack/echo/v5 v5.0.3
 	github.com/ncruces/go-sqlite3 v0.30.5
 	github.com/ncruces/go-sqlite3/gormlite v0.30.2
