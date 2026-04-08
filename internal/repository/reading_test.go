@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/ncruces/go-sqlite3/gormlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

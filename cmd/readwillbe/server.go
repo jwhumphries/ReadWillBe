@@ -25,7 +25,6 @@ import (
 	"readwillbe/internal/service/push"
 	"readwillbe/static"
 
-	_ "github.com/ncruces/go-sqlite3/embed"
 	sqlite "github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/gorm"
 )
