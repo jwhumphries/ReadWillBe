@@ -6,11 +6,21 @@
   "baseBranchPatterns": [
     "dev"
   ],
-  "ignorePaths": [
-    ".dagger/**"
-  ],
   "minimumReleaseAge": null,
   "platformAutomerge": true,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update Docker images in Dagger pipeline",
+      "fileMatch": [
+        "^\\.dagger/main\\.go$"
+      ],
+      "matchStrings": [
+        "From\\(\"(?<depName>[^\"]+?):(?<currentValue>[^@\"]+?)(?:@(?<currentDigest>sha256:[a-f0-9]+))?\"\\)"
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ],
   "packageRules": [
     {
       "description": "Automerge minor changes",
