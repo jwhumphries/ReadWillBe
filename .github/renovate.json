@@ -8,6 +8,9 @@
   ],
   "minimumReleaseAge": null,
   "platformAutomerge": true,
+  "postUpdateOptions": [
+    "gomodTidyE"
+  ],
   "customManagers": [
     {
       "customType": "regex",
