@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/sessions"
 )
 
+// Session and context keys used by the middleware package.
 const (
 	SessionKey             = "session"
 	UserKey                = "session-user"
@@ -16,6 +17,8 @@ const (
 	SessionRefreshInterval = 3600
 )
 
+// GetSecureSessionOptions returns gorilla/sessions options with secure defaults
+// (HttpOnly, SameSite=Strict, Secure in production) for the given config.
 func GetSecureSessionOptions(cfg model.Config) *sessions.Options {
 	return &sessions.Options{
 		Path:     "/",

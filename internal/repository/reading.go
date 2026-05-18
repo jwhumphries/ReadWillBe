@@ -1,3 +1,5 @@
+// Package repository contains gorm-backed data access functions for
+// readwillbe domain models.
 package repository
 
 import (
