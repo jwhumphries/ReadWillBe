@@ -1,4 +1,4 @@
-package csv
+package csvservice
 
 import (
 	"strings"
