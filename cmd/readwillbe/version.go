@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"readwillbe/version"
+	"readwillbe/buildinfo"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +13,7 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version number of ReadWillBe",
 	Long:  `All software has versions. This is ReadWillBe's`,
 	Run: func(_ *cobra.Command, _ []string) {
-		fmt.Printf("ReadWillBe %s\n", version.Tag)
+		fmt.Printf("ReadWillBe %s\n", buildinfo.Tag)
 	},
 }
 
