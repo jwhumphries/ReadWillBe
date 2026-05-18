@@ -53,34 +53,35 @@ Set `READWILLBE_VAPID_PUBLIC_KEY`, `READWILLBE_VAPID_PRIVATE_KEY` and `READWILLB
 
 ## Development
 
-This project uses [Task](https://taskfile.dev/) for development workflows. The pipeline is managed by [Dagger](https://dagger.io/) 🗡️.
+This project uses [just](https://just.systems/) for development workflows. The pipeline is managed by [Dagger](https://dagger.io/) 🗡️.
 
 ### Quick Start
 
 ```bash
-# Start development environment (Docker Compose + Hot Reload)
-task dev-start
-
-# Stop development environment
-task dev-stop
+# Start development environment (Docker + Hot Reload) at http://localhost:7331
+just dev
 ```
 
-### Available Tasks
+To stop the dev environment, press `Ctrl+C` in the terminal running `just dev`.
+
+### Available Recipes
 
 | Command | Description |
 |---------|-------------|
-| `task dev-start` | Starts the dev environment with hot-reload at http://localhost:8080 |
-| `task dev-stop` | Stops the dev environment and cleans up |
-| `task test` | Runs tests using Dagger |
-| `task lint` | Runs linters using Dagger |
-| `task build` | Builds the production Docker image |
-| `task clean` | Removes generated files and images |
-| `task fmt` | Formats Go files |
-| `task templ-fmt`| Formats Templ files |
+| `just dev` | Starts the dev environment with hot-reload at http://localhost:7331 |
+| `just test` | Runs tests using Dagger |
+| `just lint` | Runs linters using Dagger |
+| `just typecheck` | Runs TypeScript type checking using Dagger |
+| `just check` | Runs lint + typecheck + test in parallel using Dagger |
+| `just build` | Builds the production Docker image |
+| `just build-assets` | Compiles CSS (Tailwind) and React/TypeScript |
+| `just clean` | Removes generated files and `node_modules` |
+| `just fmt` | Formats Go files |
+| `just templ-fmt`| Formats Templ files |
 
 ### Verifying the Build
 
-As shown above, the development enviromnent features hot-reloading. To build a copy of the release image locally (minimized for production with no reloading), run `task build`. 
+As shown above, the development enviromnent features hot-reloading. To build a copy of the release image locally (minimized for production with no reloading), run `just build`. 
 
 Set a cookie secret, then run:
 
