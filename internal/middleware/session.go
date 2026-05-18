@@ -3,8 +3,9 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gorilla/sessions"
 	"readwillbe/internal/model"
+
+	"github.com/gorilla/sessions"
 )
 
 const (

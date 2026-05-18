@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"readwillbe/internal/model"
+
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"readwillbe/internal/model"
 )
 
 func TestUserCache_Cleanup(t *testing.T) {

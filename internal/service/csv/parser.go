@@ -7,8 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"readwillbe/internal/model"
+
+	"github.com/pkg/errors"
 )
 
 const (

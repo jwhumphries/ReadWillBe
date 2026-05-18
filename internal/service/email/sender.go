@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	mail "github.com/wneessen/go-mail"
 	"readwillbe/internal/model"
+
+	mail "github.com/wneessen/go-mail"
 )
 
 type Service interface {

@@ -1,9 +1,10 @@
 package repository
 
 import (
+	"readwillbe/internal/model"
+
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"readwillbe/internal/model"
 )
 
 func GetUserByID(db *gorm.DB, id uint) (model.User, error) {

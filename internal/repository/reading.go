@@ -3,8 +3,9 @@ package repository
 import (
 	"time"
 
-	"gorm.io/gorm"
 	"readwillbe/internal/model"
+
+	"gorm.io/gorm"
 )
 
 func getStartOfDay(t time.Time) time.Time {

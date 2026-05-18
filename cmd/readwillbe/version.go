@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"readwillbe/version"
+
+	"github.com/spf13/cobra"
 )
 
 var versionCmd = &cobra.Command{
