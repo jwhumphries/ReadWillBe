@@ -182,7 +182,7 @@ func (m *Readwillbe) BuildBinary(source *dagger.Directory, version string) *dagg
 		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
 		WithExec([]string{
 			"go", "build",
-			"-ldflags", "-X readwillbe/buildinfo.Tag=" + version,
+			"-ldflags", "-X readwillbe/versioninfo.Tag=" + version,
 			"-o", "/readwillbe",
 			"./cmd/readwillbe/",
 		})
