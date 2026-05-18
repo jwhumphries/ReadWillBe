@@ -1,3 +1,5 @@
+// Package model defines the core domain types and configuration used by
+// the readwillbe server.
 package model
 
 import (
@@ -10,9 +12,17 @@ import (
 	"github.com/spf13/viper"
 )
 
-const MinCookieSecretLength = 32
-const MinCookieSecretEntropy = 128
+// Minimum strength required of the cookie-signing secret.
+const (
+	// MinCookieSecretLength is the minimum length, in characters, of the cookie
+	// secret (or decoded length when base64-encoded).
+	MinCookieSecretLength = 32
+	// MinCookieSecretEntropy is the minimum estimated entropy, in bits, required
+	// when the secret is not base64-encoded.
+	MinCookieSecretEntropy = 128
+)
 
+// Config holds the runtime configuration for the readwillbe server.
 type Config struct {
 	DBPath          string
 	CookieSecret    []byte
@@ -39,11 +49,14 @@ type Config struct {
 	ResendFrom   string // "ReadWillBe <noreply@example.com>"
 }
 
+// IsProduction reports whether the server is running with GO_ENV set to
+// production or prod.
 func (c Config) IsProduction() bool {
 	env := strings.ToLower(os.Getenv("GO_ENV"))
 	return env == "production" || env == "prod"
 }
 
+// EmailEnabled reports whether an email provider (smtp or resend) is configured.
 func (c Config) EmailEnabled() bool {
 	return c.EmailProvider == "smtp" || c.EmailProvider == "resend"
 }
@@ -94,6 +107,8 @@ func estimateEntropy(s string) int {
 	return len(s) * bitsPerChar
 }
 
+// ConfigFromViper builds a [Config] from the currently configured viper
+// values, validating required fields.
 func ConfigFromViper() (Config, error) {
 	cookieSecret := viper.GetString("cookie_secret")
 	if cookieSecret == "" {
