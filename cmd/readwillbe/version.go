@@ -12,7 +12,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number of ReadWillBe",
 	Long:  `All software has versions. This is ReadWillBe's`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Printf("ReadWillBe %s\n", version.Tag)
 	},
 }

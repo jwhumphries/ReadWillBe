@@ -24,7 +24,7 @@ func isValidEmail(email string) bool {
 	return err == nil
 }
 
-func accountHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
+func accountHandler(cfg model.Config, _ *gorm.DB) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {

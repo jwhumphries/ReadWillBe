@@ -1,3 +1,4 @@
+// Package main is the entry point for the readwillbe HTTP server and CLI.
 package main
 
 import (
