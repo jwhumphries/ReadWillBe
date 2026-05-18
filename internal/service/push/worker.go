@@ -1,3 +1,5 @@
+// Package push runs the background notification worker that delivers
+// Web Push and email notifications to ReadWillBe users.
 package push
 
 import (
@@ -14,8 +16,12 @@ import (
 	"readwillbe/internal/service/email"
 )
 
+// NotificationCheckInterval is how often the worker scans for users due to
+// receive their daily notification.
 const NotificationCheckInterval = 1 * time.Minute
 
+// StartNotificationWorker starts the background notification loop and returns
+// a cancel function that stops it.
 func StartNotificationWorker(cfg model.Config, db *gorm.DB) context.CancelFunc {
 	pushEnabled := cfg.VAPIDPublicKey != "" && cfg.VAPIDPrivateKey != ""
 	emailEnabled := cfg.EmailEnabled()
@@ -110,6 +116,9 @@ func processNotifications(cfg model.Config, db *gorm.DB, emailService email.Serv
 	}
 }
 
+// SendPushNotification dispatches the daily-reading push payload to every
+// stored subscription for user, deleting any subscriptions the push gateway
+// reports as gone.
 func SendPushNotification(cfg model.Config, db *gorm.DB, user model.User) {
 	payload := map[string]interface{}{
 		"title": "ReadWillBe",
