@@ -81,7 +81,7 @@ To stop the dev environment, press `Ctrl+C` in the terminal running `just dev`.
 
 ### Verifying the Build
 
-As shown above, the development enviromnent features hot-reloading. To build a copy of the release image locally (minimized for production with no reloading), run `just build`. 
+As shown above, the development environment features hot-reloading. To build a copy of the release image locally (minimized for production with no reloading), run `just build`. 
 
 Set a cookie secret, then run:
 

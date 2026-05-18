@@ -62,8 +62,9 @@ build-assets:
 # Build production Docker image
 build:
     dagger -m .dagger call release --source=. --version dev-release export --path ./readwillbe-dev.tar
-    id=$(docker load -i ./readwillbe-dev.tar | sed -n 's/^Loaded image.*: //p') && docker tag $id {{APP_NAME}}:latest
-    rm ./readwillbe-dev.tar
+    trap 'rm -f ./readwillbe-dev.tar' EXIT; \
+        id=$(docker load -i ./readwillbe-dev.tar | sed -n 's/^Loaded image.*: //p'); \
+        docker tag "$id" {{APP_NAME}}:latest
 
 # Format Go files (gofmt; switches to goimports in PR 2)
 fmt:
