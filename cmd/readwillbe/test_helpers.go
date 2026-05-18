@@ -4,10 +4,11 @@ import (
 	"testing"
 	"time"
 
+	"readwillbe/internal/model"
+
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"readwillbe/internal/model"
 )
 
 func createTestUser(t *testing.T, db *gorm.DB, email string, password string) *model.User {

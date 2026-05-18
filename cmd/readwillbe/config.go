@@ -11,7 +11,7 @@ var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Validate and display the current configuration",
 	Long:  `Shows the merged configuration from defaults, config file, environment variables, and flags.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		fmt.Println("Current Configuration:")
 		fmt.Println("======================")
 

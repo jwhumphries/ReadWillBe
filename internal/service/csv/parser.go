@@ -1,4 +1,7 @@
-package csv
+// Package csvservice parses user-supplied CSV files into [model.Reading]
+// values. It is kept separate from the stdlib encoding/csv package; the
+// name avoids the var-naming conflict revive flags.
+package csvservice
 
 import (
 	"encoding/csv"
@@ -7,12 +10,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"readwillbe/internal/model"
+
+	"github.com/pkg/errors"
 )
 
+// Limits applied to incoming CSV files.
 const (
-	MaxCSVRows       = 10000
+	// MaxCSVRows is the maximum number of data rows accepted per import.
+	MaxCSVRows = 10000
+	// MaxContentLength is the maximum allowed length, in bytes, of a single
+	// reading's content field.
 	MaxContentLength = 10000
 )
 
@@ -29,6 +37,8 @@ func IsFormulaInjection(s string) bool {
 	return false
 }
 
+// ParseCSV reads a CSV stream from r and converts each data row into a
+// [model.Reading]. The first row is treated as a header.
 func ParseCSV(r io.Reader) ([]model.Reading, error) {
 	reader := csv.NewReader(r)
 	reader.LazyQuotes = false
@@ -90,6 +100,8 @@ func ParseCSV(r io.Reader) ([]model.Reading, error) {
 	return readings, nil
 }
 
+// ParseDate parses a CSV date cell, returning the date and the cadence
+// ([model.DateType]) it represents (day, week, or month).
 func ParseDate(dateStr string) (time.Time, model.DateType, error) {
 	if strings.HasPrefix(dateStr, "Week ") {
 		return parseWeekFormat(dateStr)

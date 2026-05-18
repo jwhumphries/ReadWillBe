@@ -66,9 +66,9 @@ build:
         id=$(docker load -i ./readwillbe-dev.tar | sed -n 's/^Loaded image.*: //p'); \
         docker tag "$id" {{APP_NAME}}:latest
 
-# Format Go files (gofmt; switches to goimports in PR 2)
+# Format Go files (goimports)
 fmt:
-    for file in $(gofmt -s -l . | grep -v "^vendor/" | grep -v "^.dagger/"); do go fmt "$file"; done
+    dagger -m .dagger call fmt --source=. export --path .
 
 # Format templ files
 templ-fmt:

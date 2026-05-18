@@ -3,11 +3,12 @@ package main
 import (
 	"net/http"
 
-	"github.com/labstack/echo/v5"
-	"gorm.io/gorm"
 	mw "readwillbe/internal/middleware"
 	"readwillbe/internal/model"
 	"readwillbe/internal/views"
+
+	"github.com/labstack/echo/v5"
+	"gorm.io/gorm"
 )
 
 func historyHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {

@@ -182,7 +182,7 @@ func (m *Readwillbe) BuildBinary(source *dagger.Directory, version string) *dagg
 		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
 		WithExec([]string{
 			"go", "build",
-			"-ldflags", "-X readwillbe/version.Tag=" + version,
+			"-ldflags", "-X readwillbe/versioninfo.Tag=" + version,
 			"-o", "/readwillbe",
 			"./cmd/readwillbe/",
 		})
@@ -218,8 +218,13 @@ func (m *Readwillbe) Release(
 func (m *Readwillbe) Fmt(source *dagger.Directory) *dagger.Directory {
 	return dag.Container().
 		From("golang:1.26-alpine").
+		WithEnvVariable("GOCACHE", "/go-build-cache").
+		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
+		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
+		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
+		WithExec([]string{"go", "install", "golang.org/x/tools/cmd/goimports@latest"}).
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
-		WithExec([]string{"go", "fmt", "./..."}).
+		WithExec([]string{"sh", "-c", "find . -name '*.go' -not -path './.dagger/internal/*' -not -name '*_templ.go' | xargs goimports -w"}).
 		Directory("/app")
 }

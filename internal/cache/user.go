@@ -1,3 +1,4 @@
+// Package cache provides in-memory caches used by the readwillbe server.
 package cache
 
 import (
@@ -12,6 +13,7 @@ type cachedUser struct {
 	expiresAt time.Time
 }
 
+// UserCache is a thread-safe TTL cache for [model.User] values keyed by user ID.
 type UserCache struct {
 	cache sync.Map
 	ttl   time.Duration
@@ -46,6 +48,7 @@ func (c *UserCache) cleanup() {
 	})
 }
 
+// Get returns the cached user for id if it exists and has not expired.
 func (c *UserCache) Get(id uint) (model.User, bool) {
 	val, ok := c.cache.Load(id)
 	if !ok {
@@ -65,6 +68,7 @@ func (c *UserCache) Get(id uint) (model.User, bool) {
 	return cached.user, true
 }
 
+// Set stores user in the cache with the configured TTL.
 func (c *UserCache) Set(user model.User) {
 	c.cache.Store(user.ID, cachedUser{
 		user:      user,
@@ -72,6 +76,7 @@ func (c *UserCache) Set(user model.User) {
 	})
 }
 
+// Invalidate removes the cache entry for id, if any.
 func (c *UserCache) Invalidate(id uint) {
 	c.cache.Delete(id)
 }

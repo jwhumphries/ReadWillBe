@@ -7,6 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func seedDatabase(db *gorm.DB, fs afero.Fs) error {
+func seedDatabase(_ *gorm.DB, _ afero.Fs) error {
 	return nil
 }

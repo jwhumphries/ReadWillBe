@@ -10,14 +10,15 @@ import (
 	"testing"
 	"time"
 
+	"readwillbe/internal/cache"
+	mw "readwillbe/internal/middleware"
+	"readwillbe/internal/model"
+
 	"github.com/labstack/echo/v5"
 	"github.com/ncruces/go-sqlite3/gormlite"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"readwillbe/internal/cache"
-	mw "readwillbe/internal/middleware"
-	"readwillbe/internal/model"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {

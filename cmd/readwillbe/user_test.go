@@ -6,12 +6,13 @@ import (
 	"strings"
 	"testing"
 
+	"readwillbe/internal/model"
+	"readwillbe/internal/repository"
+
 	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
-	"readwillbe/internal/model"
-	"readwillbe/internal/repository"
 )
 
 func TestGetUserByID(t *testing.T) {
