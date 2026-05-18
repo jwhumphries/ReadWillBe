@@ -223,6 +223,6 @@ func RenderDailyDigestEmail(user model.User, readings []model.Reading, hostname 
 }
 
 // RenderTestEmail returns the HTML and plain-text bodies for the test email.
-func RenderTestEmail(_ string) (html, text string) {
+func RenderTestEmail() (html, text string) {
 	return testEmailHTMLTemplate, testEmailTextTemplate
 }

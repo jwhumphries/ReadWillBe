@@ -225,6 +225,6 @@ func (m *Readwillbe) Fmt(source *dagger.Directory) *dagger.Directory {
 		WithExec([]string{"go", "install", "golang.org/x/tools/cmd/goimports@latest"}).
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
-		WithExec([]string{"sh", "-c", "goimports -w $(find . -name '*.go' -not -path './.dagger/internal/*' -not -name '*_templ.go')"}).
+		WithExec([]string{"sh", "-c", "find . -name '*.go' -not -path './.dagger/internal/*' -not -name '*_templ.go' | xargs goimports -w"}).
 		Directory("/app")
 }

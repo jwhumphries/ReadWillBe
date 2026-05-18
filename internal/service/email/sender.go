@@ -44,8 +44,8 @@ func (s *SMTPService) SendDailyDigest(user model.User, readings []model.Reading,
 }
 
 // SendTestEmail sends a short test message to the given address.
-func (s *SMTPService) SendTestEmail(to, hostname string) error {
-	html, text := RenderTestEmail(hostname)
+func (s *SMTPService) SendTestEmail(to string, _ string) error {
+	html, text := RenderTestEmail()
 	return s.send(to, "Test Email from ReadWillBe", html, text)
 }
 
@@ -104,8 +104,8 @@ func (r *ResendService) SendDailyDigest(user model.User, readings []model.Readin
 }
 
 // SendTestEmail sends a short test message to the given address.
-func (r *ResendService) SendTestEmail(to, hostname string) error {
-	html, text := RenderTestEmail(hostname)
+func (r *ResendService) SendTestEmail(to string, _ string) error {
+	html, text := RenderTestEmail()
 	return r.send(to, "Test Email from ReadWillBe", html, text)
 }
 
