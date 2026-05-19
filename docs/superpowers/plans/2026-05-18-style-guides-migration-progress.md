@@ -11,7 +11,7 @@ Companion to `2026-05-18-style-guides-migration.md`. Update as PRs land.
   - `.golangci.yml` replaced verbatim with style-guides version; `.dagger/.golangci-lint-ignore` removed; `Fmt` and `just fmt` now run `goimports`
   - Revive findings fixed in-place (no `//nolint` directives) across `cmd/readwillbe`, `internal/{cache,middleware,model,repository,service,views}`, `static`
   - Two package renames driven by `var-naming` / package-name rules (see notes below)
-- [x] **PR 3 — TypeScript strict-family flags** — PR pending push
+- [x] **PR 3 — TypeScript strict-family flags** — [#165](https://github.com/jwhumphries/ReadWillBe/pull/165) (open)
 - [ ] **PR 4 — Prettier (config + tree reformat)**
 - [ ] **PR 5 — ESLint (config + fix `any`, `no-floating-promises`, `array-type`)**
 - [ ] **PR 6 — Dagger / CI tidy-ups** (name module, decouple `Build`, document parallel `Check` deviation)
