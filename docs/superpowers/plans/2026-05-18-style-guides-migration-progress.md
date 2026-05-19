@@ -68,6 +68,7 @@ _(None yet.)_
 - Mid-PR additions during code review: added `PrettierFix` Dagger function and rerouted `just format` through Dagger (was `bun run format` direct), per the "Dagger-only" project rule. Plan's PR 4 spec only required `PrettierCheck`; expanding the surface here keeps the host clean of bun invocations.
 
 ### PR 5
+
 - `lint:js` is `eslint assets/js` (NOT `eslint .`). The style-guides flat config only ignores `node_modules/`, `dist/`, `build/`, so `eslint .` would lint the committed `static/js/bundle.js` and produce thousands of vendor-code findings. Side effect: `tools/build.js` and `tools/watch_css.js` are no longer linted (tiny esbuild/Tailwind driver scripts — acceptable).
 - React islands registry in `assets/js/index.tsx` keeps `Record<string, React.ComponentType<any>>` with a narrow `eslint-disable-next-line @typescript-eslint/no-explicit-any` and explanatory comment. Five registered components have required props, so the plan's prescribed `Record<string, unknown>` typing fails TS contravariance. Refactoring registered-component prop types is out of PR 5's scope.
 - One pre-existing Prettier failure on `dev` (missing blank line after `### PR 4` heading in this progress doc) was rolled into the `fix(lint):` commit so `just check` would stay green. Whitespace-only.

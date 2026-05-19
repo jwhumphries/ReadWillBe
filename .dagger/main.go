@@ -55,16 +55,6 @@ func (m *Readwillbe) Build(
 	}
 
 	templSource := m.TemplGenerate(source)
-
-	if _, err := m.lintSource(ctx, templSource); err != nil {
-		return nil, fmt.Errorf("lint failed: %w", err)
-	}
-
-	if _, err := m.testSource(ctx, templSource); err != nil {
-		return nil, fmt.Errorf("test failed: %w", err)
-	}
-
-	// Build CSS and React together
 	assetsDir := m.BuildAssets(source)
 	buildSource := templSource.WithDirectory("static", assetsDir)
 
@@ -155,7 +145,13 @@ func (m *Readwillbe) testSource(ctx context.Context, source *dagger.Directory) (
 		Stdout(ctx)
 }
 
-// Check runs lint, typecheck, test, prettier-check, and eslint-check in parallel within a single Dagger session.
+// Check runs lint, typecheck, test, prettier-check, and eslint-check in
+// parallel within a single Dagger session.
+//
+// This deviates from the style-guides ci/ pattern (which uses separate
+// GitHub Actions jobs per task). The parallel approach is faster locally
+// and in CI because it shares one Dagger engine init and module cache.
+// The trade-off is coarser-grained status reporting in the GitHub UI.
 func (m *Readwillbe) Check(ctx context.Context, source *dagger.Directory) (string, error) {
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -240,6 +236,10 @@ func (m *Readwillbe) Release(
 	// +optional
 	version string,
 ) (*dagger.Container, error) {
+	if _, err := m.Check(ctx, source); err != nil {
+		return nil, fmt.Errorf("release blocked: pre-release checks failed: %w", err)
+	}
+
 	binaryContainer, err := m.Build(ctx, source, git, version)
 	if err != nil {
 		return nil, err
