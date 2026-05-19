@@ -24,16 +24,18 @@ Companion to `2026-05-18-style-guides-migration.md`. Update as PRs land.
 
 ## Issues parked for follow-up (not in any PR)
 
-*(None yet.)*
+_(None yet.)_
 
 ## Notes per PR
 
 ### PR 1
+
 - All work targets `dev` (active integration branch, 59 ahead of `main`).
 - Docker daemon was down on the host, so `just check` was not verified locally — relied on CI.
 - The `fmt` recipe still uses `gofmt`; intentionally deferred to PR 2 where it switches to `goimports`.
 
 ### PR 2
+
 - Two non-obvious revive-driven package renames:
   - `version/` → `versioninfo/` (`package versioninfo`). The original `version` name conflicted with the stdlib `go/version` package (Go 1.22+), and the first attempted replacement (`buildinfo`) collided with stdlib `debug/buildinfo`. `versioninfo` has no stdlib conflict. `-ldflags -X readwillbe/versioninfo.Tag=...` updated in `.dagger/main.go`.
   - `internal/service/csv/` keeps its directory but the package is now `csvservice` (callers import as `csvservice "readwillbe/internal/service/csv"`). The previous `package csv` shadowed the stdlib `encoding/csv` import used inside `parser.go`, which revive's `var-naming` flagged.
@@ -41,6 +43,7 @@ Companion to `2026-05-18-style-guides-migration.md`. Update as PRs land.
 - `just check` passes locally after the renames; CI status to be confirmed on the open PR.
 
 ### PR 3
+
 - Zero source fixes needed: `just typecheck` was already green under the four new strict-family flags and `target: ES2022`. The `assets/js/` tree is small (a handful of islands) and was already clean of implicit returns, switch fallthroughs, unreachable code, and unused labels.
 - `tsconfig.json` intentionally does NOT `extends` `style-guides/tsconfig.base.json`: the repo's browser-bundle settings (`module: esnext`, `moduleResolution: bundler`, `jsx: react-jsx`, `lib: [dom, dom.iterable, esnext]`) diverge from the base. The strict flags were copied inline instead.
 - `just check` green locally on the first try.

@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCsrfToken } from './useCsrf';
-import { toast } from '../components/Toaster';
-import type { Reading, Plan } from '../types';
+import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {getCsrfToken} from './useCsrf';
+import {toast} from '../components/Toaster';
+import type {Reading, Plan} from '../types';
 
 // Fetch wrapper with CSRF token
 async function fetchApi<T>(url: string, init?: RequestInit): Promise<T> {
@@ -24,7 +24,7 @@ async function fetchApi<T>(url: string, init?: RequestInit): Promise<T> {
 export function useNotificationCount() {
   return useQuery({
     queryKey: ['notifications', 'count'],
-    queryFn: () => fetchApi<{ count: number }>('/api/notifications/count'),
+    queryFn: () => fetchApi<{count: number}>('/api/notifications/count'),
     refetchInterval: 60000, // Poll every 60s
   });
 }
@@ -33,7 +33,8 @@ export function useNotificationCount() {
 export function useNotifications() {
   return useQuery({
     queryKey: ['notifications', 'readings'],
-    queryFn: () => fetchApi<{ readings: Reading[] }>('/api/notifications/readings'),
+    queryFn: () =>
+      fetchApi<{readings: Reading[]}>('/api/notifications/readings'),
     enabled: false, // Only fetch on demand
   });
 }
@@ -44,11 +45,11 @@ export function useCompleteReading() {
 
   return useMutation({
     mutationFn: (readingId: number) =>
-      fetchApi(`/reading/${readingId}/complete`, { method: 'POST' }),
+      fetchApi(`/reading/${readingId}/complete`, {method: 'POST'}),
     onSuccess: () => {
       toast.success('Reading completed!');
-      queryClient.invalidateQueries({ queryKey: ['readings'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({queryKey: ['readings']});
+      queryClient.invalidateQueries({queryKey: ['notifications']});
     },
     onError: () => {
       toast.error('Failed to complete reading');
@@ -62,11 +63,11 @@ export function useUncompleteReading() {
 
   return useMutation({
     mutationFn: (readingId: number) =>
-      fetchApi(`/reading/${readingId}/uncomplete`, { method: 'POST' }),
+      fetchApi(`/reading/${readingId}/uncomplete`, {method: 'POST'}),
     onSuccess: () => {
       toast.success('Reading marked as incomplete');
-      queryClient.invalidateQueries({ queryKey: ['readings'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({queryKey: ['readings']});
+      queryClient.invalidateQueries({queryKey: ['notifications']});
     },
     onError: () => {
       toast.error('Failed to undo reading');
@@ -78,7 +79,7 @@ export function useUncompleteReading() {
 export function usePlanStatus(planId: number, enabled: boolean) {
   return useQuery({
     queryKey: ['plan', planId, 'status'],
-    queryFn: () => fetchApi<{ status: string }>(`/api/plans/${planId}/status`),
+    queryFn: () => fetchApi<{status: string}>(`/api/plans/${planId}/status`),
     refetchInterval: enabled ? 5000 : false, // Poll every 5s while processing
     enabled,
   });
@@ -90,10 +91,10 @@ export function useDeletePlan() {
 
   return useMutation({
     mutationFn: (planId: number) =>
-      fetchApi(`/plans/${planId}`, { method: 'DELETE' }),
+      fetchApi(`/plans/${planId}`, {method: 'DELETE'}),
     onSuccess: () => {
       toast.success('Plan deleted');
-      queryClient.invalidateQueries({ queryKey: ['plans'] });
+      queryClient.invalidateQueries({queryKey: ['plans']});
     },
     onError: () => {
       toast.error('Failed to delete plan');
@@ -104,7 +105,10 @@ export function useDeletePlan() {
 // Hook for saving draft
 export function useSaveDraft() {
   return useMutation({
-    mutationFn: async (data: { title?: string; readings?: Array<{ date: string; content: string }> }) => {
+    mutationFn: async (data: {
+      title?: string;
+      readings?: Array<{date: string; content: string}>;
+    }) => {
       const response = await fetch('/plans/draft', {
         method: 'PUT',
         headers: {
@@ -129,7 +133,10 @@ export function useCreateManualPlan() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { title: string; readings: Array<{ date: string; content: string }> }) => {
+    mutationFn: async (data: {
+      title: string;
+      readings: Array<{date: string; content: string}>;
+    }) => {
       const response = await fetch('/plans/create-manual', {
         method: 'POST',
         headers: {
@@ -143,7 +150,7 @@ export function useCreateManualPlan() {
     },
     onSuccess: () => {
       toast.success('Plan created successfully!');
-      queryClient.invalidateQueries({ queryKey: ['plans'] });
+      queryClient.invalidateQueries({queryKey: ['plans']});
     },
     onError: () => {
       toast.error('Failed to create plan');

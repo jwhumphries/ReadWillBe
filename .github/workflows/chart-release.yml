@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "charts/**"
+      - 'charts/**'
 
 jobs:
   release:
@@ -33,12 +33,12 @@ jobs:
         run: |
           # Package the chart
           helm package charts/readwillbe --destination .
-          
+
           # Push to OCI Registry
           # This will create a package at ghcr.io/<owner>/readwillbe:<version>
           # Ensure repository owner is lowercase
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          
+
           for CHART in *.tgz; do
             helm push $CHART oci://ghcr.io/$OWNER/charts
           done

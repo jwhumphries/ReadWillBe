@@ -32,11 +32,12 @@ ReadWillBe is designed to be run via Docker or Kubernetes.
 
 The only strictly required configuration is the **Cookie Secret** 🍪.
 
-| Variable | Description |
-|----------|-------------|
+| Variable                   | Description                    |
+| -------------------------- | ------------------------------ |
 | `READWILLBE_COOKIE_SECRET` | A 32+ character random string. |
 
 Generate one using:
+
 ```bash
 openssl rand -base64 32
 ```
@@ -66,22 +67,22 @@ To stop the dev environment, press `Ctrl+C` in the terminal running `just dev`.
 
 ### Available Recipes
 
-| Command | Description |
-|---------|-------------|
-| `just dev` | Starts the dev environment with hot-reload at http://localhost:7331 |
-| `just test` | Runs tests using Dagger |
-| `just lint` | Runs linters using Dagger |
-| `just typecheck` | Runs TypeScript type checking using Dagger |
-| `just check` | Runs lint + typecheck + test in parallel using Dagger |
-| `just build` | Builds the production Docker image |
-| `just build-assets` | Compiles CSS (Tailwind) and React/TypeScript |
-| `just clean` | Removes generated files and `node_modules` |
-| `just fmt` | Formats Go files |
-| `just templ-fmt`| Formats Templ files |
+| Command             | Description                                                         |
+| ------------------- | ------------------------------------------------------------------- |
+| `just dev`          | Starts the dev environment with hot-reload at http://localhost:7331 |
+| `just test`         | Runs tests using Dagger                                             |
+| `just lint`         | Runs linters using Dagger                                           |
+| `just typecheck`    | Runs TypeScript type checking using Dagger                          |
+| `just check`        | Runs lint + typecheck + test in parallel using Dagger               |
+| `just build`        | Builds the production Docker image                                  |
+| `just build-assets` | Compiles CSS (Tailwind) and React/TypeScript                        |
+| `just clean`        | Removes generated files and `node_modules`                          |
+| `just fmt`          | Formats Go files                                                    |
+| `just templ-fmt`    | Formats Templ files                                                 |
 
 ### Verifying the Build
 
-As shown above, the development environment features hot-reloading. To build a copy of the release image locally (minimized for production with no reloading), run `just build`. 
+As shown above, the development environment features hot-reloading. To build a copy of the release image locally (minimized for production with no reloading), run `just build`.
 
 Set a cookie secret, then run:
 

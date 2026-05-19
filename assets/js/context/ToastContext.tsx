@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+} from 'react';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -16,7 +22,7 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
-export function ToastProvider({ children }: { children: React.ReactNode }) {
+export function ToastProvider({children}: {children: React.ReactNode}) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const idRef = useRef(0);
 
@@ -24,16 +30,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  const addToast = useCallback((message: string, type: ToastType = 'info') => {
-    const id = ++idRef.current;
-    setToasts(prev => [...prev, { id, message, type }]);
+  const addToast = useCallback(
+    (message: string, type: ToastType = 'info') => {
+      const id = ++idRef.current;
+      setToasts(prev => [...prev, {id, message, type}]);
 
-    // Auto-dismiss after 3 seconds
-    setTimeout(() => removeToast(id), 3000);
-  }, [removeToast]);
+      // Auto-dismiss after 3 seconds
+      setTimeout(() => removeToast(id), 3000);
+    },
+    [removeToast],
+  );
 
   return (
-    <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
+    <ToastContext.Provider value={{toasts, addToast, removeToast}}>
       {children}
     </ToastContext.Provider>
   );
@@ -50,15 +59,23 @@ export function useToast() {
 // Convenience methods matching Sonner's API
 export const toast = {
   success: (message: string) => {
-    window.dispatchEvent(new CustomEvent('toast', { detail: { message, type: 'success' } }));
+    window.dispatchEvent(
+      new CustomEvent('toast', {detail: {message, type: 'success'}}),
+    );
   },
   error: (message: string) => {
-    window.dispatchEvent(new CustomEvent('toast', { detail: { message, type: 'error' } }));
+    window.dispatchEvent(
+      new CustomEvent('toast', {detail: {message, type: 'error'}}),
+    );
   },
   info: (message: string) => {
-    window.dispatchEvent(new CustomEvent('toast', { detail: { message, type: 'info' } }));
+    window.dispatchEvent(
+      new CustomEvent('toast', {detail: {message, type: 'info'}}),
+    );
   },
   warning: (message: string) => {
-    window.dispatchEvent(new CustomEvent('toast', { detail: { message, type: 'warning' } }));
+    window.dispatchEvent(
+      new CustomEvent('toast', {detail: {message, type: 'warning'}}),
+    );
   },
 };

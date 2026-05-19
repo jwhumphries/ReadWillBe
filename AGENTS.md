@@ -26,6 +26,7 @@ task templ-fmt      # Format Templ files
 ### Running a Single Test
 
 Tests run inside Dagger containers. To run a specific test, modify `.dagger/main.go` temporarily or use the full test command:
+
 ```bash
 dagger -m .dagger call test --source=.
 ```
@@ -33,6 +34,7 @@ dagger -m .dagger call test --source=.
 ## Architecture Overview
 
 ### Tech Stack
+
 - **Backend**: Go 1.25, Echo framework, SQLite (via go-sqlite3/gorm)
 - **Frontend**: Templ (Go HTML templates) + React 19 islands + Tailwind CSS v4 + DaisyUI 5
 - **Build**: Dagger CI/CD, Docker, Bun (for JS/CSS tooling)
@@ -57,6 +59,7 @@ React components are embedded in Templ templates using a registry pattern:
 The React registry (`assets/js/index.tsx`) maps component names to implementations. Components mount on `DOMContentLoaded` by finding `[data-react-component]` elements.
 
 To add a new React component:
+
 1. Create component in `assets/js/components/`
 2. Register in `assets/js/index.tsx` components map
 3. Use `@React("ComponentName", props)` in Templ templates
@@ -72,6 +75,7 @@ Pre-built DaisyUI components live in `internal/views/components/` as `.templ` fi
 ### Data Models
 
 Core types in `types/`:
+
 - `User`: Authentication and user settings
 - `Plan`: A collection of readings (e.g., "Bible Reading Plan 2025")
 - `Reading`: Individual reading entries with date, content, and completion status
@@ -82,6 +86,7 @@ Readings support three date types: `day`, `week`, `month` - determining when the
 ### Environment Configuration
 
 All config via `READWILLBE_*` environment variables (loaded through Viper):
+
 - `READWILLBE_COOKIE_SECRET` (required, 32+ chars)
 - `READWILLBE_DB_PATH` - SQLite database path
 - `READWILLBE_PORT` - Server port (default :8080)
@@ -103,6 +108,7 @@ static/             # Compiled assets (CSS, JS bundles) - generated, don't edit
 ### Development Environment
 
 `task dev-start` runs a Docker container with:
+
 - Air for Go hot-reload
 - Templ proxy on port 7331 (use this in browser)
 - Bun watchers for CSS and JS changes

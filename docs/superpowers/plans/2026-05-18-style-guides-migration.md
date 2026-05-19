@@ -34,15 +34,15 @@ These choices were settled in the planning conversation and are not revisited in
 
 ## Phase / PR Map
 
-| PR | Title | Touches | Risk |
-|----|---|---|---|
-| 1 | Replace Task with just | `justfile`, delete `Taskfile.yml`, dev script, GH workflow refs, README | Low |
-| 2 | Adopt style-guide golangci.yml | `.golangci.yml`, `.dagger/.golangci-lint-ignore`, Dagger `Fmt`, Go source | Medium (lint debt) |
-| 3 | TypeScript strict-family flags | `tsconfig.json`, any TS files that surface errors | Low |
-| 4 | Prettier | `.prettierrc.json`, `package.json`, Dagger `PrettierCheck`, reformat | Low (mechanical) |
-| 5 | ESLint | `eslint.config.js`, `package.json`, Dagger `Eslint`, TS source fixes | Medium (rule debt) |
-| 6 | Dagger / CI tidy-ups | `dagger.json`, `.dagger/main.go`, optional workflow tweaks | Low |
-| 7 | Documentation consolidation | `CLAUDE.md`, `AGENTS.md`, `README.md`, `docs/` | Low |
+| PR  | Title                          | Touches                                                                   | Risk               |
+| --- | ------------------------------ | ------------------------------------------------------------------------- | ------------------ |
+| 1   | Replace Task with just         | `justfile`, delete `Taskfile.yml`, dev script, GH workflow refs, README   | Low                |
+| 2   | Adopt style-guide golangci.yml | `.golangci.yml`, `.dagger/.golangci-lint-ignore`, Dagger `Fmt`, Go source | Medium (lint debt) |
+| 3   | TypeScript strict-family flags | `tsconfig.json`, any TS files that surface errors                         | Low                |
+| 4   | Prettier                       | `.prettierrc.json`, `package.json`, Dagger `PrettierCheck`, reformat      | Low (mechanical)   |
+| 5   | ESLint                         | `eslint.config.js`, `package.json`, Dagger `Eslint`, TS source fixes      | Medium (rule debt) |
+| 6   | Dagger / CI tidy-ups           | `dagger.json`, `.dagger/main.go`, optional workflow tweaks                | Low                |
+| 7   | Documentation consolidation    | `CLAUDE.md`, `AGENTS.md`, `README.md`, `docs/`                            | Low                |
 
 Each PR ends with `dagger -m .dagger call check --source=.` green and CI green.
 
@@ -202,6 +202,7 @@ Expected: "All checks passed".
 
 Run: `cd /Users/john/code/git/ReadWillBe && grep -rEn '\btask\b' --include='*.md' --include='*.yml' --include='*.yaml' --include='*.sh' --include='Dockerfile' --include='*.json' . | grep -v node_modules | grep -v static | grep -v .git/ | grep -v .dagger/internal`
 Expected: a list of hits. Triage:
+
 - Files in `CLAUDE.md` / `AGENTS.md` — leave for PR 7 (note in commit message).
 - `README.md` — fix in this PR.
 - `.github/workflows/*.yml` — should already use `dagger` directly, but verify.
@@ -283,7 +284,7 @@ EOF
 Read `/Users/john/code/git/style-guides/.golangci.yml` (already known from audit). Confirm the canonical content is:
 
 ```yaml
-version: "2"
+version: '2'
 
 run:
   timeout: 5m
@@ -329,6 +330,7 @@ Run: `rm /Users/john/code/git/ReadWillBe/.dagger/.golangci-lint-ignore`
 
 Run: `cd /Users/john/code/git/ReadWillBe && dagger -m .dagger call lint --source=. 2>&1 | tee /tmp/golangci-findings.txt`
 Expected: a list of findings. Common categories to expect:
+
 - `revive`: exported var/func/type without comment, package comment missing, var naming (Id → ID, Url → URL, etc.)
 - `goimports`: import ordering and grouping
 - `errcheck`: previously-excluded paths (e.g. `_test.go` errcheck) now flag
@@ -405,6 +407,7 @@ git commit -m "chore: apply goimports formatting"
 ### Task 2.6: Address `revive` findings, file by file
 
 `revive` will surface findings like:
+
 - `package-comments`: missing package comment
 - `exported`: exported types/funcs/vars need comments starting with the name
 - `var-naming`: `Id` → `ID`, `Url` → `URL`, `Http` → `HTTP`
@@ -965,7 +968,9 @@ And:
 const props = propsJson ? JSON.parse(propsJson) : {};
 
 // After
-const props: ReactProps = propsJson ? (JSON.parse(propsJson) as ReactProps) : {};
+const props: ReactProps = propsJson
+  ? (JSON.parse(propsJson) as ReactProps)
+  : {};
 ```
 
 This is the minimum-cost fix. A deeper refactor (per-component prop types) is out of scope.
@@ -977,6 +982,7 @@ For each remaining `any`, prefer `unknown` (then narrow at use site) or a define
 - [ ] **Step 5.4.4: Fix no-floating-promises findings**
 
 For each unawaited promise, either:
+
 - `await` it (if inside an async function),
 - `void` it explicitly: `void doAsync()` — accepted by the rule and signals intent, or
 - `.catch(err => ...)` it.
@@ -1001,6 +1007,7 @@ Expected: "All checks passed".
 
 Run: `cd /Users/john/code/git/ReadWillBe && just dev`
 Manually exercise: open http://localhost:7331, sign in (seeded user), confirm:
+
 - Dashboard renders, DashboardReadings React island mounts.
 - ConfirmModal works on a plan deletion or similar destructive action.
 - DatePicker works on plan editor.
@@ -1242,7 +1249,7 @@ Replace `/Users/john/code/git/ReadWillBe/AGENTS.md` with content that accurately
 
 A draft template (fill in the gaps from the current accurate state):
 
-```markdown
+````markdown
 # AGENTS.md
 
 This file provides guidance to AI Agents when working with code in this repository.
@@ -1271,10 +1278,12 @@ just templ-fmt        # Format Templ files
 just format           # Format JS/TS/JSON/CSS with Prettier
 just format-check     # Verify Prettier formatting
 ```
+````
 
 ## Architecture Overview
 
 ### Tech Stack
+
 - Backend: Go 1.26, Echo, SQLite (go-sqlite3/gormlite)
 - Frontend: Templ + React 19 islands + Tailwind CSS v4 + DaisyUI 5
 - Build: Dagger CI/CD, Docker, Bun
@@ -1282,25 +1291,32 @@ just format-check     # Verify Prettier formatting
 - Deployment: Kubernetes / Helm in `charts/readwillbe/`
 
 ### Request Flow
+
 1. Echo router (`cmd/readwillbe/server.go`) handles HTTP requests
 2. Handlers render Templ templates (`internal/views/*.templ`) producing HTML
 3. React components mount as "islands" via `@React("Name", props)`
 4. DaisyUI components in `internal/views/components/` provide reusable UI primitives (gsi-generated)
 
 ### React Islands Pattern
+
 React components are embedded in Templ via a registry pattern. To add one:
+
 1. Create component in `assets/js/components/`
 2. Register it in `assets/js/index.tsx`
 3. Mount it in a `.templ` file: `@React("ComponentName", map[string]interface{}{"prop": value})`
 
 ### Data Models
+
 `internal/model/`:
+
 - `User`, `Plan`, `Reading`, `PushSubscription`
 
 ### Configuration
+
 `READWILLBE_*` environment variables via Viper. Required: `READWILLBE_COOKIE_SECRET` (32+ chars).
 
 ### Key Directories
+
 ```
 cmd/readwillbe/                # Main application, HTTP handlers
 cmd/dev/                       # Dev tooling
@@ -1316,10 +1332,13 @@ static/                        # Generated assets (don't edit by hand)
 ```
 
 ### Style guides
+
 This repo follows `/Users/john/code/git/style-guides/`. Deviations:
+
 - CI uses a parallel `Check` Dagger function instead of separate jobs (faster).
 - `tsconfig.json` does not `extends` `tsconfig.base.json` (browser bundle target).
-```
+
+````
 
 - [ ] **Step 7.2.2: Reduce CLAUDE.md to a pointer**
 
@@ -1329,7 +1348,7 @@ Replace `/Users/john/code/git/ReadWillBe/CLAUDE.md` with a one-liner pointer:
 # CLAUDE.md
 
 See [AGENTS.md](AGENTS.md) for guidance to AI agents working in this repo.
-```
+````
 
 - [ ] **Step 7.2.3: Update README.md command references**
 
@@ -1393,6 +1412,7 @@ git checkout main
 git pull
 just check
 ```
+
 Expected: "All checks passed".
 
 - [ ] **Step F2: Diff config files against style-guides**

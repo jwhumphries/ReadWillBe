@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, AlertTriangle, Calendar, BookOpen } from 'lucide-react';
-import { getCsrfToken } from '../hooks/useCsrf';
-import { toast } from './Toaster';
+import React, {useState} from 'react';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {Check, AlertTriangle, Calendar, BookOpen} from 'lucide-react';
+import {getCsrfToken} from '../hooks/useCsrf';
+import {toast} from './Toaster';
 
 interface Reading {
   id: number;
@@ -59,14 +59,14 @@ export const DashboardReadings: React.FC<DashboardReadingsProps> = ({
               .filter(r => r.id !== readingId)
               .some(r => r.isOverdue),
           }))
-          .filter(group => group.readings.length > 0)
+          .filter(group => group.readings.length > 0),
       );
       toast.success('Reading completed!');
 
       // Trigger HTMX to refresh stats
       document.body.dispatchEvent(new Event('stats-updated'));
 
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({queryKey: ['notifications']});
     },
     onError: () => {
       toast.error('Failed to complete reading');
@@ -82,8 +82,13 @@ export const DashboardReadings: React.FC<DashboardReadingsProps> = ({
               <BookOpen className="w-full h-full" aria-hidden="true" />
             </div>
             <h3 className="text-2xl font-bold">All caught up!</h3>
-            <p className="py-6">No readings scheduled for today. You can relax or check your reading plans.</p>
-            <a href="/plans" className="btn btn-primary">View Plans</a>
+            <p className="py-6">
+              No readings scheduled for today. You can relax or check your
+              reading plans.
+            </p>
+            <a href="/plans" className="btn btn-primary">
+              View Plans
+            </a>
           </div>
         </div>
       </div>
@@ -92,7 +97,7 @@ export const DashboardReadings: React.FC<DashboardReadingsProps> = ({
 
   return (
     <div className="space-y-4">
-      {planGroups.map((group) => (
+      {planGroups.map(group => (
         <div
           key={group.plan.id}
           className={`card bg-base-200 shadow-xl ${group.hasOverdue ? 'card-border border-error' : ''}`}
@@ -102,23 +107,37 @@ export const DashboardReadings: React.FC<DashboardReadingsProps> = ({
               <h3 className="card-title flex-1">{group.plan.title}</h3>
               {group.hasOverdue && (
                 <div className="badge badge-error gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="inline-block h-4 w-4 stroke-current" fill="none" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="inline-block h-4 w-4 stroke-current"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                   Overdue
                 </div>
               )}
             </div>
             <div className="divide-y divide-base-300">
-              {group.readings.map((reading) => {
-                const isLoading = mutation.isPending && mutation.variables === reading.id;
+              {group.readings.map(reading => {
+                const isLoading =
+                  mutation.isPending && mutation.variables === reading.id;
 
                 return (
                   <div key={reading.id} className="p-6">
                     <div className="flex items-start gap-3">
                       {reading.isOverdue && (
                         <div className="text-error mt-1" title="Overdue">
-                          <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+                          <AlertTriangle
+                            className="h-5 w-5"
+                            aria-hidden="true"
+                          />
                         </div>
                       )}
                       <div className="flex-1">
