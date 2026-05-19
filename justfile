@@ -74,6 +74,14 @@ fmt:
 templ-fmt:
     for file in $(find ./internal/views -type f -name '*.templ'); do templ fmt "$file"; done
 
+# Format JS/TS/JSON/CSS with Prettier
+format:
+    bun run format
+
+# Check Prettier formatting (used by CI)
+format-check:
+    dagger -m .dagger call prettier-check --source=.
+
 # Remove build artifacts and node_modules
 clean:
     rm -rf ./tmp ./bin ./node_modules

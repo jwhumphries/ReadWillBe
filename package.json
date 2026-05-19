@@ -10,7 +10,9 @@
     "build:js": "node tools/build.js",
     "watch:js": "node tools/build.js --watch",
     "watch:css": "node tools/watch_css.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -30,6 +32,7 @@
     "daisyui": "5.5.19",
     "esbuild": "0.28.0",
     "lightningcss": "1.32.0",
+    "prettier": "3.4.2",
     "typescript": "6.0.3",
     "zod": "4.4.3",
     "@hookform/resolvers": "5.2.2"

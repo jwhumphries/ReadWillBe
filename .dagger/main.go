@@ -102,6 +102,17 @@ func (m *Readwillbe) Typecheck(ctx context.Context, source *dagger.Directory) (s
 		Stdout(ctx)
 }
 
+func (m *Readwillbe) PrettierCheck(ctx context.Context, source *dagger.Directory) (string, error) {
+	return dag.Container().
+		From("ghcr.io/jwhumphries/frontend:latest").
+		WithMountedCache("/root/.bun/install/cache", dag.CacheVolume("bun-cache")).
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"bun", "install"}).
+		WithExec([]string{"bun", "run", "format:check"}).
+		Stdout(ctx)
+}
+
 func (m *Readwillbe) Test(ctx context.Context, source *dagger.Directory) (string, error) {
 	templSource := m.TemplGenerate(source)
 	return m.testSource(ctx, templSource)
@@ -134,6 +145,10 @@ func (m *Readwillbe) Check(ctx context.Context, source *dagger.Directory) (strin
 	})
 	g.Go(func() error {
 		_, err := m.Test(ctx, source)
+		return err
+	})
+	g.Go(func() error {
+		_, err := m.PrettierCheck(ctx, source)
 		return err
 	})
 
