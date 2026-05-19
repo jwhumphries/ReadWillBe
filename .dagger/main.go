@@ -125,6 +125,18 @@ func (m *Readwillbe) PrettierFix(source *dagger.Directory) *dagger.Directory {
 		Directory("/app")
 }
 
+// EslintCheck runs `eslint .` in the frontend container.
+func (m *Readwillbe) EslintCheck(ctx context.Context, source *dagger.Directory) (string, error) {
+	return dag.Container().
+		From("ghcr.io/jwhumphries/frontend:latest").
+		WithMountedCache("/root/.bun/install/cache", dag.CacheVolume("bun-cache")).
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"bun", "install"}).
+		WithExec([]string{"bun", "run", "lint:js"}).
+		Stdout(ctx)
+}
+
 func (m *Readwillbe) Test(ctx context.Context, source *dagger.Directory) (string, error) {
 	templSource := m.TemplGenerate(source)
 	return m.testSource(ctx, templSource)
@@ -143,7 +155,7 @@ func (m *Readwillbe) testSource(ctx context.Context, source *dagger.Directory) (
 		Stdout(ctx)
 }
 
-// Check runs lint, typecheck, test, and prettier-check in parallel within a single Dagger session.
+// Check runs lint, typecheck, test, prettier-check, and eslint-check in parallel within a single Dagger session.
 func (m *Readwillbe) Check(ctx context.Context, source *dagger.Directory) (string, error) {
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -161,6 +173,10 @@ func (m *Readwillbe) Check(ctx context.Context, source *dagger.Directory) (strin
 	})
 	g.Go(func() error {
 		_, err := m.PrettierCheck(ctx, source)
+		return err
+	})
+	g.Go(func() error {
+		_, err := m.EslintCheck(ctx, source)
 		return err
 	})
 
