@@ -1346,7 +1346,7 @@ Replace `/Users/john/code/git/ReadWillBe/CLAUDE.md` with a one-liner pointer:
 # CLAUDE.md
 
 See [AGENTS.md](AGENTS.md) for guidance to AI agents working in this repo.
-````
+```
 
 - [ ] **Step 7.2.3: Update README.md command references**
 

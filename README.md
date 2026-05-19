@@ -67,12 +67,12 @@ To stop the dev environment, press `Ctrl+C` in the terminal running `just dev`.
 
 ### Available Recipes
 
-| Command             | Description                                                         |
-| ------------------- | ------------------------------------------------------------------- |
-| `just dev`          | Starts the dev environment with hot-reload at http://localhost:7331 |
-| `just test`         | Runs tests using Dagger                                             |
-| `just lint`         | Runs linters using Dagger                                           |
-| `just typecheck`    | Runs TypeScript type checking using Dagger                          |
+| Command             | Description                                                            |
+| ------------------- | ---------------------------------------------------------------------- |
+| `just dev`          | Starts the dev environment with hot-reload at http://localhost:7331    |
+| `just test`         | Runs tests using Dagger                                                |
+| `just lint`         | Runs linters using Dagger                                              |
+| `just typecheck`    | Runs TypeScript type checking using Dagger                             |
 | `just check`        | Runs lint + typecheck + test + prettier-check in parallel using Dagger |
 | `just build`        | Builds the production Docker image                                     |
 | `just build-assets` | Compiles CSS (Tailwind) and React/TypeScript                           |

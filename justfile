@@ -76,7 +76,7 @@ templ-fmt:
 
 # Format JS/TS/JSON/CSS with Prettier
 format:
-    bun run format
+    dagger -m .dagger call prettier-fix --source=. export --path .
 
 # Check Prettier formatting (used by CI)
 format-check:

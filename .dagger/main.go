@@ -113,6 +113,18 @@ func (m *Readwillbe) PrettierCheck(ctx context.Context, source *dagger.Directory
 		Stdout(ctx)
 }
 
+// PrettierFix runs `prettier --write .` in the frontend container and exports the rewritten tree.
+func (m *Readwillbe) PrettierFix(source *dagger.Directory) *dagger.Directory {
+	return dag.Container().
+		From("ghcr.io/jwhumphries/frontend:latest").
+		WithMountedCache("/root/.bun/install/cache", dag.CacheVolume("bun-cache")).
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"bun", "install"}).
+		WithExec([]string{"bun", "run", "format"}).
+		Directory("/app")
+}
+
 func (m *Readwillbe) Test(ctx context.Context, source *dagger.Directory) (string, error) {
 	templSource := m.TemplGenerate(source)
 	return m.testSource(ctx, templSource)
