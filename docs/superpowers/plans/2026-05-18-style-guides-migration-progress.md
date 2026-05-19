@@ -11,7 +11,7 @@ Companion to `2026-05-18-style-guides-migration.md`. Update as PRs land.
   - `.golangci.yml` replaced verbatim with style-guides version; `.dagger/.golangci-lint-ignore` removed; `Fmt` and `just fmt` now run `goimports`
   - Revive findings fixed in-place (no `//nolint` directives) across `cmd/readwillbe`, `internal/{cache,middleware,model,repository,service,views}`, `static`
   - Two package renames driven by `var-naming` / package-name rules (see notes below)
-- [ ] **PR 3 — TypeScript strict-family flags**
+- [x] **PR 3 — TypeScript strict-family flags** — PR pending push
 - [ ] **PR 4 — Prettier (config + tree reformat)**
 - [ ] **PR 5 — ESLint (config + fix `any`, `no-floating-promises`, `array-type`)**
 - [ ] **PR 6 — Dagger / CI tidy-ups** (name module, decouple `Build`, document parallel `Check` deviation)
@@ -39,3 +39,8 @@ Companion to `2026-05-18-style-guides-migration.md`. Update as PRs land.
   - `internal/service/csv/` keeps its directory but the package is now `csvservice` (callers import as `csvservice "readwillbe/internal/service/csv"`). The previous `package csv` shadowed the stdlib `encoding/csv` import used inside `parser.go`, which revive's `var-naming` flagged.
 - Revive surfaced ~40 findings (mostly `package-comments`, `exported`, one `unused-parameter`). All fixed in-place — no exclusions, no `//nolint` directives.
 - `just check` passes locally after the renames; CI status to be confirmed on the open PR.
+
+### PR 3
+- Zero source fixes needed: `just typecheck` was already green under the four new strict-family flags and `target: ES2022`. The `assets/js/` tree is small (a handful of islands) and was already clean of implicit returns, switch fallthroughs, unreachable code, and unused labels.
+- `tsconfig.json` intentionally does NOT `extends` `style-guides/tsconfig.base.json`: the repo's browser-bundle settings (`module: esnext`, `moduleResolution: bundler`, `jsx: react-jsx`, `lib: [dom, dom.iterable, esnext]`) diverge from the base. The strict flags were copied inline instead.
+- `just check` green locally on the first try.
