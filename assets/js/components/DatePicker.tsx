@@ -30,10 +30,11 @@ function formatDisplayValue(date: Date, dateType: DateType): string {
 // Format the date for form submission (matches Go parseDate expectations)
 function formatForSubmission(date: Date, dateType: DateType): string {
   switch (dateType) {
-    case 'week':
+    case 'week': {
       const week = getISOWeek(date);
       const year = getYear(date);
       return `${year}-W${week.toString().padStart(2, '0')}`;
+    }
     case 'month':
       return format(date, 'MMMM yyyy');
     case 'day':

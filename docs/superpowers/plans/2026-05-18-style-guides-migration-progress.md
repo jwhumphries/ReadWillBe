@@ -55,6 +55,7 @@ _(None yet.)_
 - `just check` green locally on the first try.
 
 ### PR 4
+
 - Recipe names are `format` / `format-check` (per the plan), NOT `prettier-fix` / `prettier-check` as the current CLAUDE.md claims — CLAUDE.md fix is deferred to PR 7 along with AGENTS.md.
 - Prettier reformatted further than `assets/`: also `.github/`, `.golangci.yml`, `.jules/**`, `AGENTS.md`, `README.md`, `docs/**`, `input.css`, `readwillbe.yaml`, `tools/**`, and even the migration plan docs themselves. Plan permitted this ("Prettier's default scope is correct").
 - `docs/docker.md` had a malformed code fence inside a list item that made Prettier non-idempotent (rewrite → re-flag). Fixed structurally (re-indented the fence under its list item; no prose changes) and rolled into the `style:` reformat commit.

@@ -39,9 +39,16 @@ dev: _build-dev
         {{DEV_IMAGE}} \
         sh -c "bun install && /develop.sh"
 
-# Run linter (Go via golangci-lint)
-lint:
+# Run Go linter
+lint-go:
     dagger -m .dagger call lint --source=.
+
+# Run JS/TS linter
+lint-js:
+    dagger -m .dagger call eslint-check --source=.
+
+# Run all linters (Go + JS/TS)
+lint: lint-go lint-js
 
 # Run Go tests
 test:

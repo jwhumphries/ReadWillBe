@@ -15,7 +15,11 @@ import {DatePicker} from './components/DatePicker';
 import {ErrorBoundary} from './components/ErrorBoundary';
 import {DashboardReadings} from './components/DashboardReadings';
 
-// Component registry - maps component names to React components
+// Component registry - maps component names to React components.
+// Each component has its own props type; the registry must accept any of them.
+// `any` is genuinely necessary here for the islands pattern: components are
+// looked up by name and spread runtime-parsed JSON props at mount time.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const components: Record<string, React.ComponentType<any>> = {
   PlanEditor: PlanEditor,
   NotificationBell: NotificationBell,

@@ -58,7 +58,7 @@ export const ReadingList: React.FC<ReadingListProps> = ({
           ? 'Reading completed!'
           : 'Reading marked as incomplete',
       );
-      queryClient.invalidateQueries({queryKey: ['notifications']});
+      void queryClient.invalidateQueries({queryKey: ['notifications']});
     },
     onError: () => {
       toast.error(`Failed to ${actionType} reading`);
