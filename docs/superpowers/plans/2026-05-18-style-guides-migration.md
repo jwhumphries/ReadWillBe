@@ -1284,7 +1284,7 @@ just format-check     # Verify Prettier formatting
 
 ### Tech Stack
 
-- Backend: Go 1.26, Echo, SQLite (go-sqlite3/gormlite)
+- Backend: Go 1.25, Echo, SQLite (go-sqlite3/gorm)
 - Frontend: Templ + React 19 islands + Tailwind CSS v4 + DaisyUI 5
 - Build: Dagger CI/CD, Docker, Bun
 - Runner: just
@@ -1337,8 +1337,6 @@ This repo follows `/Users/john/code/git/style-guides/`. Deviations:
 
 - CI uses a parallel `Check` Dagger function instead of separate jobs (faster).
 - `tsconfig.json` does not `extends` `tsconfig.base.json` (browser bundle target).
-
-````
 
 - [ ] **Step 7.2.2: Reduce CLAUDE.md to a pointer**
 

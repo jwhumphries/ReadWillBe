@@ -73,12 +73,14 @@ To stop the dev environment, press `Ctrl+C` in the terminal running `just dev`.
 | `just test`         | Runs tests using Dagger                                             |
 | `just lint`         | Runs linters using Dagger                                           |
 | `just typecheck`    | Runs TypeScript type checking using Dagger                          |
-| `just check`        | Runs lint + typecheck + test in parallel using Dagger               |
-| `just build`        | Builds the production Docker image                                  |
-| `just build-assets` | Compiles CSS (Tailwind) and React/TypeScript                        |
-| `just clean`        | Removes generated files and `node_modules`                          |
-| `just fmt`          | Formats Go files                                                    |
-| `just templ-fmt`    | Formats Templ files                                                 |
+| `just check`        | Runs lint + typecheck + test + prettier-check in parallel using Dagger |
+| `just build`        | Builds the production Docker image                                     |
+| `just build-assets` | Compiles CSS (Tailwind) and React/TypeScript                           |
+| `just clean`        | Removes generated files and `node_modules`                             |
+| `just fmt`          | Formats Go files                                                       |
+| `just templ-fmt`    | Formats Templ files                                                    |
+| `just format`       | Formats JS/TS/JSON/CSS with Prettier                                   |
+| `just format-check` | Verifies Prettier formatting (read-only)                               |
 
 ### Verifying the Build
 

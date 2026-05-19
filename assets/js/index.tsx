@@ -50,7 +50,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (componentName && components[componentName]) {
       const Component = components[componentName];
-      const props = propsJson ? JSON.parse(propsJson) : {};
+      let props: Record<string, unknown> = {};
+      if (propsJson) {
+        try {
+          props = JSON.parse(propsJson);
+        } catch {
+          props = {};
+        }
+      }
       const root = createRoot(mount);
       root.render(
         <ToastProvider>

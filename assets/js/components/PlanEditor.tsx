@@ -19,10 +19,11 @@ interface PlanEditorProps {
 // Format date for storage based on type (matches Go parseDate expectations)
 function formatDateForStorage(date: Date, dateType: DateType): string {
   switch (dateType) {
-    case 'week':
+    case 'week': {
       const week = getISOWeek(date);
       const year = getYear(date);
       return `${year}-W${week.toString().padStart(2, '0')}`;
+    }
     case 'month':
       return format(date, 'MMMM yyyy');
     case 'day':
