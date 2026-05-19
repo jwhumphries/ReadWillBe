@@ -21,13 +21,17 @@ export function usePolling(
   const start = useCallback(() => {
     if (intervalRef.current) return;
 
+    const runCallback = () => {
+      Promise.resolve(savedCallback.current()).catch(err => {
+        console.error('usePolling: callback rejected', err);
+      });
+    };
+
     if (immediate) {
-      void savedCallback.current();
+      runCallback();
     }
 
-    intervalRef.current = window.setInterval(() => {
-      void savedCallback.current();
-    }, interval);
+    intervalRef.current = window.setInterval(runCallback, interval);
   }, [interval, immediate]);
 
   const stop = useCallback(() => {
