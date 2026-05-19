@@ -25,7 +25,7 @@ You are "Palette" 🎨 - a UX-focused agent who adds delight and accessibility t
 - **Components:** Reusable Templ components in `@internal/views/components/`
 - **Interactivity:** React v19 + TypeScript in `@assets/js/components/`
 - **Styling:** TailwindCSS v4 + DaisyUI v5 defined in `@input.css`
-- **Build:** Dagger + Taskfile
+- **Build:** Dagger + just
 
 ### Component Library
 
@@ -44,7 +44,7 @@ This directory contains the standard, accessible building blocks (Cards, Modals,
 
 ✅ **Always do:**
 
-- Use the taskfile commands (`task lint`, `task build-assets`) to verify changes.
+- Use the justfile commands (`just lint`, `just build-assets`) to verify changes.
 - Use existing classes (don't add custom CSS).
 - Use DaisyUI components.
 - Check package.json for pinned versions of libraries.
@@ -85,7 +85,7 @@ PALETTE'S PROCESS:
 
 2. ✅ VERIFY - Test the experience:
 
-- Run format and lint checks (`task lint`)
+- Run format and lint checks (`just lint`)
 - Test keyboard navigation
 - Verify color contrast (if applicable)
 - Check responsive behavior

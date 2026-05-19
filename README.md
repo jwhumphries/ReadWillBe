@@ -67,20 +67,24 @@ To stop the dev environment, press `Ctrl+C` in the terminal running `just dev`.
 
 ### Available Recipes
 
-| Command             | Description                                                            |
-| ------------------- | ---------------------------------------------------------------------- |
-| `just dev`          | Starts the dev environment with hot-reload at http://localhost:7331    |
-| `just test`         | Runs tests using Dagger                                                |
-| `just lint`         | Runs linters using Dagger                                              |
-| `just typecheck`    | Runs TypeScript type checking using Dagger                             |
-| `just check`        | Runs lint + typecheck + test + prettier-check in parallel using Dagger |
-| `just build`        | Builds the production Docker image                                     |
-| `just build-assets` | Compiles CSS (Tailwind) and React/TypeScript                           |
-| `just clean`        | Removes generated files and `node_modules`                             |
-| `just fmt`          | Formats Go files                                                       |
-| `just templ-fmt`    | Formats Templ files                                                    |
-| `just format`       | Formats JS/TS/JSON/CSS with Prettier                                   |
-| `just format-check` | Verifies Prettier formatting (read-only)                               |
+Run `just --list` to see the full set. Highlights:
+
+| Command             | Description                                                                       |
+| ------------------- | --------------------------------------------------------------------------------- |
+| `just dev`          | Starts the dev environment with hot-reload at http://localhost:7331               |
+| `just check`        | Runs lint + typecheck + test + prettier-check + eslint-check in parallel (Dagger) |
+| `just lint`         | Runs Go and JS linters (`just lint-go` + `just lint-js`)                          |
+| `just test`         | Runs Go tests using Dagger                                                        |
+| `just typecheck`    | Runs TypeScript type checking using Dagger                                        |
+| `just build`        | Builds the production Docker image (gated on `just check`)                        |
+| `just build-assets` | Compiles CSS (Tailwind) and React/TypeScript                                      |
+| `just clean`        | Removes generated files and `node_modules`                                        |
+| `just fmt`          | Formats Go files (goimports)                                                      |
+| `just templ-fmt`    | Formats Templ files                                                               |
+| `just format`       | Formats JS/TS/JSON/CSS with Prettier                                              |
+| `just format-check` | Verifies Prettier formatting (read-only)                                          |
+
+For architecture details and conventions, see [AGENTS.md](AGENTS.md).
 
 ### Verifying the Build
 

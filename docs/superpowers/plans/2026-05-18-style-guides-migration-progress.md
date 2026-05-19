@@ -83,6 +83,7 @@ _(None yet.)_
 - Post-merge follow-up (CodeRabbit feedback): replaced `void savedCallback.current()` in `usePolling` with `Promise.resolve(...).catch(console.error)` extracted to a local `runCallback`. Per-tick polling failures would otherwise fire as unhandled rejections with no diagnostic trail. Not applied to one-shot `void` sites (`useApi`, `DashboardReadings`, `NotificationBell`, `ReadingList`) — the per-tick failure-mode argument doesn't apply.
 
 ### PR 6
+
 - `dagger develop` bumped `engineVersion` from `v0.20.1` → `v0.20.8` to match the local Dagger CLI. `.dagger/go.mod` / `.dagger/go.sum` regen tracked the engine change (no breaking Go SDK API changes in this range — `v0.20.6` reorganised the generated client code but consumers are unaffected). `dagger.io/dagger` resolves to a pseudo-version (`v0.20.6-0.20260415192040-7058e9313c72`) — that's what `dagger develop` produced and it locks to a specific SHA, so reproducible.
 - `Build` is now pure-build (TemplGenerate → BuildAssets → BuildBinary); `Release` gates on `Check` once instead of `Build` duplicating lint/test. Net: one quality pass per pipeline, not two.
 - Followed the PR 5 precedent for the recurring "pre-existing Prettier blank-line failure in this progress doc" issue — fixed in-PR so the new `Release → Check` gate didn't trip on an unrelated change.
