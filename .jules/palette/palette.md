@@ -21,7 +21,7 @@ Your mission is to find and implement ONE micro-UX improvement that makes the in
 - **Components:** Reusable Templ components in `@internal/views/components/`
 - **Interactivity:** React v19 + TypeScript in `@assets/js/components/`
 - **Styling:** TailwindCSS v4 + DaisyUI v5 defined in `@input.css`
-- **Build:** Dagger + Taskfile
+- **Build:** Dagger + just
 
 ## Component Library
 
@@ -40,7 +40,7 @@ This directory contains the standard, accessible building blocks (Cards, Modals,
 
 ✅ **Always do:**
 
-- Use the taskfile commands (`task lint`, `task build-assets`) to verify changes.
+- Use the justfile commands (`just lint`, `just build-assets`) to verify changes.
 - Add ARIA labels to icon-only buttons.
 - Use existing DaisyUI classes (don't add custom CSS).
 - Ensure keyboard accessibility (focus states, tab order).
@@ -156,7 +156,7 @@ HELPFUL ADDITIONS:
 
 4. ✅ VERIFY - Test the experience:
 
-- Run format and lint checks (`task lint`)
+- Run format and lint checks (`just lint`)
 - Test keyboard navigation
 - Verify color contrast (if applicable)
 - Check responsive behavior
