@@ -1,7 +1,7 @@
 import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import {getCsrfToken} from './useCsrf';
 import {toast} from '../components/Toaster';
-import type {Reading, Plan} from '../types';
+import type {Reading} from '../types';
 
 // Fetch wrapper with CSRF token
 async function fetchApi<T>(url: string, init?: RequestInit): Promise<T> {
@@ -48,8 +48,8 @@ export function useCompleteReading() {
       fetchApi(`/reading/${readingId}/complete`, {method: 'POST'}),
     onSuccess: () => {
       toast.success('Reading completed!');
-      queryClient.invalidateQueries({queryKey: ['readings']});
-      queryClient.invalidateQueries({queryKey: ['notifications']});
+      void queryClient.invalidateQueries({queryKey: ['readings']});
+      void queryClient.invalidateQueries({queryKey: ['notifications']});
     },
     onError: () => {
       toast.error('Failed to complete reading');
@@ -66,8 +66,8 @@ export function useUncompleteReading() {
       fetchApi(`/reading/${readingId}/uncomplete`, {method: 'POST'}),
     onSuccess: () => {
       toast.success('Reading marked as incomplete');
-      queryClient.invalidateQueries({queryKey: ['readings']});
-      queryClient.invalidateQueries({queryKey: ['notifications']});
+      void queryClient.invalidateQueries({queryKey: ['readings']});
+      void queryClient.invalidateQueries({queryKey: ['notifications']});
     },
     onError: () => {
       toast.error('Failed to undo reading');
@@ -94,7 +94,7 @@ export function useDeletePlan() {
       fetchApi(`/plans/${planId}`, {method: 'DELETE'}),
     onSuccess: () => {
       toast.success('Plan deleted');
-      queryClient.invalidateQueries({queryKey: ['plans']});
+      void queryClient.invalidateQueries({queryKey: ['plans']});
     },
     onError: () => {
       toast.error('Failed to delete plan');
@@ -150,7 +150,7 @@ export function useCreateManualPlan() {
     },
     onSuccess: () => {
       toast.success('Plan created successfully!');
-      queryClient.invalidateQueries({queryKey: ['plans']});
+      void queryClient.invalidateQueries({queryKey: ['plans']});
     },
     onError: () => {
       toast.error('Failed to create plan');

@@ -78,7 +78,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     const newIsOpen = !isOpen;
     setIsOpen(newIsOpen);
     if (newIsOpen) {
-      refetch();
+      void refetch();
     }
   };
 

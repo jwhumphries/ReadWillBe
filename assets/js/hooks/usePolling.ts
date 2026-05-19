@@ -22,11 +22,11 @@ export function usePolling(
     if (intervalRef.current) return;
 
     if (immediate) {
-      savedCallback.current();
+      void savedCallback.current();
     }
 
     intervalRef.current = window.setInterval(() => {
-      savedCallback.current();
+      void savedCallback.current();
     }, interval);
   }, [interval, immediate]);
 

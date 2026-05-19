@@ -161,7 +161,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({
     }
   };
 
-  const handleContentKeyDown = (e: React.KeyboardEvent, id: string) => {
+  const handleContentKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       addReading();
@@ -240,7 +240,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({
                           ),
                         )
                       }
-                      onKeyDown={e => handleContentKeyDown(e, reading.id)}
+                      onKeyDown={e => handleContentKeyDown(e)}
                       placeholder="What to read..."
                       className="input input-bordered input-sm w-full"
                       autoComplete="off"
