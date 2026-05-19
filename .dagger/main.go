@@ -125,7 +125,7 @@ func (m *Readwillbe) PrettierFix(source *dagger.Directory) *dagger.Directory {
 		Directory("/app")
 }
 
-// EslintCheck runs `eslint .` in the frontend container.
+// EslintCheck runs `eslint assets/js` via the lint:js script in the frontend container.
 func (m *Readwillbe) EslintCheck(ctx context.Context, source *dagger.Directory) (string, error) {
 	return dag.Container().
 		From("ghcr.io/jwhumphries/frontend:latest").
