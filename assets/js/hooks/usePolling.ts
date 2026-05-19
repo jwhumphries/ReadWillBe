@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import {useEffect, useRef, useCallback} from 'react';
 
 interface UsePollingOptions {
   interval: number;
@@ -8,9 +8,9 @@ interface UsePollingOptions {
 
 export function usePolling(
   callback: () => void | Promise<void>,
-  options: UsePollingOptions
+  options: UsePollingOptions,
 ) {
-  const { interval, enabled = true, immediate = true } = options;
+  const {interval, enabled = true, immediate = true} = options;
   const savedCallback = useRef(callback);
   const intervalRef = useRef<number | null>(null);
 
@@ -46,5 +46,5 @@ export function usePolling(
     return stop;
   }, [enabled, start, stop]);
 
-  return { start, stop };
+  return {start, stop};
 }

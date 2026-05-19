@@ -13,7 +13,7 @@ jobs:
       contents: write
       packages: write
     env:
-      DAGGER_NO_NAG: "1"
+      DAGGER_NO_NAG: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -58,7 +58,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: "latest"
+          version: 'latest'
           verb: call
           module: .dagger
           args: >-
@@ -73,7 +73,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: "latest"
+          version: 'latest'
           verb: call
           module: .dagger
           args: >-

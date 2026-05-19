@@ -1,0 +1,7 @@
+node_modules
+static
+data
+.dagger/internal
+*.gen.go
+*_templ.go
+charts

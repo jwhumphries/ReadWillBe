@@ -1,23 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "github>jwhumphries/renovate-config"
-  ],
-  "baseBranchPatterns": [
-    "dev"
-  ],
+  "extends": ["github>jwhumphries/renovate-config"],
+  "baseBranchPatterns": ["dev"],
   "minimumReleaseAge": null,
   "platformAutomerge": true,
-  "postUpdateOptions": [
-    "gomodTidyE"
-  ],
+  "postUpdateOptions": ["gomodTidyE"],
   "customManagers": [
     {
       "customType": "regex",
       "description": "Update Docker images in Dagger pipeline",
-      "fileMatch": [
-        "^\\.dagger/main\\.go$"
-      ],
+      "fileMatch": ["^\\.dagger/main\\.go$"],
       "matchStrings": [
         "From\\(\"(?<depName>[^\"]+?):(?<currentValue>[^@\"]+?)(?:@(?<currentDigest>sha256:[a-f0-9]+))?\"\\)"
       ],
@@ -27,12 +19,7 @@
   "packageRules": [
     {
       "description": "Automerge minor changes",
-      "matchUpdateTypes": [
-        "minor",
-        "patch",
-        "pin",
-        "digest"
-      ],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
     }
   ]
