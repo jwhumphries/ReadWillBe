@@ -16,7 +16,10 @@ Companion to `2026-05-18-style-guides-migration.md`. Update as PRs land.
   - `.prettierrc.json` + `.prettierignore` copied verbatim from style-guides; `prettier@3.4.2` added; `format` / `format:check` scripts; `PrettierCheck` wired into the parallel Dagger `Check`; `just format` + `just format-check` recipes
   - Tree-wide reformat across 38 files (JS/TS/CSS/JSON/MD/YAML); pre-existing markdown fence in `docs/docker.md` fixed so Prettier output is idempotent
   - Code-review follow-up: corrected the stale `Check` doc comment that previously claimed Check ran "build"
-- [ ] **PR 5 — ESLint (config + fix `any`, `no-floating-promises`, `array-type`)**
+- [x] **PR 5 — ESLint (config + fix `any`, `no-floating-promises`, `array-type`)** — [#167](https://github.com/jwhumphries/ReadWillBe/pull/167) (open, `just check` green locally)
+  - `eslint.config.js` copied verbatim from style-guides; ESLint deps pinned with carets; `lint:js` script; `EslintCheck` wired into the parallel Dagger `Check` (now 5 goroutines: lint + typecheck + test + prettier-check + eslint-check); justfile split into `lint-go` / `lint-js` with `lint` running both
+  - Findings fixed in-place: `no-floating-promises` (explicit `void` on `queryClient.invalidateQueries`, `refetch`, `savedCallback.current()`), `no-case-declarations` (block-wrap `case 'week'` in `DatePicker`), `no-unused-vars` (drop unused `id` param + unused `Plan` import)
+  - Code-review follow-up: corrected stale doc comment on `EslintCheck`
 - [ ] **PR 6 — Dagger / CI tidy-ups** (name module, decouple `Build`, document parallel `Check` deviation)
 - [ ] **PR 7 — Documentation consolidation** (`AGENTS.md` canonical; `CLAUDE.md` pointer; **include `.jules/palette/*.md` here**)
 
@@ -56,3 +59,10 @@ _(None yet.)_
 - Prettier reformatted further than `assets/`: also `.github/`, `.golangci.yml`, `.jules/**`, `AGENTS.md`, `README.md`, `docs/**`, `input.css`, `readwillbe.yaml`, `tools/**`, and even the migration plan docs themselves. Plan permitted this ("Prettier's default scope is correct").
 - `docs/docker.md` had a malformed code fence inside a list item that made Prettier non-idempotent (rewrite → re-flag). Fixed structurally (re-indented the fence under its list item; no prose changes) and rolled into the `style:` reformat commit.
 - Two `Minor` review findings deferred: adding `bun.lock` to `.prettierignore` (Prettier silently skips it today — no-op), and `bun install` running on every `PrettierCheck` (matches the existing `Typecheck` / `BuildAssets` pattern; intentional).
+- Mid-PR additions during code review: added `PrettierFix` Dagger function and rerouted `just format` through Dagger (was `bun run format` direct), per the "Dagger-only" project rule. Plan's PR 4 spec only required `PrettierCheck`; expanding the surface here keeps the host clean of bun invocations.
+
+### PR 5
+- `lint:js` is `eslint assets/js` (NOT `eslint .`). The style-guides flat config only ignores `node_modules/`, `dist/`, `build/`, so `eslint .` would lint the committed `static/js/bundle.js` and produce thousands of vendor-code findings. Side effect: `tools/build.js` and `tools/watch_css.js` are no longer linted (tiny esbuild/Tailwind driver scripts — acceptable).
+- React islands registry in `assets/js/index.tsx` keeps `Record<string, React.ComponentType<any>>` with a narrow `eslint-disable-next-line @typescript-eslint/no-explicit-any` and explanatory comment. Five registered components have required props, so the plan's prescribed `Record<string, unknown>` typing fails TS contravariance. Refactoring registered-component prop types is out of PR 5's scope.
+- One pre-existing Prettier failure on `dev` (missing blank line after `### PR 4` heading in this progress doc) was rolled into the `fix(lint):` commit so `just check` would stay green. Whitespace-only.
+- Refreshing `bun.lock` was done via an ephemeral `BunInstall` helper in `.dagger/main.go`, used to `export --path .`, then deleted before committing — no host-side `bun install`.
