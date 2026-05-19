@@ -131,7 +131,7 @@ func (m *Readwillbe) testSource(ctx context.Context, source *dagger.Directory) (
 		Stdout(ctx)
 }
 
-// Check runs lint, typecheck, test, and build in parallel within a single Dagger session.
+// Check runs lint, typecheck, test, and prettier-check in parallel within a single Dagger session.
 func (m *Readwillbe) Check(ctx context.Context, source *dagger.Directory) (string, error) {
 	g, ctx := errgroup.WithContext(ctx)
 
