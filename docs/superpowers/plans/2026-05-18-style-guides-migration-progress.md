@@ -26,7 +26,14 @@ Companion to `2026-05-18-style-guides-migration.md`. Update as PRs land.
   - Expanded `Check` doc comment with the style-guides deviation rationale (parallel checks in one Dagger session vs. separate GH Actions jobs)
   - Code-review follow-up: tightened `Release` error wrap (was `"checks failed: check failed: ..."`, now `"release blocked: pre-release checks failed: ..."`)
   - One pre-existing Prettier whitespace fix in this progress doc rolled in so the new `Release → Check` gate doesn't block CI on an unrelated issue
-- [ ] **PR 7 — Documentation consolidation** (`AGENTS.md` canonical; `CLAUDE.md` pointer; **include `.jules/palette/*.md` here**)
+- [x] **PR 7 — Documentation consolidation** — [#169](https://github.com/jwhumphries/ReadWillBe/pull/169) (open, `just check` green locally)
+  - `AGENTS.md` rewritten as canonical (post-migration recipes, Go 1.26, current `internal/views/` and `internal/model/` paths, three documented deviations from style-guides)
+  - `CLAUDE.md` reduced to a one-line pointer at `AGENTS.md`
+  - `README.md` refreshed (stale `task` → `just`; current paths/commands; stays human-facing)
+  - `.jules/palette/{palette,palette_one_shot}.md` — minimal-touch fixes of stale `task` references
+  - Code-review follow-ups: clarified `just lint` vs `just check` distinction; noted `templ fmt` as the documented Dagger exception; softened the absolute style-guides path to "local copy ... on the primary developer machine"
+
+🎉 **Migration complete.** All seven PRs landed; `just check` includes lint + typecheck + test + prettier-check + eslint-check in one Dagger session; `Release` gates on `Check`.
 
 ## Deferred to PR 7 (do not forget)
 
@@ -79,3 +86,8 @@ _(None yet.)_
 - `dagger develop` bumped `engineVersion` from `v0.20.1` → `v0.20.8` to match the local Dagger CLI. `.dagger/go.mod` / `.dagger/go.sum` regen tracked the engine change (no breaking Go SDK API changes in this range — `v0.20.6` reorganised the generated client code but consumers are unaffected). `dagger.io/dagger` resolves to a pseudo-version (`v0.20.6-0.20260415192040-7058e9313c72`) — that's what `dagger develop` produced and it locks to a specific SHA, so reproducible.
 - `Build` is now pure-build (TemplGenerate → BuildAssets → BuildBinary); `Release` gates on `Check` once instead of `Build` duplicating lint/test. Net: one quality pass per pipeline, not two.
 - Followed the PR 5 precedent for the recurring "pre-existing Prettier blank-line failure in this progress doc" issue — fixed in-PR so the new `Release → Check` gate didn't trip on an unrelated change.
+
+### PR 7
+- Plan's draft AGENTS.md template was a starting point only — diverged where the plan was stale (Go 1.25 → 1.26 actual; `views/`/`types/` → `internal/views/`/`internal/model/`; plan's draft `prettier-fix`/`eslint-check` recipe names never existed — the real recipes are `format`/`format-check`/`lint-js`).
+- Ergonomic friction worth a follow-up some day: `just format` exports `node_modules/` to the host as a side effect of `dagger ... export --path .`. Cleaned up here with `just clean` before the final `just check`, but a cleaner Dagger pattern (e.g., exporting only the changed files) would avoid the issue.
+- Documented `templ fmt` as the lone Dagger exception in AGENTS.md's host-tool ban — `just templ-fmt` invokes the templ CLI directly because it's part of the dev environment, not the Dagger image.
