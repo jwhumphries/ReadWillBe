@@ -237,7 +237,7 @@ func (m *Readwillbe) Release(
 	version string,
 ) (*dagger.Container, error) {
 	if _, err := m.Check(ctx, source); err != nil {
-		return nil, fmt.Errorf("checks failed: %w", err)
+		return nil, fmt.Errorf("release blocked: pre-release checks failed: %w", err)
 	}
 
 	binaryContainer, err := m.Build(ctx, source, git, version)
