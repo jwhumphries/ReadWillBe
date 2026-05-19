@@ -89,6 +89,7 @@ _(None yet.)_
 - Followed the PR 5 precedent for the recurring "pre-existing Prettier blank-line failure in this progress doc" issue — fixed in-PR so the new `Release → Check` gate didn't trip on an unrelated change.
 
 ### PR 7
+
 - Plan's draft AGENTS.md template was a starting point only — diverged where the plan was stale (Go 1.25 → 1.26 actual; `views/`/`types/` → `internal/views/`/`internal/model/`; plan's draft `prettier-fix`/`eslint-check` recipe names never existed — the real recipes are `format`/`format-check`/`lint-js`).
 - Ergonomic friction worth a follow-up some day: `just format` exports `node_modules/` to the host as a side effect of `dagger ... export --path .`. Cleaned up here with `just clean` before the final `just check`, but a cleaner Dagger pattern (e.g., exporting only the changed files) would avoid the issue.
 - Documented `templ fmt` as the lone Dagger exception in AGENTS.md's host-tool ban — `just templ-fmt` invokes the templ CLI directly because it's part of the dev environment, not the Dagger image.
