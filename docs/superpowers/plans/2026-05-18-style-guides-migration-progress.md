@@ -12,7 +12,10 @@ Companion to `2026-05-18-style-guides-migration.md`. Update as PRs land.
   - Revive findings fixed in-place (no `//nolint` directives) across `cmd/readwillbe`, `internal/{cache,middleware,model,repository,service,views}`, `static`
   - Two package renames driven by `var-naming` / package-name rules (see notes below)
 - [x] **PR 3 — TypeScript strict-family flags** — [#165](https://github.com/jwhumphries/ReadWillBe/pull/165) (open)
-- [ ] **PR 4 — Prettier (config + tree reformat)**
+- [x] **PR 4 — Prettier (config + tree reformat)** — [#166](https://github.com/jwhumphries/ReadWillBe/pull/166) (open, `just check` green locally)
+  - `.prettierrc.json` + `.prettierignore` copied verbatim from style-guides; `prettier@3.4.2` added; `format` / `format:check` scripts; `PrettierCheck` wired into the parallel Dagger `Check`; `just format` + `just format-check` recipes
+  - Tree-wide reformat across 38 files (JS/TS/CSS/JSON/MD/YAML); pre-existing markdown fence in `docs/docker.md` fixed so Prettier output is idempotent
+  - Code-review follow-up: corrected the stale `Check` doc comment that previously claimed Check ran "build"
 - [ ] **PR 5 — ESLint (config + fix `any`, `no-floating-promises`, `array-type`)**
 - [ ] **PR 6 — Dagger / CI tidy-ups** (name module, decouple `Build`, document parallel `Check` deviation)
 - [ ] **PR 7 — Documentation consolidation** (`AGENTS.md` canonical; `CLAUDE.md` pointer; **include `.jules/palette/*.md` here**)
@@ -44,3 +47,9 @@ Companion to `2026-05-18-style-guides-migration.md`. Update as PRs land.
 - Zero source fixes needed: `just typecheck` was already green under the four new strict-family flags and `target: ES2022`. The `assets/js/` tree is small (a handful of islands) and was already clean of implicit returns, switch fallthroughs, unreachable code, and unused labels.
 - `tsconfig.json` intentionally does NOT `extends` `style-guides/tsconfig.base.json`: the repo's browser-bundle settings (`module: esnext`, `moduleResolution: bundler`, `jsx: react-jsx`, `lib: [dom, dom.iterable, esnext]`) diverge from the base. The strict flags were copied inline instead.
 - `just check` green locally on the first try.
+
+### PR 4
+- Recipe names are `format` / `format-check` (per the plan), NOT `prettier-fix` / `prettier-check` as the current CLAUDE.md claims — CLAUDE.md fix is deferred to PR 7 along with AGENTS.md.
+- Prettier reformatted further than `assets/`: also `.github/`, `.golangci.yml`, `.jules/**`, `AGENTS.md`, `README.md`, `docs/**`, `input.css`, `readwillbe.yaml`, `tools/**`, and even the migration plan docs themselves. Plan permitted this ("Prettier's default scope is correct").
+- `docs/docker.md` had a malformed code fence inside a list item that made Prettier non-idempotent (rewrite → re-flag). Fixed structurally (re-indented the fence under its list item; no prose changes) and rolled into the `style:` reformat commit.
+- Two `Minor` review findings deferred: adding `bun.lock` to `.prettierignore` (Prettier silently skips it today — no-op), and `bun install` running on every `PrettierCheck` (matches the existing `Typecheck` / `BuildAssets` pattern; intentional).
