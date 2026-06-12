@@ -1,8 +1,10 @@
 import {useState, forwardRef} from 'react';
 import {Eye, EyeOff} from 'lucide-react';
 
-interface PasswordInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface PasswordInputProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  'type'
+> {
   label?: string;
   error?: string;
 }
