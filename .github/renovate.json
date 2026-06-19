@@ -3,6 +3,7 @@
   "extends": [
     "github>jwhumphries/renovate-config"
   ],
+  "prHourlyLimit": 0,
   "baseBranchPatterns": [
     "dev"
   ],
