@@ -1,15 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "github>jwhumphries/renovate-config"
-  ],
+  "extends": ["github>jwhumphries/renovate-config"],
   "prHourlyLimit": 0,
-  "baseBranchPatterns": [
-    "dev"
-  ],
-  "ignorePaths": [
-    ".dagger/**"
-  ],
+  "baseBranchPatterns": ["dev"],
+  "ignorePaths": [".dagger/**"],
   "minimumReleaseAge": null,
   "platformAutomerge": true,
   "postUpdateOptions": ["gomodTidyE"],
