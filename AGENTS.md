@@ -1,69 +1,83 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to AI Agents when working with code in this repository.
+This file is the canonical guide for AI agents working in this repository. Human contributors should start with [README.md](README.md).
 
 ## Build & Development Commands
 
-**All builds, tests, and lints must run through Dagger. Never run these outside the Dagger environment.**
+**All builds, tests, lints, and formatters run through Dagger.** The `justfile` in the repo root is a thin wrapper that invokes the Dagger module at `.dagger/`. Do not run `bun`, `go test`, `go build`, `golangci-lint`, `goimports`, `eslint`, `prettier`, or `tsc` directly on the host — always use `just` (or `dagger -m .dagger call ...`) so the toolchain is pinned and reproducible. The one exception is `templ fmt`, which `just templ-fmt` invokes directly because the templ CLI is part of the dev environment, not the Dagger image.
 
 ```bash
 # Development
-task dev-start      # Start dev environment with hot-reload at http://localhost:7331
-task dev-stop       # Stop dev environment
+just dev              # Start dev environment with hot-reload at http://localhost:7331
 
-# CI/Build (via Dagger)
-task lint           # Run golangci-lint
-task test           # Run Go tests
-task typecheck      # TypeScript type checking
-task build          # Build production Docker image
-task build-assets   # Compile CSS (Tailwind) and React/TypeScript
+# Quality gates (Dagger)
+just check            # lint + typecheck + test + prettier-check + eslint-check in parallel (one Dagger session)
+just lint             # golangci-lint + ESLint, sequentially (two Dagger calls); subset of `just check`
+just lint-go          # golangci-lint only
+just lint-js          # ESLint only (assets/js)
+just typecheck        # TypeScript type checking
+just test             # Go tests
+just format-check     # Prettier in check-only mode
 
-# Formatting (local)
-task fmt            # Format Go files
-task templ-fmt      # Format Templ files
+# Build
+just build-assets     # Compile Tailwind CSS + React/TypeScript bundles
+just build            # Build production Docker image (gated on `just check`)
+
+# Formatters
+just fmt              # goimports on Go files
+just templ-fmt        # templ fmt across internal/views
+just format           # Prettier --write on JS/TS/JSON/CSS
 ```
 
-### Running a Single Test
+`just --list` prints the full set of recipes.
 
-Tests run inside Dagger containers. To run a specific test, modify `.dagger/main.go` temporarily or use the full test command:
+### Running a single test
+
+Tests run inside Dagger containers. `just test` is a wrapper for:
+
 ```bash
 dagger -m .dagger call test --source=.
 ```
 
+To run a single test or test package, edit `.dagger/main.go` temporarily to scope the `go test` invocation (the module currently runs `go test ./...`). There is no `--run`-style passthrough today.
+
 ## Architecture Overview
 
 ### Tech Stack
-- **Backend**: Go 1.25, Echo framework, SQLite (via go-sqlite3/gorm)
+
+- **Backend**: Go 1.26, Echo, SQLite via `go-sqlite3` and GORM
 - **Frontend**: Templ (Go HTML templates) + React 19 islands + Tailwind CSS v4 + DaisyUI 5
-- **Build**: Dagger CI/CD, Docker, Bun (for JS/CSS tooling)
-- **Deployment**: Kubernetes with Helm charts in `charts/readwillbe/`
+- **Build/CI**: Dagger module at `.dagger/`, Docker, Bun for JS/CSS tooling
+- **Task runner**: `just`
+- **Deploy**: Kubernetes via the Helm chart in `charts/readwillbe/`
 
 ### Request Flow
 
-1. Echo router (`cmd/readwillbe/server.go`) handles HTTP requests
-2. Handlers render Templ templates (`views/*.templ`) that produce HTML
-3. React components mount as "islands" for interactive features
-4. DaisyUI components in `internal/views/components/` provide reusable UI primitives
+1. Echo router in `cmd/readwillbe/server.go` handles HTTP requests.
+2. Handlers render Templ templates from `internal/views/*.templ`.
+3. Templates compose DaisyUI component wrappers from `internal/views/components/`.
+4. React components mount as "islands" inside Templ output for interactive features.
 
 ### React Islands Pattern
 
-React components are embedded in Templ templates using a registry pattern:
+React components mount into Templ-rendered HTML via a name-keyed registry.
 
 ```go
 // In a .templ file - mount a React component with props
 @React("ComponentName", map[string]interface{}{"prop": value})
 ```
 
-The React registry (`assets/js/index.tsx`) maps component names to implementations. Components mount on `DOMContentLoaded` by finding `[data-react-component]` elements.
+The registry at `assets/js/index.tsx` maps component names to React components. At runtime, an effect on `DOMContentLoaded` finds every `[data-react-component]` element and mounts the matching component, passing the props as parsed JSON.
 
 To add a new React component:
-1. Create component in `assets/js/components/`
-2. Register in `assets/js/index.tsx` components map
-3. Use `@React("ComponentName", props)` in Templ templates
+
+1. Create it in `assets/js/components/`.
+2. Register it in the `components` map in `assets/js/index.tsx`.
+3. Mount it from a `.templ` file with `@React("Name", props)`.
 
 ### DaisyUI Components
 
-Pre-built DaisyUI components live in `internal/views/components/` as `.templ` files (generated by `gsi` CLI from "go ship it"). These wrap DaisyUI patterns with Go-friendly APIs:
+The `.templ` files in `internal/views/components/` are wrappers around DaisyUI patterns with Go-friendly APIs. They are generated by the `gsi` CLI ("go ship it"). Use them like this:
 
 ```go
 @components.Card(components.CardProps{Title: "...", Content: "..."})
@@ -71,40 +85,44 @@ Pre-built DaisyUI components live in `internal/views/components/` as `.templ` fi
 
 ### Data Models
 
-Core types in `types/`:
-- `User`: Authentication and user settings
-- `Plan`: A collection of readings (e.g., "Bible Reading Plan 2025")
-- `Reading`: Individual reading entries with date, content, and completion status
-- `PushSubscription`: Browser push notification subscriptions
+Domain types live in `internal/model/`:
 
-Readings support three date types: `day`, `week`, `month` - determining when they're due and how overdue status is calculated.
+- `User` — authentication and user settings
+- `Plan` — a collection of readings (e.g., "Bible Reading Plan 2025")
+- `Reading` — an individual reading entry with date, content, and completion status
+- `PushSubscription` — browser push notification subscriptions
+
+`Reading` supports three date types — `day`, `week`, `month` — which determine when an entry is due and how overdue status is calculated.
 
 ### Environment Configuration
 
-All config via `READWILLBE_*` environment variables (loaded through Viper):
-- `READWILLBE_COOKIE_SECRET` (required, 32+ chars)
-- `READWILLBE_DB_PATH` - SQLite database path
-- `READWILLBE_PORT` - Server port (default :8080)
-- `GO_ENV=production` - Enables secure cookies, gzip, etc.
+All runtime config is read from `READWILLBE_*` environment variables via Viper.
+
+- `READWILLBE_COOKIE_SECRET` (required, 32+ characters)
+- `READWILLBE_DB_PATH` — SQLite database path
+- `READWILLBE_PORT` — server port (default `:8080`)
+- `GO_ENV=production` — enables secure cookies, gzip, and other production defaults
 
 ### Key Directories
 
 ```
-cmd/readwillbe/     # Main application, HTTP handlers, business logic
-views/              # Templ page templates
-internal/views/components/  # DaisyUI component templates (gsi-generated)
-assets/js/          # React components and TypeScript
-types/              # Go domain models
-.dagger/            # Dagger CI/CD module
-charts/             # Helm chart for Kubernetes
-static/             # Compiled assets (CSS, JS bundles) - generated, don't edit
+cmd/readwillbe/             # Main application: HTTP handlers, server wiring
+cmd/dev/                    # Local dev tooling
+internal/views/             # Templ page templates
+internal/views/components/  # DaisyUI component wrappers (gsi-generated)
+internal/model/             # Domain types (User, Plan, Reading, ...)
+internal/repository/        # Persistence layer
+internal/middleware/        # Echo middleware
+assets/js/                  # React 19 + TypeScript sources
+.dagger/                    # Dagger module (CI/build pipeline)
+charts/                     # Helm chart for Kubernetes
+static/                     # Compiled assets (generated by `just build-assets`) - do not edit
 ```
 
-### Development Environment
+## Style Guides & Documented Deviations
 
-`task dev-start` runs a Docker container with:
-- Air for Go hot-reload
-- Templ proxy on port 7331 (use this in browser)
-- Bun watchers for CSS and JS changes
+This repo follows the conventions from a separate `style-guides` repo (Anthropic internal style guides), with a few intentional deviations recorded here. The local copy of those guides lives at `/Users/john/code/git/style-guides/` on the primary developer machine — that path is the canonical reference when running locally but will not resolve on other hosts or in CI.
 
-The dev server auto-reloads on changes to `.go`, `.templ`, `.tsx`, and `.css` files.
+- **Parallel `Check` Dagger function instead of split GitHub Actions jobs.** `just check` runs lint, typecheck, test, prettier-check, and eslint-check concurrently inside a single Dagger session (see `Readwillbe.Check` in `.dagger/main.go`). This is faster locally and in CI because the Dagger engine and module cache are shared across stages. The trade-off is coarser-grained status reporting in the GitHub UI (one job either passes or fails) compared to the style-guides `ci/` pattern that uses one job per task. `Release` gates on `Check`, so `just build` runs all quality checks before producing the Docker image.
+- **`tsconfig.json` does not extend `tsconfig.base.json`.** The browser-bundle settings diverge from the base: `module: esnext`, `moduleResolution: bundler`, `jsx: react-jsx`, `lib: ["dom", "dom.iterable", "esnext"]`. The strict-family flags from the base are copied inline (`strict`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, `allowUnreachableCode: false`, `allowUnusedLabels: false`, `forceConsistentCasingInFileNames`).
+- **Islands registry uses a narrowly scoped `any`.** `assets/js/index.tsx` declares the registry as `Record<string, React.ComponentType<any>>` with a single-line `eslint-disable-next-line @typescript-eslint/no-explicit-any` and an explanatory comment. This is required because the registry holds components with heterogeneous prop types that fail TypeScript's contravariant function-parameter check under stricter typings; the runtime contract is that each component receives the JSON-parsed props from the matching DOM element.

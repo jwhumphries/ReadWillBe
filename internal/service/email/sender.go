@@ -1,3 +1,5 @@
+// Package email sends ReadWillBe notification email via the configured
+// provider (SMTP or Resend).
 package email
 
 import (
@@ -6,15 +8,19 @@ import (
 	"net/http"
 	"strings"
 
-	mail "github.com/wneessen/go-mail"
 	"readwillbe/internal/model"
+
+	mail "github.com/wneessen/go-mail"
 )
 
+// Service is implemented by every supported email backend.
 type Service interface {
 	SendDailyDigest(user model.User, readings []model.Reading, hostname string) error
 	SendTestEmail(to, hostname string) error
 }
 
+// NewService returns the email service implementation matching cfg.EmailProvider,
+// or nil if no provider is configured.
 func NewService(cfg model.Config) Service {
 	switch cfg.EmailProvider {
 	case "smtp":
@@ -26,17 +32,20 @@ func NewService(cfg model.Config) Service {
 	}
 }
 
+// SMTPService delivers email through an SMTP server.
 type SMTPService struct {
 	cfg model.Config
 }
 
+// SendDailyDigest renders and sends the daily reading digest for user.
 func (s *SMTPService) SendDailyDigest(user model.User, readings []model.Reading, hostname string) error {
 	html, text := RenderDailyDigestEmail(user, readings, hostname)
 	return s.send(user.GetNotificationEmail(), "Your readings for today", html, text)
 }
 
-func (s *SMTPService) SendTestEmail(to, hostname string) error {
-	html, text := RenderTestEmail(hostname)
+// SendTestEmail sends a short test message to the given address.
+func (s *SMTPService) SendTestEmail(to string, _ string) error {
+	html, text := RenderTestEmail()
 	return s.send(to, "Test Email from ReadWillBe", html, text)
 }
 
@@ -83,17 +92,20 @@ func (s *SMTPService) send(to, subject, htmlBody, textBody string) error {
 	return c.DialAndSend(m)
 }
 
+// ResendService delivers email through the Resend HTTP API.
 type ResendService struct {
 	cfg model.Config
 }
 
+// SendDailyDigest renders and sends the daily reading digest for user.
 func (r *ResendService) SendDailyDigest(user model.User, readings []model.Reading, hostname string) error {
 	html, text := RenderDailyDigestEmail(user, readings, hostname)
 	return r.send(user.GetNotificationEmail(), "Your readings for today", html, text)
 }
 
-func (r *ResendService) SendTestEmail(to, hostname string) error {
-	html, text := RenderTestEmail(hostname)
+// SendTestEmail sends a short test message to the given address.
+func (r *ResendService) SendTestEmail(to string, _ string) error {
+	html, text := RenderTestEmail()
 	return r.send(to, "Test Email from ReadWillBe", html, text)
 }
 

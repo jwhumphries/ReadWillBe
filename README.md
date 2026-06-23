@@ -32,11 +32,12 @@ ReadWillBe is designed to be run via Docker or Kubernetes.
 
 The only strictly required configuration is the **Cookie Secret** 🍪.
 
-| Variable | Description |
-|----------|-------------|
+| Variable                   | Description                    |
+| -------------------------- | ------------------------------ |
 | `READWILLBE_COOKIE_SECRET` | A 32+ character random string. |
 
 Generate one using:
+
 ```bash
 openssl rand -base64 32
 ```
@@ -53,34 +54,41 @@ Set `READWILLBE_VAPID_PUBLIC_KEY`, `READWILLBE_VAPID_PRIVATE_KEY` and `READWILLB
 
 ## Development
 
-This project uses [Task](https://taskfile.dev/) for development workflows. The pipeline is managed by [Dagger](https://dagger.io/) 🗡️.
+This project uses [just](https://just.systems/) for development workflows. The pipeline is managed by [Dagger](https://dagger.io/) 🗡️.
 
 ### Quick Start
 
 ```bash
-# Start development environment (Docker Compose + Hot Reload)
-task dev-start
-
-# Stop development environment
-task dev-stop
+# Start development environment (Docker + Hot Reload) at http://localhost:7331
+just dev
 ```
 
-### Available Tasks
+To stop the dev environment, press `Ctrl+C` in the terminal running `just dev`.
 
-| Command | Description |
-|---------|-------------|
-| `task dev-start` | Starts the dev environment with hot-reload at http://localhost:8080 |
-| `task dev-stop` | Stops the dev environment and cleans up |
-| `task test` | Runs tests using Dagger |
-| `task lint` | Runs linters using Dagger |
-| `task build` | Builds the production Docker image |
-| `task clean` | Removes generated files and images |
-| `task fmt` | Formats Go files |
-| `task templ-fmt`| Formats Templ files |
+### Available Recipes
+
+Run `just --list` to see the full set. Highlights:
+
+| Command             | Description                                                                       |
+| ------------------- | --------------------------------------------------------------------------------- |
+| `just dev`          | Starts the dev environment with hot-reload at http://localhost:7331               |
+| `just check`        | Runs lint + typecheck + test + prettier-check + eslint-check in parallel (Dagger) |
+| `just lint`         | Runs Go and JS linters (`just lint-go` + `just lint-js`)                          |
+| `just test`         | Runs Go tests using Dagger                                                        |
+| `just typecheck`    | Runs TypeScript type checking using Dagger                                        |
+| `just build`        | Builds the production Docker image (gated on `just check`)                        |
+| `just build-assets` | Compiles CSS (Tailwind) and React/TypeScript                                      |
+| `just clean`        | Removes generated files and `node_modules`                                        |
+| `just fmt`          | Formats Go files (goimports)                                                      |
+| `just templ-fmt`    | Formats Templ files                                                               |
+| `just format`       | Formats JS/TS/JSON/CSS with Prettier                                              |
+| `just format-check` | Verifies Prettier formatting (read-only)                                          |
+
+For architecture details and conventions, see [AGENTS.md](AGENTS.md).
 
 ### Verifying the Build
 
-As shown above, the development enviromnent features hot-reloading. To build a copy of the release image locally (minimized for production with no reloading), run `task build`. 
+As shown above, the development environment features hot-reloading. To build a copy of the release image locally (minimized for production with no reloading), run `just build`.
 
 Set a cookie secret, then run:
 

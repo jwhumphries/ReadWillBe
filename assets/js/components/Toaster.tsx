@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useToast } from '../context/ToastContext';
+import {useEffect} from 'react';
+import {useToast} from '../context/ToastContext';
 
 const alertClasses: Record<string, string> = {
   success: 'alert-success',
@@ -9,7 +9,7 @@ const alertClasses: Record<string, string> = {
 };
 
 export function Toaster() {
-  const { toasts, addToast, removeToast } = useToast();
+  const {toasts, addToast, removeToast} = useToast();
 
   // Listen for toast events (for use outside React components)
   useEffect(() => {
@@ -38,4 +38,4 @@ export function Toaster() {
 }
 
 // Re-export toast for existing imports
-export { toast } from '../context/ToastContext';
+export {toast} from '../context/ToastContext';

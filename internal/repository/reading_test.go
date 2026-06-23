@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/ncruces/go-sqlite3/embed"
+	"readwillbe/internal/model"
+
 	"github.com/ncruces/go-sqlite3/gormlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
-	"readwillbe/internal/model"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {

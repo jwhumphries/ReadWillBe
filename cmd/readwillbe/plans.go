@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo-contrib/v5/session"
 	"github.com/labstack/echo/v5"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -50,7 +50,7 @@ func plansListHandler(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-func createPlanForm(cfg model.Config, db *gorm.DB) echo.HandlerFunc {
+func createPlanForm(cfg model.Config, _ *gorm.DB) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {

@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "charts/**"
+      - 'charts/**'
 
 jobs:
   release:
@@ -15,15 +15,15 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Install Helm
-        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5
         with:
-          version: v3.12.1
+          version: v3.21.0
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -33,12 +33,12 @@ jobs:
         run: |
           # Package the chart
           helm package charts/readwillbe --destination .
-          
+
           # Push to OCI Registry
           # This will create a package at ghcr.io/<owner>/readwillbe:<version>
           # Ensure repository owner is lowercase
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          
+
           for CHART in *.tgz; do
             helm push $CHART oci://ghcr.io/$OWNER/charts
           done

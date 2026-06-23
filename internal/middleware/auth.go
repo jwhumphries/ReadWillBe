@@ -1,9 +1,11 @@
+// Package middleware contains Echo middleware and session helpers
+// used by the readwillbe HTTP server.
 package middleware
 
 import (
 	"time"
 
-	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo-contrib/v5/session"
 	"github.com/labstack/echo/v5"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -14,6 +16,8 @@ import (
 	"readwillbe/internal/repository"
 )
 
+// UserMiddleware returns Echo middleware that resolves the session user from db
+// (with a userCache fast path) and stores it on the request context.
 func UserMiddleware(db *gorm.DB, userCache *cache.UserCache, cfg model.Config) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
@@ -71,6 +75,8 @@ func UserMiddleware(db *gorm.DB, userCache *cache.UserCache, cfg model.Config) e
 	}
 }
 
+// GetSessionUser returns the [model.User] stored on the request context by
+// [UserMiddleware], or false if no user is set.
 func GetSessionUser(c *echo.Context) (model.User, bool) {
 	u := c.Get(UserKey)
 	if u != nil {

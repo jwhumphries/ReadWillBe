@@ -10,28 +10,37 @@
     "build:js": "node tools/build.js",
     "watch:js": "node tools/build.js --watch",
     "watch:css": "node tools/watch_css.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:js": "eslint assets/js"
   },
   "dependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "@tanstack/react-query": "^5.80.6",
     "react-hook-form": "^7.56.4",
-    "lucide-react": "^0.563.0",
+    "lucide-react": "^1.0.0",
     "date-fns": "^4.1.0",
-    "react-day-picker": "^9.7.0"
+    "react-day-picker": "^10.0.0"
   },
   "devDependencies": {
     "@parcel/watcher": "2.5.6",
-    "@tailwindcss/oxide": "4.1.18",
-    "@tailwindcss/typography": "0.5.19",
-    "@types/react": "19.2.14",
+    "@tailwindcss/oxide": "4.3.1",
+    "@tailwindcss/typography": "0.5.20",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
-    "daisyui": "5.5.18",
-    "esbuild": "0.27.3",
-    "lightningcss": "1.31.1",
-    "typescript": "5.9.3",
-    "zod": "4.3.6",
-    "@hookform/resolvers": "5.2.2"
+    "daisyui": "5.5.23",
+    "esbuild": "0.28.1",
+    "lightningcss": "1.32.0",
+    "prettier": "3.8.4",
+    "typescript": "6.0.3",
+    "zod": "4.4.3",
+    "@hookform/resolvers": "5.4.0",
+    "eslint": "10.4.1",
+    "@eslint/js": "10.0.1",
+    "typescript-eslint": "8.61.1",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-prettier": "5.5.6"
   }
 }

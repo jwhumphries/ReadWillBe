@@ -1,7 +1,7 @@
-import { useRef, useEffect, useState } from 'react';
-import { DayPicker } from 'react-day-picker';
-import { format, startOfWeek, getISOWeek, getYear } from 'date-fns';
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import {useRef, useEffect, useState} from 'react';
+import {DayPicker} from 'react-day-picker';
+import {format, startOfWeek, getISOWeek, getYear} from 'date-fns';
+import {Calendar, ChevronLeft, ChevronRight} from 'lucide-react';
 
 export type DateType = 'day' | 'week' | 'month';
 
@@ -30,10 +30,11 @@ function formatDisplayValue(date: Date, dateType: DateType): string {
 // Format the date for form submission (matches Go parseDate expectations)
 function formatForSubmission(date: Date, dateType: DateType): string {
   switch (dateType) {
-    case 'week':
+    case 'week': {
       const week = getISOWeek(date);
       const year = getYear(date);
       return `${year}-W${week.toString().padStart(2, '0')}`;
+    }
     case 'month':
       return format(date, 'MMMM yyyy');
     case 'day':
@@ -56,7 +57,10 @@ export function DatePicker({
   // Close on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (detailsRef.current && !detailsRef.current.contains(event.target as Node)) {
+      if (
+        detailsRef.current &&
+        !detailsRef.current.contains(event.target as Node)
+      ) {
         detailsRef.current.removeAttribute('open');
       }
     }
@@ -75,7 +79,7 @@ export function DatePicker({
   // Handle week selection (click on week number)
   const handleWeekClick = (weekDate: Date) => {
     // Use start of week (Monday) as the canonical date for the week
-    const weekStart = startOfWeek(weekDate, { weekStartsOn: 1 });
+    const weekStart = startOfWeek(weekDate, {weekStartsOn: 1});
     onChange(weekStart, 'week');
     detailsRef.current?.removeAttribute('open');
   };
@@ -83,7 +87,11 @@ export function DatePicker({
   // Handle month selection (click on month caption)
   const handleMonthClick = (monthDate: Date) => {
     // Use first day of month as the canonical date
-    const firstOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+    const firstOfMonth = new Date(
+      monthDate.getFullYear(),
+      monthDate.getMonth(),
+      1,
+    );
     onChange(firstOfMonth, 'month');
     detailsRef.current?.removeAttribute('open');
   };
@@ -106,7 +114,10 @@ export function DatePicker({
   // Check if a day is in the selected month
   const isInSelectedMonth = (day: Date): boolean => {
     if (!value || dateType !== 'month') return false;
-    return day.getMonth() === value.getMonth() && day.getFullYear() === value.getFullYear();
+    return (
+      day.getMonth() === value.getMonth() &&
+      day.getFullYear() === value.getFullYear()
+    );
   };
 
   return (
@@ -140,7 +151,8 @@ export function DatePicker({
           className="react-day-picker"
           modifiers={{
             selectedWeek: dateType === 'week' ? isInSelectedWeek : () => false,
-            selectedMonth: dateType === 'month' ? isInSelectedMonth : () => false,
+            selectedMonth:
+              dateType === 'month' ? isInSelectedMonth : () => false,
           }}
           modifiersClassNames={{
             selectedWeek: 'bg-primary/20',
@@ -148,15 +160,17 @@ export function DatePicker({
             today: 'text-primary font-bold',
           }}
           components={{
-            Chevron: ({ orientation }) =>
-              orientation === 'left'
-                ? <ChevronLeft className="h-4 w-4" />
-                : <ChevronRight className="h-4 w-4" />,
+            Chevron: ({orientation}) =>
+              orientation === 'left' ? (
+                <ChevronLeft className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              ),
             // Custom week number - clickable to select week
-            WeekNumber: ({ week }) => (
+            WeekNumber: ({week}) => (
               <button
                 type="button"
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault();
                   e.stopPropagation();
                   handleWeekClick(week.days[0].date);
@@ -179,7 +193,7 @@ export function DatePicker({
               </button>
               <button
                 type="button"
-                onClick={(e) => {
+                onClick={e => {
                   e.preventDefault();
                   handleMonthClick(month);
                 }}

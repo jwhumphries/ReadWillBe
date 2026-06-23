@@ -55,16 +55,6 @@ func (m *Readwillbe) Build(
 	}
 
 	templSource := m.TemplGenerate(source)
-
-	if _, err := m.lintSource(ctx, templSource); err != nil {
-		return nil, fmt.Errorf("lint failed: %w", err)
-	}
-
-	if _, err := m.testSource(ctx, templSource); err != nil {
-		return nil, fmt.Errorf("test failed: %w", err)
-	}
-
-	// Build CSS and React together
 	assetsDir := m.BuildAssets(source)
 	buildSource := templSource.WithDirectory("static", assetsDir)
 
@@ -102,6 +92,41 @@ func (m *Readwillbe) Typecheck(ctx context.Context, source *dagger.Directory) (s
 		Stdout(ctx)
 }
 
+func (m *Readwillbe) PrettierCheck(ctx context.Context, source *dagger.Directory) (string, error) {
+	return dag.Container().
+		From("ghcr.io/jwhumphries/frontend:latest").
+		WithMountedCache("/root/.bun/install/cache", dag.CacheVolume("bun-cache")).
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"bun", "install"}).
+		WithExec([]string{"bun", "run", "format:check"}).
+		Stdout(ctx)
+}
+
+// PrettierFix runs `prettier --write .` in the frontend container and exports the rewritten tree.
+func (m *Readwillbe) PrettierFix(source *dagger.Directory) *dagger.Directory {
+	return dag.Container().
+		From("ghcr.io/jwhumphries/frontend:latest").
+		WithMountedCache("/root/.bun/install/cache", dag.CacheVolume("bun-cache")).
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"bun", "install"}).
+		WithExec([]string{"bun", "run", "format"}).
+		Directory("/app")
+}
+
+// EslintCheck runs `eslint assets/js` via the lint:js script in the frontend container.
+func (m *Readwillbe) EslintCheck(ctx context.Context, source *dagger.Directory) (string, error) {
+	return dag.Container().
+		From("ghcr.io/jwhumphries/frontend:latest").
+		WithMountedCache("/root/.bun/install/cache", dag.CacheVolume("bun-cache")).
+		WithDirectory("/app", source).
+		WithWorkdir("/app").
+		WithExec([]string{"bun", "install"}).
+		WithExec([]string{"bun", "run", "lint:js"}).
+		Stdout(ctx)
+}
+
 func (m *Readwillbe) Test(ctx context.Context, source *dagger.Directory) (string, error) {
 	templSource := m.TemplGenerate(source)
 	return m.testSource(ctx, templSource)
@@ -120,7 +145,13 @@ func (m *Readwillbe) testSource(ctx context.Context, source *dagger.Directory) (
 		Stdout(ctx)
 }
 
-// Check runs lint, typecheck, test, and build in parallel within a single Dagger session.
+// Check runs lint, typecheck, test, prettier-check, and eslint-check in
+// parallel within a single Dagger session.
+//
+// This deviates from the style-guides ci/ pattern (which uses separate
+// GitHub Actions jobs per task). The parallel approach is faster locally
+// and in CI because it shares one Dagger engine init and module cache.
+// The trade-off is coarser-grained status reporting in the GitHub UI.
 func (m *Readwillbe) Check(ctx context.Context, source *dagger.Directory) (string, error) {
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -134,6 +165,14 @@ func (m *Readwillbe) Check(ctx context.Context, source *dagger.Directory) (strin
 	})
 	g.Go(func() error {
 		_, err := m.Test(ctx, source)
+		return err
+	})
+	g.Go(func() error {
+		_, err := m.PrettierCheck(ctx, source)
+		return err
+	})
+	g.Go(func() error {
+		_, err := m.EslintCheck(ctx, source)
 		return err
 	})
 
@@ -182,7 +221,7 @@ func (m *Readwillbe) BuildBinary(source *dagger.Directory, version string) *dagg
 		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
 		WithExec([]string{
 			"go", "build",
-			"-ldflags", "-X readwillbe/version.Tag=" + version,
+			"-ldflags", "-X readwillbe/versioninfo.Tag=" + version,
 			"-o", "/readwillbe",
 			"./cmd/readwillbe/",
 		})
@@ -197,6 +236,10 @@ func (m *Readwillbe) Release(
 	// +optional
 	version string,
 ) (*dagger.Container, error) {
+	if _, err := m.Check(ctx, source); err != nil {
+		return nil, fmt.Errorf("release blocked: pre-release checks failed: %w", err)
+	}
+
 	binaryContainer, err := m.Build(ctx, source, git, version)
 	if err != nil {
 		return nil, err
@@ -218,8 +261,13 @@ func (m *Readwillbe) Release(
 func (m *Readwillbe) Fmt(source *dagger.Directory) *dagger.Directory {
 	return dag.Container().
 		From("golang:1.26-alpine").
+		WithEnvVariable("GOCACHE", "/go-build-cache").
+		WithEnvVariable("GOMODCACHE", "/go-mod-cache").
+		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
+		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
+		WithExec([]string{"go", "install", "golang.org/x/tools/cmd/goimports@latest"}).
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
-		WithExec([]string{"go", "fmt", "./..."}).
+		WithExec([]string{"sh", "-c", "find . -name '*.go' -not -path './.dagger/internal/*' -not -name '*_templ.go' | xargs goimports -w"}).
 		Directory("/app")
 }

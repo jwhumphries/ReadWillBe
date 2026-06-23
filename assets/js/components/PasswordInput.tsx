@@ -1,13 +1,16 @@
-import { useState, forwardRef } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import {useState, forwardRef} from 'react';
+import {Eye, EyeOff} from 'lucide-react';
 
-interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface PasswordInputProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  'type'
+> {
   label?: string;
   error?: string;
 }
 
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
-  ({ label, error, className = '', id, ...props }, ref) => {
+  ({label, error, className = '', id, ...props}, ref) => {
     const [visible, setVisible] = useState(false);
 
     return (
@@ -38,12 +41,10 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
             )}
           </button>
         </label>
-        {error && (
-          <p className="text-sm text-error">{error}</p>
-        )}
+        {error && <p className="text-sm text-error">{error}</p>}
       </div>
     );
-  }
+  },
 );
 
 PasswordInput.displayName = 'PasswordInput';

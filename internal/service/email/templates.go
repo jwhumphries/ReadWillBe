@@ -189,6 +189,8 @@ type dailyDigestData struct {
 	SettingsURL  string
 }
 
+// RenderDailyDigestEmail returns the HTML and plain-text bodies for the
+// daily reading digest email.
 func RenderDailyDigestEmail(user model.User, readings []model.Reading, hostname string) (html, text string) {
 	data := dailyDigestData{
 		UserName:     user.Name,
@@ -220,6 +222,7 @@ func RenderDailyDigestEmail(user model.User, readings []model.Reading, hostname 
 	return htmlBuf.String(), textBuf.String()
 }
 
-func RenderTestEmail(_ string) (html, text string) {
+// RenderTestEmail returns the HTML and plain-text bodies for the test email.
+func RenderTestEmail() (html, text string) {
 	return testEmailHTMLTemplate, testEmailTextTemplate
 }

@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"readwillbe/internal/model"
+
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"readwillbe/internal/model"
 )
 
 func TestUserCache_Cleanup(t *testing.T) {
@@ -30,7 +31,7 @@ func TestUserCache_Cleanup(t *testing.T) {
 
 	// Verify cleanup via cache inspection
 	count := 0
-	cache.cache.Range(func(key, value interface{}) bool {
+	cache.cache.Range(func(_, _ interface{}) bool {
 		count++
 		return true
 	})

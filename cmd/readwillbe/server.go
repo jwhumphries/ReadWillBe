@@ -9,7 +9,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo-contrib/v5/session"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
 	"github.com/pkg/errors"
@@ -25,7 +25,6 @@ import (
 	"readwillbe/internal/service/push"
 	"readwillbe/static"
 
-	_ "github.com/ncruces/go-sqlite3/embed"
 	sqlite "github.com/ncruces/go-sqlite3/gormlite"
 	"gorm.io/gorm"
 )
@@ -42,7 +41,7 @@ func render(ctx *echo.Context, status int, t templ.Component) error {
 	return nil
 }
 
-func runServer(cmd *cobra.Command, args []string) error {
+func runServer(_ *cobra.Command, _ []string) error {
 	configureLogging()
 
 	tz := viper.GetString("tz")
@@ -126,7 +125,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 		Skipper: func(c *echo.Context) bool {
 			return c.Path() == "/healthz"
 		},
-		ErrorHandler: func(c *echo.Context, err error) error {
+		ErrorHandler: func(c *echo.Context, _ error) error {
 			if cfg.IsProduction() && c.Request().TLS == nil {
 				logrus.Error("CSRF validation failed: secure cookies are enabled (GO_ENV=production) but request is not HTTPS. Either use HTTPS or set GO_ENV to something other than 'production' or 'prod'")
 			}
@@ -141,7 +140,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 		Skipper: func(c *echo.Context) bool {
 			return c.Request().URL.Path == "/healthz"
 		},
-		LogValuesFunc: func(c *echo.Context, v middleware.RequestLoggerValues) error {
+		LogValuesFunc: func(_ *echo.Context, v middleware.RequestLoggerValues) error {
 			fmt.Printf("method=%s, uri=%s, status=%d\n", v.Method, v.URI, v.Status)
 			return nil
 		},

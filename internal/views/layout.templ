@@ -3,12 +3,12 @@ package views
 import (
 	"fmt"
 	"readwillbe/internal/model"
-	"readwillbe/version"
+	"readwillbe/versioninfo"
 	"strings"
 )
 
 func versionedPath(path string) string {
-	return fmt.Sprintf("%s?version=%s", path, version.Tag)
+	return fmt.Sprintf("%s?version=%s", path, versioninfo.Tag)
 }
 
 templ Layout(cfg model.Config, user *model.User, title string) {
@@ -47,7 +47,7 @@ templ Layout(cfg model.Config, user *model.User, title string) {
 						</main>
 						<footer class="footer footer-center p-4 bg-base-200 text-base-content border-t border-base-300">
 							<aside>
-								<p class="text-sm">Version: { version.Tag }</p>
+								<p class="text-sm">Version: { versioninfo.Tag }</p>
 							</aside>
 						</footer>
 					</div>

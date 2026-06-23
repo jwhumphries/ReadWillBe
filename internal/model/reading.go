@@ -6,22 +6,27 @@ import (
 	"gorm.io/gorm"
 )
 
+// ReadingStatus enumerates the lifecycle states of a [Reading].
 type ReadingStatus string
 
+// Reading status values.
 const (
 	StatusPending   ReadingStatus = "pending"
 	StatusCompleted ReadingStatus = "completed"
 	StatusOverdue   ReadingStatus = "overdue"
 )
 
+// DateType describes the cadence on which a [Reading] is scheduled.
 type DateType string
 
+// Reading cadence values.
 const (
 	DateTypeDay   DateType = "day"
 	DateTypeWeek  DateType = "week"
 	DateTypeMonth DateType = "month"
 )
 
+// Reading is a single dated entry within a [Plan].
 type Reading struct {
 	gorm.Model
 	PlanID      uint
@@ -36,11 +41,13 @@ type Reading struct {
 	DeletedAt   *time.Time
 }
 
+// PlanGroup bundles a [Plan] with a subset of its [Reading]s for rendering.
 type PlanGroup struct {
 	Plan     Plan
 	Readings []Reading
 }
 
+// HasOverdue reports whether any reading in the group is overdue.
 func (pg PlanGroup) HasOverdue() bool {
 	for _, r := range pg.Readings {
 		if r.IsOverdue() {
@@ -50,6 +57,8 @@ func (pg PlanGroup) HasOverdue() bool {
 	return false
 }
 
+// IsOverdue reports whether the reading is past its scheduled cadence and
+// still pending.
 func (r Reading) IsOverdue() bool {
 	now := time.Now()
 	switch r.DateType {
@@ -63,6 +72,7 @@ func (r Reading) IsOverdue() bool {
 	return false
 }
 
+// IsActiveToday reports whether the reading's scheduled window contains today.
 func (r Reading) IsActiveToday() bool {
 	now := time.Now()
 	switch r.DateType {

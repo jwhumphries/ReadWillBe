@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR branch
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
@@ -29,15 +29,15 @@ jobs:
         run: |
           PR_VERSION="${{ steps.pr_version.outputs.version }}"
           MAIN_VERSION="${{ steps.main_version.outputs.version }}"
-          
+
           echo "PR version: $PR_VERSION"
           echo "Main version: $MAIN_VERSION"
-          
+
           if [ "$PR_VERSION" = "$MAIN_VERSION" ]; then
             echo "::error::Version in .version ($PR_VERSION) has not been bumped from main ($MAIN_VERSION)"
             echo ""
             echo "Please update .version with the new version number before merging."
             exit 1
           fi
-          
+
           echo "Version bumped from $MAIN_VERSION to $PR_VERSION"

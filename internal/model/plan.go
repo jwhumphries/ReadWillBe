@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Plan is a collection of [Reading]s owned by a [User].
 type Plan struct {
 	gorm.Model
 	Title        string
@@ -19,6 +20,8 @@ type Plan struct {
 	DeletedAt    *time.Time
 }
 
+// IsComplete reports whether the plan has at least one reading and every
+// reading is in StatusCompleted.
 func (p Plan) IsComplete() bool {
 	if len(p.Readings) == 0 {
 		return false
