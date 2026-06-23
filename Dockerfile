@@ -7,7 +7,7 @@ RUN go install github.com/air-verse/air@latest && \
 
 # Stage 2: Development Environment
 # Uses custom frontend image (Bun + Tailwind) as base
-FROM ghcr.io/jwhumphries/frontend:latest@sha256:10e1e026cd8d6780997f921eff88d2338d5f521cd67f3158a84a4b45337bc34d AS dev
+FROM ghcr.io/jwhumphries/frontend:latest@sha256:6b5be63918e393d69ff13af49fec955d383ca378f7512db739e2a3c593feb991 AS dev
 WORKDIR /app
 
 # Install system dependencies (git/curl needed for dev tools)
