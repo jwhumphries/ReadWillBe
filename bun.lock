@@ -21,7 +21,7 @@
         "@tailwindcss/typography": "0.5.20",
         "@types/react": "19.2.17",
         "@types/react-dom": "19.2.3",
-        "daisyui": "5.6.13",
+        "daisyui": "5.6.18",
         "esbuild": "0.28.1",
         "eslint": "10.6.0",
         "eslint-config-prettier": "10.1.8",
@@ -227,7 +227,7 @@
 
     "csstype": ["csstype@3.2.3", "", {}, "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ=="],
 
-    "daisyui": ["daisyui@5.6.13", "", {}, "sha512-0UHyNG3TzF7pDIbPcWyLKQfgtGhJcIq2x26jwsDKp7ZhL0GwaqIMZ12+TWfp8p+mE4NNc29SJk63hEXTz3MQkg=="],
+    "daisyui": ["daisyui@5.6.18", "", {}, "sha512-6y9rboRQl8fosnusy/5pg11yp+H0LtK3YdtfS4Vf2QVnaYOKasNdYm6hDxeiT6bwZPdl4WRPzVIlIApdo2ssBg=="],
 
     "date-fns": ["date-fns@4.2.1", "", {}, "sha512-37RhSdxaG1suen6VDCza6rNrQfooyQh57HFVPwQGEq2QWliVLzPQZ8Oa017weOu+HZCnzI7N3Pf/wyoBKfEqrA=="],
 
