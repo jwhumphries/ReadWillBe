@@ -51,6 +51,19 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Name of the Secret holding the cookie secret, VAPID keys and email credentials.
+Points at an externally-managed Secret when secrets.existingSecret is set,
+otherwise at the Secret this chart renders.
+*/}}
+{{- define "readwillbe.secretName" -}}
+{{- if .Values.secrets.existingSecret }}
+{{- .Values.secrets.existingSecret }}
+{{- else }}
+{{- include "readwillbe.fullname" . }}
+{{- end }}
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "readwillbe.serviceAccountName" -}}
