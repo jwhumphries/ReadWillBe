@@ -18,7 +18,7 @@ const (
 	// secret (or decoded length when base64-encoded).
 	MinCookieSecretLength = 32
 	// MinCookieSecretEntropy is the minimum estimated entropy, in bits, required
-	// when the secret is not base64-encoded.
+	// of the secret read as a literal string.
 	MinCookieSecretEntropy = 128
 )
 
@@ -119,15 +119,24 @@ func ConfigFromViper() (Config, error) {
 		return Config{}, errors.Errorf("cookie_secret must be at least %d characters for security (generate with: openssl rand -base64 32)", MinCookieSecretLength)
 	}
 
-	if decoded, err := base64.StdEncoding.DecodeString(cookieSecret); err == nil {
-		if len(decoded) < MinCookieSecretLength {
-			return Config{}, errors.Errorf("cookie_secret base64-decoded length is only %d bytes, need at least %d bytes of entropy (generate with: openssl rand -base64 32)", len(decoded), MinCookieSecretLength)
-		}
-	} else {
-		entropy := estimateEntropy(cookieSecret)
-		if entropy < MinCookieSecretEntropy {
-			return Config{}, errors.Errorf("cookie_secret has insufficient entropy (~%d bits, need %d+). Use a cryptographically random value (generate with: openssl rand -base64 32)", entropy, MinCookieSecretEntropy)
-		}
+	// The secret is strong enough if EITHER reading of it is strong enough: as
+	// base64 decoding to at least MinCookieSecretLength bytes, or as a literal
+	// string carrying at least MinCookieSecretEntropy bits.
+	//
+	// Both readings must be considered, because "decodes as base64" does not
+	// mean "is base64". Any string whose length is a multiple of four and whose
+	// characters all fall in the base64 alphabet decodes successfully, so a
+	// random 32-character alphanumeric secret silently decodes to 24 bytes.
+	// Judging it only by that accidental reading would reject a value that
+	// carries ~192 bits of entropy as written.
+	decoded, decodeErr := base64.StdEncoding.DecodeString(cookieSecret)
+	strongAsBase64 := decodeErr == nil && len(decoded) >= MinCookieSecretLength
+
+	entropy := estimateEntropy(cookieSecret)
+	strongAsLiteral := entropy >= MinCookieSecretEntropy
+
+	if !strongAsBase64 && !strongAsLiteral {
+		return Config{}, errors.Errorf("cookie_secret is not strong enough: ~%d bits of entropy as a literal string (need %d+), and it does not base64-decode to %d+ bytes (generate with: openssl rand -base64 32)", entropy, MinCookieSecretEntropy, MinCookieSecretLength)
 	}
 
 	port := viper.GetString("port")

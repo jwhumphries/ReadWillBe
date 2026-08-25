@@ -5,10 +5,12 @@
 replicaCount: 1
 
 image:
-  repository: readwillbe
+  repository: ghcr.io/jwhumphries/readwillbe
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  # Published tags carry a "v" prefix, so this cannot be left empty to fall
+  # back to .Chart.AppVersion ("0.1.1") -- that tag does not exist. Keep it
+  # pinned explicitly and bump it alongside appVersion.
+  tag: "v0.1.1"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -84,6 +86,13 @@ env:
 
 # Secrets - You should provide these via --set or a separate values file in production
 secrets:
+  # Name of an existing Secret to read all credentials from. When set, this
+  # chart renders no Secret of its own and the keys below are ignored.
+  # Expected keys: cookie-secret, and optionally vapid-public-key,
+  # vapid-private-key, smtp-password, resend-api-key.
+  # Prefer this under GitOps: a chart-generated secret is regenerated on every
+  # render, which shows as permanent drift and invalidates sessions.
+  existingSecret: ""
   # Generates a random one if empty (helm function) or you must provide it
   cookieSecret: ""
   vapidPublicKey: ""

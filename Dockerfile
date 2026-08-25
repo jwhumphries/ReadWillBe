@@ -1,5 +1,5 @@
 # Stage 1: Go Base & Tool Builder
-FROM golang:1.26-alpine@sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648 AS gobase
+FROM golang:1.27-alpine@sha256:4c9fe60190a2a3350ddc51de80d0224b8a6698d12bdfc999fee45ea9d6c46dbc AS gobase
 RUN apk add --no-cache git
 # Install Air and Templ
 RUN go install github.com/air-verse/air@latest && \
@@ -7,7 +7,7 @@ RUN go install github.com/air-verse/air@latest && \
 
 # Stage 2: Development Environment
 # Uses custom frontend image (Bun + Tailwind) as base
-FROM ghcr.io/jwhumphries/frontend:latest@sha256:6b5be63918e393d69ff13af49fec955d383ca378f7512db739e2a3c593feb991 AS dev
+FROM ghcr.io/jwhumphries/frontend:latest@sha256:497f5bdcf401709cd11806e67e440b4785cbf472366fdef65140eb150a5f41bc AS dev
 WORKDIR /app
 
 # Install system dependencies (git/curl needed for dev tools)
