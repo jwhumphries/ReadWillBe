@@ -17,10 +17,19 @@ linters:
   default: standard
   enable:
     - revive
+  exclusions:
+    paths:
+      # `just format` and `just build-assets` export the frontend container's
+      # node_modules into the working tree, and a few npm packages ship Go
+      # sources of their own. They are not ours to lint.
+      - node_modules
 
 formatters:
   enable:
     - goimports
+  exclusions:
+    paths:
+      - node_modules
 
 issues:
   max-issues-per-linter: 0

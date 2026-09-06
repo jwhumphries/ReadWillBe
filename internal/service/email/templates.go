@@ -2,7 +2,6 @@ package email
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 
 	"readwillbe/internal/model"
@@ -190,12 +189,13 @@ type dailyDigestData struct {
 }
 
 // RenderDailyDigestEmail returns the HTML and plain-text bodies for the
-// daily reading digest email.
-func RenderDailyDigestEmail(user model.User, readings []model.Reading, hostname string) (html, text string) {
+// daily reading digest email. baseURL is the server's public origin, scheme
+// included, as returned by [model.Config.BaseURL].
+func RenderDailyDigestEmail(user model.User, readings []model.Reading, baseURL string) (html, text string) {
 	data := dailyDigestData{
 		UserName:     user.Name,
-		DashboardURL: fmt.Sprintf("https://%s/dashboard", hostname),
-		SettingsURL:  fmt.Sprintf("https://%s/account", hostname),
+		DashboardURL: baseURL + "/dashboard",
+		SettingsURL:  baseURL + "/account",
 	}
 
 	for _, r := range readings {

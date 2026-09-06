@@ -3,32 +3,44 @@
 package email
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
+	"time"
 
 	"readwillbe/internal/model"
 
 	mail "github.com/wneessen/go-mail"
 )
 
+// sendTimeout bounds a single delivery attempt. The notification worker sends
+// synchronously while iterating users, so an unreachable mail host must not
+// stall the rest of the run.
+const sendTimeout = 30 * time.Second
+
+// resendAPIURL is the Resend transactional send endpoint.
+const resendAPIURL = "https://api.resend.com/emails"
+
 // Service is implemented by every supported email backend.
 type Service interface {
-	SendDailyDigest(user model.User, readings []model.Reading, hostname string) error
-	SendTestEmail(to, hostname string) error
+	SendDailyDigest(user model.User, readings []model.Reading) error
+	SendTestEmail(to string) error
 }
 
-// NewService returns the email service implementation matching cfg.EmailProvider,
-// or nil if no provider is configured.
-func NewService(cfg model.Config) Service {
+// NewService returns the email service implementation matching
+// cfg.EmailProvider, or an error if the provider is unset or unrecognised.
+func NewService(cfg model.Config) (Service, error) {
 	switch cfg.EmailProvider {
 	case "smtp":
-		return &SMTPService{cfg: cfg}
+		return &SMTPService{cfg: cfg}, nil
 	case "resend":
-		return &ResendService{cfg: cfg}
+		return &ResendService{cfg: cfg, client: &http.Client{Timeout: sendTimeout}}, nil
+	case "":
+		return nil, fmt.Errorf("no email provider configured")
 	default:
-		return nil
+		return nil, fmt.Errorf("unknown email provider %q", cfg.EmailProvider)
 	}
 }
 
@@ -38,13 +50,13 @@ type SMTPService struct {
 }
 
 // SendDailyDigest renders and sends the daily reading digest for user.
-func (s *SMTPService) SendDailyDigest(user model.User, readings []model.Reading, hostname string) error {
-	html, text := RenderDailyDigestEmail(user, readings, hostname)
+func (s *SMTPService) SendDailyDigest(user model.User, readings []model.Reading) error {
+	html, text := RenderDailyDigestEmail(user, readings, s.cfg.BaseURL())
 	return s.send(user.GetNotificationEmail(), "Your readings for today", html, text)
 }
 
 // SendTestEmail sends a short test message to the given address.
-func (s *SMTPService) SendTestEmail(to string, _ string) error {
+func (s *SMTPService) SendTestEmail(to string) error {
 	html, text := RenderTestEmail()
 	return s.send(to, "Test Email from ReadWillBe", html, text)
 }
@@ -74,6 +86,7 @@ func (s *SMTPService) send(to, subject, htmlBody, textBody string) error {
 	opts := []mail.Option{
 		mail.WithPort(s.cfg.SMTPPort),
 		mail.WithTLSPolicy(tlsPolicy),
+		mail.WithTimeout(sendTimeout),
 	}
 
 	if s.cfg.SMTPUsername != "" {
@@ -89,44 +102,76 @@ func (s *SMTPService) send(to, subject, htmlBody, textBody string) error {
 		return fmt.Errorf("failed to create mail client: %w", err)
 	}
 
-	return c.DialAndSend(m)
+	// WithTimeout bounds each network operation; the context bounds the whole
+	// dial-and-send so a server that trickles responses still gives up.
+	ctx, cancel := context.WithTimeout(context.Background(), sendTimeout)
+	defer cancel()
+
+	return c.DialAndSendWithContext(ctx, m)
 }
 
 // ResendService delivers email through the Resend HTTP API.
 type ResendService struct {
-	cfg model.Config
+	cfg    model.Config
+	client *http.Client
 }
 
 // SendDailyDigest renders and sends the daily reading digest for user.
-func (r *ResendService) SendDailyDigest(user model.User, readings []model.Reading, hostname string) error {
-	html, text := RenderDailyDigestEmail(user, readings, hostname)
+func (r *ResendService) SendDailyDigest(user model.User, readings []model.Reading) error {
+	html, text := RenderDailyDigestEmail(user, readings, r.cfg.BaseURL())
 	return r.send(user.GetNotificationEmail(), "Your readings for today", html, text)
 }
 
 // SendTestEmail sends a short test message to the given address.
-func (r *ResendService) SendTestEmail(to string, _ string) error {
+func (r *ResendService) SendTestEmail(to string) error {
 	html, text := RenderTestEmail()
 	return r.send(to, "Test Email from ReadWillBe", html, text)
 }
 
-func (r *ResendService) send(to, subject, htmlBody, textBody string) error {
-	payload := fmt.Sprintf(`{
-		"from": %q,
-		"to": [%q],
-		"subject": %q,
-		"html": %q,
-		"text": %q
-	}`, r.cfg.ResendFrom, to, subject, htmlBody, textBody)
+// resendPayload is the request body accepted by the Resend send endpoint.
+type resendPayload struct {
+	From    string   `json:"from"`
+	To      []string `json:"to"`
+	Subject string   `json:"subject"`
+	HTML    string   `json:"html"`
+	Text    string   `json:"text"`
+}
 
-	req, err := http.NewRequestWithContext(context.Background(), "POST", "https://api.resend.com/emails",
-		strings.NewReader(payload))
+// buildResendPayload encodes a Resend send request. Bodies carry user-supplied
+// plan titles and reading content verbatim, so they are JSON-encoded rather
+// than interpolated into a format string.
+func buildResendPayload(from, to, subject, htmlBody, textBody string) ([]byte, error) {
+	return json.Marshal(resendPayload{
+		From:    from,
+		To:      []string{to},
+		Subject: subject,
+		HTML:    htmlBody,
+		Text:    textBody,
+	})
+}
+
+func (r *ResendService) send(to, subject, htmlBody, textBody string) error {
+	payload, err := buildResendPayload(r.cfg.ResendFrom, to, subject, htmlBody, textBody)
+	if err != nil {
+		return fmt.Errorf("failed to encode resend payload: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), sendTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, resendAPIURL, bytes.NewReader(payload))
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Authorization", "Bearer "+r.cfg.ResendAPIKey)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	client := r.client
+	if client == nil {
+		client = &http.Client{Timeout: sendTimeout}
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
