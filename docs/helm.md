@@ -32,13 +32,13 @@ The following table lists the configurable parameters of the ReadWillBe chart an
 
 These values map directly to environment variables in the container.
 
-| Parameter                     | Description                | Default                 |
-| ----------------------------- | -------------------------- | ----------------------- |
-| `env.READWILLBE_PORT`         | Application listening port | `":8080"`               |
-| `env.READWILLBE_LOG_LEVEL`    | Logging level              | `"info"`                |
-| `env.READWILLBE_ALLOW_SIGNUP` | Enable user registration   | `"true"`                |
-| `env.READWILLBE_HOSTNAME`     | Public URL of the app      | `http://localhost:8080` |
-| `env.TZ`                      | Container Timezone         | `"America/New_York"`    |
+| Parameter                     | Description                  | Default                 |
+| ----------------------------- | ---------------------------- | ----------------------- |
+| `env.READWILLBE_PORT`         | Application listening port   | `":8080"`               |
+| `env.READWILLBE_LOG_LEVEL`    | Logging level                | `"info"`                |
+| `env.READWILLBE_ALLOW_SIGNUP` | Enable user registration     | `"true"`                |
+| `env.READWILLBE_HOSTNAME`     | Public base URL, with scheme | `http://localhost:8080` |
+| `env.TZ`                      | Container Timezone           | `"America/New_York"`    |
 
 ### Persistence
 
@@ -64,6 +64,11 @@ These values map directly to environment variables in the container.
 
 Configure one of the following providers under the `email` section.
 
+**Also set `env.READWILLBE_HOSTNAME`** to your public base URL, scheme included
+(e.g. `https://read.my-domain.com`). It is what builds the dashboard and
+settings links inside each digest; left at the default those links point at
+`localhost`.
+
 **SMTP (`email.provider: "smtp"`)**
 
 - `email.smtp.host`
@@ -86,6 +91,9 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+
+env:
+  READWILLBE_HOSTNAME: 'https://read.my-domain.com'
 
 secrets:
   cookieSecret: 'CHANGE_ME_TO_A_SECURE_RANDOM_STRING'

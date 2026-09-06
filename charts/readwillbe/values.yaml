@@ -82,6 +82,8 @@ env:
   READWILLBE_ALLOW_SIGNUP: "true"
   READWILLBE_SEED_DB: "false"
   TZ: "America/New_York"
+  # Public base URL, scheme included, used for links in notification email and
+  # push payloads. Set this to your ingress host, e.g. "https://read.example.com".
   READWILLBE_HOSTNAME: "http://localhost:8080"
 
 # Secrets - You should provide these via --set or a separate values file in production

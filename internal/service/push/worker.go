@@ -5,7 +5,6 @@ package push
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	webpush "github.com/SherClockHolmes/webpush-go"
@@ -33,12 +32,27 @@ func StartNotificationWorker(cfg model.Config, db *gorm.DB) context.CancelFunc {
 
 	var emailService email.Service
 	if emailEnabled {
-		emailService = email.NewService(cfg)
-		logrus.Info("Email notifications enabled via " + cfg.EmailProvider)
+		svc, err := email.NewService(cfg)
+		if err != nil {
+			logrus.Errorf("Email notifications disabled: %v", err)
+			emailEnabled = false
+		} else {
+			emailService = svc
+			logrus.Info("Email notifications enabled via " + cfg.EmailProvider)
+		}
+	}
+
+	if !pushEnabled && !emailEnabled {
+		logrus.Info("No usable notification transport, notification worker not started")
+		return func() {}
 	}
 
 	if pushEnabled {
 		logrus.Info("Push notifications enabled")
+	}
+
+	if cfg.BaseURL() == "" {
+		logrus.Warn("No hostname configured: links in notification email and push payloads will be relative and unusable (set READWILLBE_HOSTNAME)")
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -107,7 +121,7 @@ func processNotifications(cfg model.Config, db *gorm.DB, emailService email.Serv
 		}
 
 		if emailService != nil && user.EmailNotificationsEnabled {
-			if err := emailService.SendDailyDigest(user, activeReadings, cfg.Hostname); err != nil {
+			if err := emailService.SendDailyDigest(user, activeReadings); err != nil {
 				logrus.Errorf("Error sending email to user %d: %v", user.ID, err)
 			} else {
 				logrus.Infof("Sent daily digest email to user %d", user.ID)
@@ -120,11 +134,12 @@ func processNotifications(cfg model.Config, db *gorm.DB, emailService email.Serv
 // stored subscription for user, deleting any subscriptions the push gateway
 // reports as gone.
 func SendPushNotification(cfg model.Config, db *gorm.DB, user model.User) {
+	baseURL := cfg.BaseURL()
 	payload := map[string]interface{}{
 		"title": "ReadWillBe",
 		"body":  "You have readings due today!",
-		"icon":  fmt.Sprintf("https://%s/static/icon-192.png", cfg.Hostname),
-		"badge": fmt.Sprintf("https://%s/static/badge-128.png", cfg.Hostname),
+		"icon":  baseURL + "/static/icon-192.png",
+		"badge": baseURL + "/static/badge-128.png",
 		"data": map[string]string{
 			"url": "/",
 		},

@@ -23,12 +23,14 @@ Environment variables must be prefixed with `READWILLBE_`.
 | `READWILLBE_LOG_LEVEL`     | Logging level (`debug`, `info`, `warn`, `error`)  | `info`                |    No    |
 | `READWILLBE_ALLOW_SIGNUP`  | Allow new user registration                       | `false`               |    No    |
 | `READWILLBE_SEED_DB`       | Seed database with initial data                   | `false`               |    No    |
-| `READWILLBE_HOSTNAME`      | Public hostname (e.g. `https://read.example.com`) | -                     |    No    |
+| `READWILLBE_HOSTNAME`      | Public base URL (e.g. `https://read.example.com`) | -                     |    No    |
 | `TZ`                       | Timezone (e.g., `America/New_York`)               | -                     |    No    |
 
 #### Email Configuration (Optional)
 
-Set `READWILLBE_EMAIL_PROVIDER` to `smtp` or `resend`.
+Set `READWILLBE_EMAIL_PROVIDER` to `smtp` or `resend`. Also set
+`READWILLBE_HOSTNAME` to your public base URL, scheme included, or the links
+inside each digest email will not resolve.
 
 **SMTP:**
 

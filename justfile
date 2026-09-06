@@ -35,7 +35,7 @@ dev: _build-dev
         -e READWILLBE_ALLOW_SIGNUP=true \
         -e READWILLBE_LOG_LEVEL=debug \
         -e TEMPL_EXPERIMENT=rawgo \
-        -e READWILLBE_HOSTNAME=localhost:7331 \
+        -e READWILLBE_HOSTNAME=http://localhost:7331 \
         {{DEV_IMAGE}} \
         sh -c "bun install && /develop.sh"
 

@@ -32,6 +32,7 @@ templ Account(cfg model.Config, user *model.User) {
 			</div>
 			<div class="card bg-base-200 shadow-xl">
 				<form method="POST" action="/account/settings">
+					<input type="hidden" name="section" value="push"/>
 					<div class="card-body space-y-4">
 						<h2 class="card-title">Notification Settings</h2>
 						<label class="flex items-start gap-4 cursor-pointer" for="notifications_enabled">
@@ -106,8 +107,7 @@ templ Account(cfg model.Config, user *model.User) {
 						<h2 class="card-title">Email Notifications</h2>
 						@components.AlertInfo("Receive your daily readings via email at your scheduled notification time.")
 						<form method="POST" action="/account/settings" class="space-y-4">
-							<input type="hidden" name="notifications_enabled" value={ boolToOnOff(user.NotificationsEnabled) }/>
-							<input type="hidden" name="notification_time" value={ user.NotificationTime }/>
+							<input type="hidden" name="section" value="email"/>
 							<label class="flex items-start gap-4 cursor-pointer" for="email_notifications_enabled">
 								<input
 									type="checkbox"
@@ -165,11 +165,4 @@ templ Account(cfg model.Config, user *model.User) {
 			}
 		</div>
 	}
-}
-
-func boolToOnOff(b bool) string {
-	if b {
-		return "on"
-	}
-	return ""
 }

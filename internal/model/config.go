@@ -31,7 +31,10 @@ type Config struct {
 	Port            string
 	VAPIDPublicKey  string
 	VAPIDPrivateKey string
-	Hostname        string
+	// Hostname is the server's public origin, as a full base URL
+	// ("https://read.example.com") or a bare host assumed to be https.
+	// Read it through [Config.BaseURL], never directly.
+	Hostname string
 
 	// Email configuration (mutually exclusive: set EITHER SMTP OR Resend)
 	EmailProvider string // "smtp" or "resend" (empty = disabled)
@@ -54,6 +57,30 @@ type Config struct {
 func (c Config) IsProduction() bool {
 	env := strings.ToLower(os.Getenv("GO_ENV"))
 	return env == "production" || env == "prod"
+}
+
+// BaseURL returns the public origin of the server, without a trailing slash,
+// for building absolute links in email and push payloads.
+//
+// Hostname is accepted either as a full base URL ("https://read.example.com")
+// or as a bare host ("read.example.com"), which is assumed to be served over
+// https. Returning a complete origin keeps callers from concatenating a scheme
+// of their own onto a value that may already carry one.
+//
+// Returns an empty string when no hostname is configured; callers that need an
+// absolute link should check for that.
+func (c Config) BaseURL() string {
+	host := strings.TrimSpace(c.Hostname)
+	if host == "" {
+		return ""
+	}
+
+	lower := strings.ToLower(host)
+	if !strings.HasPrefix(lower, "http://") && !strings.HasPrefix(lower, "https://") {
+		host = "https://" + host
+	}
+
+	return strings.TrimRight(host, "/")
 }
 
 // EmailEnabled reports whether an email provider (smtp or resend) is configured.

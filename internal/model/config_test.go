@@ -115,3 +115,81 @@ func TestConfigFromViper_CookieSecretPreservedVerbatim(t *testing.T) {
 		t.Errorf("CookieSecret = %q, want %q", cfg.CookieSecret, secret)
 	}
 }
+
+func TestConfig_BaseURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		hostname string
+		want     string
+	}{
+		{
+			// The form the Docker and Helm docs tell you to use.
+			name:     "https URL is used as given",
+			hostname: "https://read.example.com",
+			want:     "https://read.example.com",
+		},
+		{
+			// The Helm chart's default, and how the dev server is reached.
+			name:     "http URL keeps its scheme",
+			hostname: "http://localhost:8080",
+			want:     "http://localhost:8080",
+		},
+		{
+			// What the code required before base URLs were accepted, so it has
+			// to keep resolving the same way.
+			name:     "bare host gains an https scheme",
+			hostname: "read.example.com",
+			want:     "https://read.example.com",
+		},
+		{
+			name:     "bare host with port gains an https scheme",
+			hostname: "read.example.com:8443",
+			want:     "https://read.example.com:8443",
+		},
+		{
+			name:     "trailing slash is dropped",
+			hostname: "https://read.example.com/",
+			want:     "https://read.example.com",
+		},
+		{
+			name:     "surrounding whitespace is dropped",
+			hostname: "  https://read.example.com  ",
+			want:     "https://read.example.com",
+		},
+		{
+			name:     "scheme is recognised case-insensitively",
+			hostname: "HTTPS://read.example.com",
+			want:     "HTTPS://read.example.com",
+		},
+		{
+			name:     "empty hostname stays empty",
+			hostname: "",
+			want:     "",
+		},
+		{
+			name:     "whitespace-only hostname stays empty",
+			hostname: "   ",
+			want:     "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Config{Hostname: tt.hostname}.BaseURL()
+			if got != tt.want {
+				t.Errorf("BaseURL() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// The scheme must not be doubled up, which is what made every digest link
+// read https://http://localhost:8080/dashboard.
+func TestConfig_BaseURLNeverDoublesTheScheme(t *testing.T) {
+	for _, hostname := range []string{"http://localhost:8080", "https://read.example.com", "read.example.com"} {
+		got := Config{Hostname: hostname}.BaseURL()
+		if strings.Count(got, "://") != 1 {
+			t.Errorf("BaseURL() = %q, want exactly one scheme separator", got)
+		}
+	}
+}
