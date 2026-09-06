@@ -7,6 +7,10 @@ on:
 jobs:
   renovate:
     runs-on: ubuntu-latest
+    # Renovate performs its own writes through RENOVATE_TOKEN; the workflow
+    # token only needs to read the repository for checkout.
+    permissions:
+      contents: read
     steps:
       - name: checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

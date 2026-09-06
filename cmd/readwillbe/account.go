@@ -59,14 +59,19 @@ func updateSettings(db *gorm.DB) echo.HandlerFunc {
 		updatePush := section == "" || section == settingsSectionPush
 		updateEmail := section == "" || section == settingsSectionEmail
 
+		// Only the submitted section's columns are written. The session user is
+		// served from a TTL cache, so persisting the whole struct would revert
+		// any column another request changed while that snapshot was cached.
+		updates := map[string]any{}
+
 		if updatePush {
 			notificationTime := c.FormValue("notification_time")
 			if notificationTime != "" && !timeFormatRegex.MatchString(notificationTime) {
 				return c.String(http.StatusBadRequest, fmt.Sprintf("Invalid time format: %s (expected HH:MM)", notificationTime))
 			}
 
-			user.NotificationsEnabled = c.FormValue("notifications_enabled") == "on"
-			user.NotificationTime = notificationTime
+			updates["notifications_enabled"] = c.FormValue("notifications_enabled") == "on"
+			updates["notification_time"] = notificationTime
 		}
 
 		if updateEmail {
@@ -75,12 +80,14 @@ func updateSettings(db *gorm.DB) echo.HandlerFunc {
 				return c.String(http.StatusBadRequest, "Invalid email address")
 			}
 
-			user.EmailNotificationsEnabled = c.FormValue("email_notifications_enabled") == "on"
-			user.NotificationEmail = notificationEmail
+			updates["email_notifications_enabled"] = c.FormValue("email_notifications_enabled") == "on"
+			updates["notification_email"] = notificationEmail
 		}
 
-		if err := db.WithContext(c.Request().Context()).Save(&user).Error; err != nil {
-			return c.String(http.StatusInternalServerError, "Failed to update settings")
+		if len(updates) > 0 {
+			if err := db.WithContext(c.Request().Context()).Model(&user).Updates(updates).Error; err != nil {
+				return c.String(http.StatusInternalServerError, "Failed to update settings")
+			}
 		}
 
 		return c.Redirect(http.StatusFound, "/account")

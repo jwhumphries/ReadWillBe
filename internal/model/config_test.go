@@ -193,3 +193,87 @@ func TestConfig_BaseURLNeverDoublesTheScheme(t *testing.T) {
 		}
 	}
 }
+
+// emailConfigFromViper runs ConfigFromViper with a valid cookie secret plus the
+// given overrides, and returns the validation error.
+func emailConfigFromViper(t *testing.T, overrides map[string]string) error {
+	t.Helper()
+
+	viper.Reset()
+	t.Cleanup(viper.Reset)
+	viper.Set("cookie_secret", "hHchpVEEQ8kFwvJyDPqvXQvJNBSPNCtaCFAJc8lHbTM=")
+	for k, v := range overrides {
+		viper.Set(k, v)
+	}
+
+	_, err := ConfigFromViper()
+	return err
+}
+
+// A digest email is mostly links back to the app, so an enabled provider with
+// no hostname sends mail whose every link is relative and therefore dead.
+func TestConfigFromViper_EmailProviderRequiresHostname(t *testing.T) {
+	tests := []struct {
+		name      string
+		overrides map[string]string
+		wantErr   bool
+	}{
+		{
+			name: "smtp without hostname is rejected",
+			overrides: map[string]string{
+				"email_provider": "smtp",
+				"smtp_host":      "smtp.example.com",
+				"smtp_from":      "ReadWillBe <no-reply@example.com>",
+			},
+			wantErr: true,
+		},
+		{
+			name: "smtp with hostname is accepted",
+			overrides: map[string]string{
+				"email_provider": "smtp",
+				"smtp_host":      "smtp.example.com",
+				"smtp_from":      "ReadWillBe <no-reply@example.com>",
+				"hostname":       "https://read.example.com",
+			},
+			wantErr: false,
+		},
+		{
+			name: "resend without hostname is rejected",
+			overrides: map[string]string{
+				"email_provider": "resend",
+				"resend_api_key": "re_test",
+				"resend_from":    "ReadWillBe <no-reply@example.com>",
+			},
+			wantErr: true,
+		},
+		{
+			name: "whitespace-only hostname is rejected",
+			overrides: map[string]string{
+				"email_provider": "resend",
+				"resend_api_key": "re_test",
+				"resend_from":    "ReadWillBe <no-reply@example.com>",
+				"hostname":       "   ",
+			},
+			wantErr: true,
+		},
+		{
+			// Push notifications also want a hostname, but they degrade rather
+			// than break without one, so no provider means no requirement.
+			name:      "no email provider does not require a hostname",
+			overrides: map[string]string{},
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := emailConfigFromViper(t, tt.overrides)
+			if tt.wantErr && err == nil {
+				t.Fatal("expected an error, got nil")
+			}
+			if !tt.wantErr && err != nil {
+				t.Fatalf("expected no error, got %v", err)
+			}
+		})
+	}
+}

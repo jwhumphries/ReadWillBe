@@ -195,6 +195,13 @@ func ConfigFromViper() (Config, error) {
 		}
 	}
 
+	// A digest is mostly links back to the app, so an enabled provider with no
+	// hostname would send mail whose every link is relative and therefore dead.
+	// Push degrades the same way but still delivers, so it only warns.
+	if emailProvider != "" && strings.TrimSpace(viper.GetString("hostname")) == "" {
+		return Config{}, errors.New("hostname is required when email_provider is set, because digest emails link back to the app (set READWILLBE_HOSTNAME, e.g. https://read.example.com)")
+	}
+
 	smtpTLS := strings.ToLower(viper.GetString("smtp_tls"))
 	if smtpTLS == "" {
 		smtpTLS = "starttls"

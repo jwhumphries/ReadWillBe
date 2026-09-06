@@ -160,3 +160,29 @@ func TestUpdateSettings_RejectsInvalidNotificationEmail(t *testing.T) {
 	assert.False(t, updated.EmailNotificationsEnabled)
 	assert.Empty(t, updated.NotificationEmail)
 }
+
+// The session user is served from a 5-minute TTL cache, so the struct reaching
+// this handler can be a stale snapshot. Persisting it wholesale would revert
+// any column another request changed in that window, so the handler must write
+// only the fields its section owns.
+func TestUpdateSettings_DoesNotRevertFieldsChangedElsewhere(t *testing.T) {
+	db := setupTestDB(t)
+	user := createTestUser(t, db, "reader@example.com", "password123")
+
+	// The handler will be handed this stale copy...
+	stale := *user
+
+	// ...while another request renames the account and changes the password.
+	require.NoError(t, db.Model(&model.User{}).Where("id = ?", user.ID).
+		Updates(map[string]any{"name": "Renamed", "password": "new-hash"}).Error)
+
+	_, updated := postSettings(t, db, &stale, url.Values{
+		"section":               {"push"},
+		"notifications_enabled": {"on"},
+		"notification_time":     {"08:00"},
+	})
+
+	assert.Equal(t, "08:00", updated.NotificationTime, "the submitted section should still be saved")
+	assert.Equal(t, "Renamed", updated.Name, "a stale session user must not revert the name")
+	assert.Equal(t, "new-hash", updated.Password, "a stale session user must not revert the password")
+}
