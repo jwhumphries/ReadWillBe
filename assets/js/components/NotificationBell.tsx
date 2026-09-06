@@ -83,7 +83,14 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   };
 
   return (
-    <div className="dropdown dropdown-end" ref={dropdownRef}>
+    <div
+      // daisyUI hides .dropdown-content unless the .dropdown is a <details>,
+      // is hovered, holds focus, or carries dropdown-open. This dropdown is
+      // driven by React state, so it must set the class explicitly rather than
+      // depend on the trigger happening to keep focus.
+      className={`dropdown dropdown-end${isOpen ? ' dropdown-open' : ''}`}
+      ref={dropdownRef}
+    >
       <button
         type="button"
         className="btn btn-ghost btn-circle"
