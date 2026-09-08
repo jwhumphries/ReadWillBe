@@ -10,7 +10,7 @@ image:
   # Published tags carry a "v" prefix, so this cannot be left empty to fall
   # back to .Chart.AppVersion ("0.1.1") -- that tag does not exist. Keep it
   # pinned explicitly and bump it alongside appVersion.
-  tag: "v0.1.1@sha256:da4cf6102d7b4e9515d294f634da2fb9e47125913620830dc76c5826c00ff646"
+  tag: "v0.1.2@sha256:6d3476929b510902099d92227282740d84e850cbe578e58b2efc5212eedd2f79"
 
 imagePullSecrets: []
 nameOverride: ""
