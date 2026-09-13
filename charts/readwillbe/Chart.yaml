@@ -2,5 +2,7 @@ apiVersion: v2
 name: readwillbe
 description: A Helm chart for ReadWillBe GOTH stack application
 type: application
+# version and appVersion are overwritten from .version by the release workflow
+# (.github/workflows/release-image.yml); bump .version, not these.
 version: 0.1.3
 appVersion: "0.1.3"

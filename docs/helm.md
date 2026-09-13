@@ -19,14 +19,18 @@ The following table lists the configurable parameters of the ReadWillBe chart an
 
 ### General Settings
 
-| Parameter          | Description             | Default               |
-| ------------------ | ----------------------- | --------------------- |
-| `replicaCount`     | Number of replicas      | `1`                   |
-| `image.repository` | Image repository        | `readwillbe`          |
-| `image.tag`        | Image tag               | `latest`              |
-| `service.port`     | Kubernetes Service port | `80`                  |
-| `ingress.enabled`  | Enable Ingress          | `false`               |
-| `ingress.hosts`    | List of ingress hosts   | `chart-example.local` |
+| Parameter          | Description             | Default                |
+| ------------------ | ----------------------- | ---------------------- |
+| `replicaCount`     | Number of replicas      | `1`                    |
+| `image.repository` | Image repository        | `readwillbe`           |
+| `image.tag`        | Image tag override      | `""` (`v<appVersion>`) |
+| `service.port`     | Kubernetes Service port | `80`                   |
+| `ingress.enabled`  | Enable Ingress          | `false`                |
+| `ingress.hosts`    | List of ingress hosts   | `chart-example.local`  |
+
+Charts published from CI pin `image.tag` to the exact image built for that
+release (`v<version>@sha256:<digest>`), and set `version`/`appVersion` from
+`.version`. Leave `image.tag` empty in git.
 
 ### Application Configuration (`env`)
 
