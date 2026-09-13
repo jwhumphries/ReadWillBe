@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
+	"readwillbe/internal/cache"
 	mw "readwillbe/internal/middleware"
 	"readwillbe/internal/model"
 	emailservice "readwillbe/internal/service/email"
@@ -42,7 +43,7 @@ func accountHandler(cfg model.Config, _ *gorm.DB) echo.HandlerFunc {
 	}
 }
 
-func updateSettings(db *gorm.DB) echo.HandlerFunc {
+func updateSettings(db *gorm.DB, userCache *cache.UserCache) echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		user, ok := mw.GetSessionUser(c)
 		if !ok {
@@ -80,14 +81,22 @@ func updateSettings(db *gorm.DB) echo.HandlerFunc {
 				return c.String(http.StatusBadRequest, "Invalid email address")
 			}
 
+			emailNotificationTime := c.FormValue("email_notification_time")
+			if emailNotificationTime != "" && !timeFormatRegex.MatchString(emailNotificationTime) {
+				return c.String(http.StatusBadRequest, fmt.Sprintf("Invalid time format: %s (expected HH:MM)", emailNotificationTime))
+			}
+
 			updates["email_notifications_enabled"] = c.FormValue("email_notifications_enabled") == "on"
 			updates["notification_email"] = notificationEmail
+			updates["email_notification_time"] = emailNotificationTime
 		}
 
 		if len(updates) > 0 {
 			if err := db.WithContext(c.Request().Context()).Model(&user).Updates(updates).Error; err != nil {
 				return c.String(http.StatusInternalServerError, "Failed to update settings")
 			}
+			// Evict the snapshot so the redirect renders what was just saved.
+			userCache.Invalidate(user.ID)
 		}
 
 		return c.Redirect(http.StatusFound, "/account")

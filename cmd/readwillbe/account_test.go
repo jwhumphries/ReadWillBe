@@ -6,7 +6,9 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
+	"readwillbe/internal/cache"
 	"readwillbe/internal/model"
 
 	"github.com/labstack/echo/v5"
@@ -19,6 +21,13 @@ import (
 // returns the reloaded user record.
 func postSettings(t *testing.T, db *gorm.DB, user *model.User, form url.Values) (*httptest.ResponseRecorder, model.User) {
 	t.Helper()
+	return postSettingsWithCache(t, db, cache.NewUserCache(5*time.Minute, 10*time.Minute), user, form)
+}
+
+// postSettingsWithCache is postSettings with a caller-supplied user cache, for
+// tests that inspect the cache afterwards.
+func postSettingsWithCache(t *testing.T, db *gorm.DB, userCache *cache.UserCache, user *model.User, form url.Values) (*httptest.ResponseRecorder, model.User) {
+	t.Helper()
 
 	e := echo.New()
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -27,7 +36,7 @@ func postSettings(t *testing.T, db *gorm.DB, user *model.User, form url.Values) 
 			return next(c)
 		}
 	})
-	e.POST("/account/settings", updateSettings(db))
+	e.POST("/account/settings", updateSettings(db, userCache))
 
 	req := httptest.NewRequest("POST", "/account/settings", strings.NewReader(form.Encode()))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
@@ -185,4 +194,70 @@ func TestUpdateSettings_DoesNotRevertFieldsChangedElsewhere(t *testing.T) {
 	assert.Equal(t, "08:00", updated.NotificationTime, "the submitted section should still be saved")
 	assert.Equal(t, "Renamed", updated.Name, "a stale session user must not revert the name")
 	assert.Equal(t, "new-hash", updated.Password, "a stale session user must not revert the password")
+}
+
+// Email and push are scheduled independently, so each form owns its own time.
+func TestUpdateSettings_EmailFormSavesItsOwnTime(t *testing.T) {
+	db := setupTestDB(t)
+	user := createTestUser(t, db, "reader@example.com", "password123")
+	user.NotificationTime = "07:30"
+	require.NoError(t, db.Save(user).Error)
+
+	rec, updated := postSettings(t, db, user, url.Values{
+		"section":                     {"email"},
+		"email_notifications_enabled": {"on"},
+		"email_notification_time":     {"18:45"},
+	})
+
+	assert.Equal(t, http.StatusFound, rec.Code)
+	assert.Equal(t, "18:45", updated.EmailNotificationTime)
+	assert.Equal(t, "07:30", updated.NotificationTime, "email form must not change the push time")
+}
+
+func TestUpdateSettings_PushFormLeavesEmailTimeIntact(t *testing.T) {
+	db := setupTestDB(t)
+	user := createTestUser(t, db, "reader@example.com", "password123")
+	user.EmailNotificationTime = "18:45"
+	require.NoError(t, db.Save(user).Error)
+
+	_, updated := postSettings(t, db, user, url.Values{
+		"section":           {"push"},
+		"notification_time": {"07:30"},
+	})
+
+	assert.Equal(t, "07:30", updated.NotificationTime)
+	assert.Equal(t, "18:45", updated.EmailNotificationTime, "push form must not change the email time")
+}
+
+func TestUpdateSettings_RejectsInvalidEmailNotificationTime(t *testing.T) {
+	db := setupTestDB(t)
+	user := createTestUser(t, db, "reader@example.com", "password123")
+
+	rec, updated := postSettings(t, db, user, url.Values{
+		"section":                 {"email"},
+		"email_notification_time": {"7pm"},
+	})
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Empty(t, updated.EmailNotificationTime)
+}
+
+// The redirect back to /account re-reads the session user. If the cached
+// snapshot survived the save, the page would show the old settings for up to
+// the cache TTL and look as though nothing had been saved.
+func TestUpdateSettings_InvalidatesCachedUser(t *testing.T) {
+	db := setupTestDB(t)
+	user := createTestUser(t, db, "reader@example.com", "password123")
+
+	userCache := cache.NewUserCache(5*time.Minute, 10*time.Minute)
+	userCache.Set(*user)
+
+	rec, _ := postSettingsWithCache(t, db, userCache, user, url.Values{
+		"section":                     {"email"},
+		"email_notifications_enabled": {"on"},
+	})
+
+	assert.Equal(t, http.StatusFound, rec.Code)
+	_, found := userCache.Get(user.ID)
+	assert.False(t, found, "saving settings must evict the stale cached user")
 }

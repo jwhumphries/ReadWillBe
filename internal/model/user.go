@@ -23,6 +23,9 @@ type User struct {
 	// Email notifications (in addition to push)
 	EmailNotificationsEnabled bool   `gorm:"default:false"`
 	NotificationEmail         string // Empty = use user's primary Email
+	// EmailNotificationTime is when the daily digest is emailed ("HH:MM", server
+	// local time), scheduled independently of the push NotificationTime.
+	EmailNotificationTime string
 }
 
 // IsSet reports whether the user has a non-empty email address, used as a

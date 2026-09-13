@@ -34,7 +34,7 @@ templ Account(cfg model.Config, user *model.User) {
 				<form method="POST" action="/account/settings">
 					<input type="hidden" name="section" value="push"/>
 					<div class="card-body space-y-4">
-						<h2 class="card-title">Notification Settings</h2>
+						<h2 class="card-title">Push Notification Settings</h2>
 						<label class="flex items-start gap-4 cursor-pointer" for="notifications_enabled">
 							<input
 								type="checkbox"
@@ -51,8 +51,8 @@ templ Account(cfg model.Config, user *model.User) {
 						<div class="divider"></div>
 						<div class="space-y-1">
 							<div class="flex justify-between items-center">
-								<label for="notification_time" class="text-sm font-medium">Notification Time</label>
-								<span class="text-xs opacity-70">When should we remind you?</span>
+								<label for="notification_time" class="text-sm font-medium">Push Notification Time</label>
+								<span class="text-xs opacity-70">When should we send the push reminder?</span>
 							</div>
 							<input
 								type="time"
@@ -105,7 +105,7 @@ templ Account(cfg model.Config, user *model.User) {
 				<div class="card bg-base-200 shadow-xl">
 					<div class="card-body space-y-4">
 						<h2 class="card-title">Email Notifications</h2>
-						@components.AlertInfo("Receive your daily readings via email at your scheduled notification time.")
+						@components.AlertInfo("Receive your daily readings via email at the time you choose below.")
 						<form method="POST" action="/account/settings" class="space-y-4">
 							<input type="hidden" name="section" value="email"/>
 							<label class="flex items-start gap-4 cursor-pointer" for="email_notifications_enabled">
@@ -122,6 +122,19 @@ templ Account(cfg model.Config, user *model.User) {
 								</div>
 							</label>
 							<div class="divider"></div>
+							<div class="space-y-1">
+								<div class="flex justify-between items-center">
+									<label for="email_notification_time" class="text-sm font-medium">Email Time</label>
+									<span class="text-xs opacity-70">When should we send the digest?</span>
+								</div>
+								<input
+									type="time"
+									id="email_notification_time"
+									name="email_notification_time"
+									value={ user.EmailNotificationTime }
+									class="input input-bordered w-full"
+								/>
+							</div>
 							<div class="space-y-1">
 								<label for="notification_email" class="text-sm font-medium">Notification Email</label>
 								<input

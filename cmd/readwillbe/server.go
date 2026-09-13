@@ -160,8 +160,7 @@ func runServer(_ *cobra.Command, _ []string) error {
 	sqlDB.SetMaxOpenConns(1)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	err = db.AutoMigrate(&model.User{}, &model.Plan{}, &model.Reading{}, &model.PushSubscription{})
-	if err != nil {
+	if err := migrateDB(db); err != nil {
 		return errors.Wrap(err, "failed to migrate")
 	}
 
@@ -219,7 +218,7 @@ func runServer(_ *cobra.Command, _ []string) error {
 	e.DELETE("/plans/:id", deletePlan(db), generalRateLimiter)
 	e.DELETE("/plans/:id/readings/:reading_id", deleteReading(db), generalRateLimiter)
 	e.GET("/account", accountHandler(cfg, db))
-	e.POST("/account/settings", updateSettings(db), generalRateLimiter)
+	e.POST("/account/settings", updateSettings(db, userCache), generalRateLimiter)
 	e.POST("/account/test-email", sendTestEmailHandler(cfg), generalRateLimiter)
 
 	e.GET("/notifications/count", notificationCount(db))

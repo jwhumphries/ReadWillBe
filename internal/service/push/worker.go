@@ -66,8 +66,8 @@ func StartNotificationWorker(cfg model.Config, db *gorm.DB) context.CancelFunc {
 			case <-ctx.Done():
 				logrus.Info("Notification worker stopped")
 				return
-			case <-ticker.C:
-				processNotifications(cfg, db, emailService, pushEnabled)
+			case now := <-ticker.C:
+				processNotifications(cfg, db, emailService, pushEnabled, now)
 			}
 		}
 	}()
@@ -76,14 +76,16 @@ func StartNotificationWorker(cfg model.Config, db *gorm.DB) context.CancelFunc {
 	return cancel
 }
 
-func processNotifications(cfg model.Config, db *gorm.DB, emailService email.Service, pushEnabled bool) {
-	now := time.Now()
-	currentTime := now.Format("15:04")
+// processNotifications sends the push and email notifications scheduled for the
+// minute containing now. Push and email each have their own time, so a user is
+// considered for a channel only when that channel's time matches.
+func processNotifications(cfg model.Config, db *gorm.DB, emailService email.Service, pushEnabled bool, now time.Time) {
+	currentTime := now.In(time.Local).Format("15:04")
 
 	var users []model.User
 	err := db.Preload("PushSubscriptions").
-		Where("notification_time = ?", currentTime).
-		Where("notifications_enabled = ? OR email_notifications_enabled = ?", true, true).
+		Where("(notifications_enabled = ? AND notification_time = ?) OR (email_notifications_enabled = ? AND email_notification_time = ?)",
+			true, currentTime, true, currentTime).
 		Find(&users).Error
 
 	if err != nil {
@@ -91,7 +93,18 @@ func processNotifications(cfg model.Config, db *gorm.DB, emailService email.Serv
 		return
 	}
 
+	logrus.Debugf("Notification check at %s: %d user(s) scheduled", currentTime, len(users))
+
 	for _, user := range users {
+		sendPush := pushEnabled && user.NotificationsEnabled && user.NotificationTime == currentTime
+		sendEmail := emailService != nil && user.EmailNotificationsEnabled && user.EmailNotificationTime == currentTime
+
+		if !sendPush && !sendEmail {
+			logrus.Debugf("Skipping user %d: no usable transport for their schedule (push configured=%t, subscriptions=%d, email configured=%t)",
+				user.ID, pushEnabled, len(user.PushSubscriptions), emailService != nil)
+			continue
+		}
+
 		var readings []model.Reading
 		err := db.Preload("Plan").
 			Where("plan_id IN (?)",
@@ -113,14 +126,19 @@ func processNotifications(cfg model.Config, db *gorm.DB, emailService email.Serv
 		}
 
 		if len(activeReadings) == 0 {
+			logrus.Debugf("Skipping user %d: no readings due today or overdue", user.ID)
 			continue
 		}
 
-		if pushEnabled && user.NotificationsEnabled && len(user.PushSubscriptions) > 0 {
-			SendPushNotification(cfg, db, user)
+		if sendPush {
+			if len(user.PushSubscriptions) > 0 {
+				SendPushNotification(cfg, db, user)
+			} else {
+				logrus.Debugf("Skipping push for user %d: no browser subscriptions", user.ID)
+			}
 		}
 
-		if emailService != nil && user.EmailNotificationsEnabled {
+		if sendEmail {
 			if err := emailService.SendDailyDigest(user, activeReadings); err != nil {
 				logrus.Errorf("Error sending email to user %d: %v", user.ID, err)
 			} else {
