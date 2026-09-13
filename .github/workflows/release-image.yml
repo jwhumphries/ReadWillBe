@@ -14,6 +14,10 @@ jobs:
       packages: write
     env:
       DAGGER_NO_NAG: '1'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      released: ${{ steps.tag_check.outputs.exists == 'false' }}
+      digest: ${{ steps.digest.outputs.digest }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -22,15 +26,15 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "version=$(cat .version)" >> $GITHUB_OUTPUT
+        run: echo "version=$(cat .version)" >> "$GITHUB_OUTPUT"
 
       - name: Check if tag exists
         id: tag_check
         run: |
           if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "exists=true" >> "$GITHUB_OUTPUT"
           else
-            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create and push tag
@@ -41,7 +45,11 @@ jobs:
           git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
           git push origin "v${{ steps.version.outputs.version }}"
 
+      # Everything below publishes only for a new version. Rebuilding an
+      # existing one would move its tag to a new digest and orphan the digest
+      # that version's published chart pins.
       - name: Login to GitHub Container Registry
+        if: steps.tag_check.outputs.exists == 'false'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
           registry: ghcr.io
@@ -51,9 +59,10 @@ jobs:
       - name: Normalize Owner Case
         id: owner
         run: |
-          echo "owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+          echo "owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       - name: Build and Publish
+        if: steps.tag_check.outputs.exists == 'false'
         uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -68,7 +77,23 @@ jobs:
             publish
             --address=ghcr.io/${{ steps.owner.outputs.owner }}/readwillbe:v${{ steps.version.outputs.version }}
 
+      # Read back the digest of the versioned tag just pushed, so the chart can
+      # pin exactly this image rather than whatever the tag later points at.
+      - name: Resolve image digest
+        if: steps.tag_check.outputs.exists == 'false'
+        id: digest
+        run: |
+          DIGEST=$(docker buildx imagetools inspect \
+            "ghcr.io/${{ steps.owner.outputs.owner }}/readwillbe:v${{ steps.version.outputs.version }}" \
+            --format '{{ .Manifest.Digest }}')
+          if [[ ! "$DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+            echo "::error::Could not resolve image digest (got: '$DIGEST')"
+            exit 1
+          fi
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+
       - name: Publish latest tag
+        if: steps.tag_check.outputs.exists == 'false'
         uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -82,3 +107,53 @@ jobs:
             --version=v${{ steps.version.outputs.version }}
             publish
             --address=ghcr.io/${{ steps.owner.outputs.owner }}/readwillbe:latest
+
+  # The chart is published from the same run as the image so it can pin the
+  # image digest without committing it back: main only accepts merged PRs.
+  # Only a new release publishes a chart, so a chart version is never reused.
+  release-chart:
+    name: Package and Publish Chart
+    needs: build-and-publish
+    if: needs.build-and-publish.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      VERSION: ${{ needs.build-and-publish.outputs.version }}
+      DIGEST: ${{ needs.build-and-publish.outputs.digest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install Helm
+        uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5
+        with:
+          version: v4.3.0
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Stamp version and image digest
+        run: |
+          yq -i '.version = strenv(VERSION) | .appVersion = strenv(VERSION)' charts/readwillbe/Chart.yaml
+          yq -i '.image.tag = "v" + strenv(VERSION) + "@" + strenv(DIGEST)' charts/readwillbe/values.yaml
+
+      - name: Verify rendered image
+        run: |
+          helm lint charts/readwillbe
+          EXPECTED="readwillbe:v${VERSION}@${DIGEST}"
+          if ! helm template release charts/readwillbe --set secrets.cookieSecret=ci | grep -qF "$EXPECTED"; then
+            echo "::error::Rendered chart does not reference $EXPECTED"
+            exit 1
+          fi
+
+      - name: Package and Push Chart
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          helm package charts/readwillbe --destination .
+          helm push "readwillbe-${VERSION}.tgz" "oci://ghcr.io/$OWNER/charts"
