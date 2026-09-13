@@ -36,10 +36,10 @@ github.com/labstack/echo/v5 v5.3.1 h1:75maCxkQVGualckLc/5s/ihgpH1a1Dc6AuGWNVNs6b
 github.com/labstack/echo/v5 v5.3.1/go.mod h1:4iEGNQiPPZnkfYpNR/L6fINd3NLiGWUD5+eBotFALas=
 github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
 github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
-github.com/ncruces/go-sqlite3 v0.34.1 h1:N4NU/MqvZtSseGyTzJXdFI8RoVIR0lWUYeainj4pX2o=
-github.com/ncruces/go-sqlite3 v0.34.1/go.mod h1:QuztC+fMQvmDSPEk3E807xYbAVZGsxnismh23mzZPhM=
-github.com/ncruces/go-sqlite3-wasm/v2 v2.2.35301 h1:PPb3vECU21cZr2CrzYG7idXLBpWETDcdVEnXg3vqRpM=
-github.com/ncruces/go-sqlite3-wasm/v2 v2.2.35301/go.mod h1:q34C+veYmxQ7XRFgCKSeD6hq5vP/C517Hkl4iu+A5ao=
+github.com/ncruces/go-sqlite3 v0.35.4 h1:unjCk+lVaxMpD9hbVaZyDJviS5Unw1P03+HF0ROLlHo=
+github.com/ncruces/go-sqlite3 v0.35.4/go.mod h1:dfbnrzPOLEIpCNZ1yDRkIG60pGxjDCwiEKj9A0lGWYE=
+github.com/ncruces/go-sqlite3-wasm/v5 v5.0.35304 h1:Ck3GB9h+0n3hJqdhAeehOef3k5V+llGio1c2Dyk/W6w=
+github.com/ncruces/go-sqlite3-wasm/v5 v5.0.35304/go.mod h1:gJyN6U50iis7mDt+rzRv8u9vUNr08NTD2p4fVonKn/Q=
 github.com/ncruces/go-sqlite3/gormlite v0.34.0 h1:QLlOy/i7OabsFUQ+d5KyXmq2hw9sMh/CRW435+eQMRY=
 github.com/ncruces/go-sqlite3/gormlite v0.34.0/go.mod h1:CMv+6YhqLmPBXYACiQtrWA0q/JLIMTKB4E65SUfLgF0=
 github.com/ncruces/julianday v1.0.0 h1:fH0OKwa7NWvniGQtxdJRxAgkBMolni2BjDHaWTxqt7M=
