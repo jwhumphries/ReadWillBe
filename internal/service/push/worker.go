@@ -15,9 +15,13 @@ import (
 	"readwillbe/internal/service/email"
 )
 
-// NotificationCheckInterval is how often the worker scans for users due to
-// receive their daily notification.
-const NotificationCheckInterval = 1 * time.Minute
+const (
+	// NotificationCheckInterval is how often the worker scans for users due to
+	// receive their daily notification.
+	NotificationCheckInterval = 1 * time.Minute
+
+	emailReadingsRenderLimit = 10
+)
 
 // StartNotificationWorker starts the background notification loop and returns
 // a cancel function that stops it.
@@ -139,7 +143,7 @@ func processNotifications(cfg model.Config, db *gorm.DB, emailService email.Serv
 		}
 
 		if sendEmail {
-			if err := emailService.SendDailyDigest(user, activeReadings); err != nil {
+			if err := emailService.SendDailyDigest(user, activeReadings[:min(emailReadingsRenderLimit, len(activeReadings))]); err != nil {
 				logrus.Errorf("Error sending email to user %d: %v", user.ID, err)
 			} else {
 				logrus.Infof("Sent daily digest email to user %d", user.ID)
