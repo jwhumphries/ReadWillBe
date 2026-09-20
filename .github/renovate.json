@@ -20,6 +20,11 @@
   ],
   "packageRules": [
     {
+      "description": "The chart's image.tag is stamped by the release workflow; keep it empty in git",
+      "matchFileNames": ["charts/readwillbe/values.yaml"],
+      "enabled": false
+    },
+    {
       "description": "Automerge minor changes",
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
