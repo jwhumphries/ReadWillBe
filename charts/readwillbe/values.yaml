@@ -10,7 +10,7 @@ image:
   # Empty uses "v<appVersion>". Leave it empty in git: the release workflow
   # stamps "v<version>@sha256:<digest>" into the published chart once the
   # image has been pushed. Set it only to override the image for an install.
-  tag: "@sha256:5197608b09e6c41a9d440c488a8d1bd41ec2ff04d6d750637e9571a0beb0171e"
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
