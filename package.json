@@ -33,7 +33,7 @@
     "daisyui": "5.7.38",
     "esbuild": "0.28.2",
     "lightningcss": "1.33.0",
-    "prettier": "3.9.6",
+    "prettier": "3.9.8",
     "typescript": "6.0.3",
     "zod": "4.6.5",
     "@hookform/resolvers": "5.9.1",
