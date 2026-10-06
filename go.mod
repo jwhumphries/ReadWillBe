@@ -4,7 +4,7 @@ go 1.27.0
 
 require (
 	github.com/SherClockHolmes/webpush-go v1.4.0
-	github.com/a-h/templ v0.3.1020
+	github.com/a-h/templ v0.3.1070
 	github.com/gorilla/sessions v1.4.0
 	github.com/labstack/echo-contrib/v5 v5.0.1
 	github.com/labstack/echo/v5 v5.3.1
