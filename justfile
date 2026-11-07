@@ -92,4 +92,3 @@ format-check:
 # Remove build artifacts and node_modules
 clean:
     rm -rf ./tmp ./bin ./node_modules
-    rm -f bun.lock

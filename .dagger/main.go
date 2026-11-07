@@ -203,9 +203,11 @@ func (m *Readwillbe) TemplGenerate(source *dagger.Directory) *dagger.Directory {
 		WithMountedCache("/go-build-cache", dag.CacheVolume("go-build-cache")).
 		WithMountedCache("/go-mod-cache", dag.CacheVolume("go-mod-cache")).
 		WithExec([]string{"apk", "add", "--no-cache", "git"}).
-		WithExec([]string{"go", "install", "github.com/a-h/templ/cmd/templ@latest"}).
 		WithDirectory("/app", source).
 		WithWorkdir("/app").
+		// Install the templ CLI at the exact version pinned in go.mod so the
+		// generated code always matches the templ runtime library.
+		WithExec([]string{"sh", "-c", "go install github.com/a-h/templ/cmd/templ@$(go list -m -f '{{.Version}}' github.com/a-h/templ)"}).
 		WithExec([]string{"templ", "generate"}).
 		Directory("/app")
 }

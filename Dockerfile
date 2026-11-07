@@ -1,9 +1,11 @@
 # Stage 1: Go Base & Tool Builder
 FROM golang:1.27-alpine@sha256:b8c9b82affbbb82a020bbcf998dad2ba9516944ac7e883524642a481a9505e9c AS gobase
 RUN apk add --no-cache git
-# Install Air and Templ
+WORKDIR /src
+COPY go.mod go.sum ./
+# Install Air and Templ (templ pinned to the go.mod version so generated code matches the runtime)
 RUN go install github.com/air-verse/air@latest && \
-    go install github.com/a-h/templ/cmd/templ@latest
+    go install github.com/a-h/templ/cmd/templ@$(go list -m -f '{{.Version}}' github.com/a-h/templ)
 
 # Stage 2: Development Environment
 # Uses custom frontend image (Bun + Tailwind) as base
